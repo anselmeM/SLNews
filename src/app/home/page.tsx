@@ -4,7 +4,7 @@ import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import PersonalizedFeed from "./_components/PersonalizedFeed";
 import RecentlyViewed from "@/components/RecentlyViewed";
-import { fetchMixedHomeFeed } from "@/lib/news-service";
+import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -21,7 +21,12 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 10;
 
 async function HomeContent() {
-  const fallbackArticles = await fetchMixedHomeFeed(PAGE_SIZE + 1);
+  let fallbackArticles: NewsArticle[] = [];
+  try {
+    fallbackArticles = await fetchMixedHomeFeed(PAGE_SIZE + 1);
+  } catch {
+    fallbackArticles = [];
+  }
   const hasMore = fallbackArticles.length > PAGE_SIZE;
   if (hasMore) fallbackArticles.pop();
 

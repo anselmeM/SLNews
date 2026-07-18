@@ -18,10 +18,15 @@ export function cachedFetch<T>(
   const entry = store.get(key) as CacheEntry<T> | undefined;
   if (entry && Date.now() < entry.expiresAt) return Promise.resolve(entry.data);
 
-  return fetcher().then((data) => {
-    store.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1000 });
-    return data;
-  });
+  return fetcher()
+    .then((data) => {
+      store.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1000 });
+      return data;
+    })
+    .catch((err) => {
+      if (entry) return entry.data;
+      throw err;
+    });
 }
 
 export function invalidate(pattern?: string) {
