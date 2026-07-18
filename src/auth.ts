@@ -8,6 +8,7 @@ import { checkDbRateLimit } from "@/lib/rate-limiter"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
   session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
