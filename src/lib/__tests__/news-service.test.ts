@@ -23,6 +23,8 @@ function makeArticle(overrides: Partial<TestArticle> = {}): TestArticle {
     createdAt: now,
     updatedAt: now,
     publishedAt: now,
+    breaking: false,
+    breakingSetAt: null,
     author: { name: "John Doe", image: null },
     categories: [{ name: "National" }],
     ...overrides,

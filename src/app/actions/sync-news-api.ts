@@ -135,7 +135,9 @@ export async function syncNewsAPI() {
         });
 
         if (existing) {
-          const alreadyCategorized = existing.categories.some((c) => c.id === category.id);
+          const alreadyCategorized = existing.categories.some(
+            (c: { id: string }) => c.id === category.id
+          );
           if (!alreadyCategorized) {
             await db.article.update({
               where: { id: existing.id },

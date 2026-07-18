@@ -38,7 +38,9 @@ export async function getReactions(articleId: string) {
       })
     : [];
 
-  const userEmojis = new Set(userReactions.map((r) => r.emoji));
+  const userEmojis = new Set(
+    userReactions.map((r: { emoji: string }) => r.emoji)
+  );
   const map: Record<string, { count: number; reacted: boolean }> = {};
 
   for (const r of reactions) {
