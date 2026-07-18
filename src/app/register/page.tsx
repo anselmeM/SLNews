@@ -20,16 +20,33 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
-    const result = await registerUser({ name, email, password });
-    if (!result.success) {
-      setError(result.error || "Registration failed");
-      setLoading(false);
-      return;
-    }
+    try {
+      const result = await registerUser({ name, email, password });
+      if (!result.success) {
+        setError(result.error || "Registration failed");
+        setLoading(false);
+        return;
+      }
 
-    await signIn("credentials", { redirect: false, email, password });
-    router.push("/home");
-    router.refresh();
+      const signInResult = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (signInResult?.error) {
+        setError("Account created, but sign-in failed. Try logging in.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/home");
+      router.refresh();
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
