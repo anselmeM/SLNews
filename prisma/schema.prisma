@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id              String         @id @default(cuid())
+  name            String?
+  email           String?        @unique
+  emailVerified   DateTime?
+  image           String?
+  role            Role           @default(USER)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  password        String?
+  bio             String?
+  preferredRegion String?
+  preferredTopics String[]
+  accounts        Account[]
+  articles        Article[]
+  sessions        Session[]
+  savedArticles   SavedArticle[]
+  comments        Comment[]
+  reactions       ArticleReaction[]
+}
+
+model SavedArticle {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Article {
+  id            String         @id @default(cuid())
+  title         String
+  content       String
+  summary       String?
+  imageUrl      String?
+  published     Boolean        @default(false)
+  status        Status         @default(DRAFT)
+  province      String?
+  district      String?
+  authorId      String
+  breaking      Boolean        @default(false)
+  breakingSetAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  publishedAt   DateTime?
+  author        User           @relation(fields: [authorId], references: [id])
+  categories    Category[]     @relation("ArticleToCategory")
+  savedByUsers  SavedArticle[]
+  comments      Comment[]
+  reactions     ArticleReaction[]
+
+  @@index([published, status])
+  @@index([publishedAt])
+  @@index([updatedAt])
+  @@index([province])
+  @@index([authorId])
+  @@index([title])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  articles Article[] @relation("ArticleToCategory")
+}
+
+enum Role {
+  USER
+  WRITER
+  EDITOR
+  ADMIN
+}
+
+enum Status {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  REJECTED
+}
+
+model MarketPrice {
+  id          String   @id @default(cuid())
+  commodity   String
+  market      String   @default("Freetown Central")
+  price       Float
+  trend       String?
+  trendPct    Float?
+  trendPeriod String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@unique([commodity, market])
+}
+
+model Announcement {
+  id           String   @id @default(cuid())
+  title        String
+  body         String
+  category     String
+  icon         String
+  organization String
+  location     String
+  dateLabel    String
+  urgency      String?
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, category, createdAt])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+  articleId String
+  userId    String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([articleId, createdAt])
+  @@index([userId])
+}
+
+model ArticleReaction {
+  id        String   @id @default(cuid())
+  articleId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, userId, emoji])
+  @@index([articleId])
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(1)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  @@index([email])
+  @@index([token])
+}
