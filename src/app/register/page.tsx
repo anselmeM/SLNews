@@ -17,32 +17,50 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError("");
+
+    const timeout = setTimeout(() => {
+      setError("Registration is taking too long. Please try again.");
+      setLoading(false);
+    }, 15000);
 
     try {
       const result = await registerUser({ name, email, password });
       if (!result.success) {
+        clearTimeout(timeout);
         setError(result.error || "Registration failed");
         setLoading(false);
         return;
       }
 
-      const signInResult = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
+      let signedIn = false;
+      try {
+        const signInResult = await Promise.race([
+          signIn("credentials", { redirect: false, email, password }),
+          new Promise<{ error?: string }>((resolve) =>
+            setTimeout(() => resolve({ error: "timeout" }), 12000)
+          ),
+        ]);
+        if (!signInResult?.error) signedIn = true;
+      } catch {
+        signedIn = false;
+      }
 
-      if (signInResult?.error) {
-        setError("Account created, but sign-in failed. Try logging in.");
-        setLoading(false);
+      clearTimeout(timeout);
+
+      if (!signedIn) {
+        setError("Account created, but sign-in failed. Redirecting to login…");
+        router.push("/login");
+        router.refresh();
         return;
       }
 
       router.push("/home");
       router.refresh();
     } catch (err) {
+      clearTimeout(timeout);
       console.error("Registration error:", err);
       setError("Something went wrong. Please try again.");
       setLoading(false);

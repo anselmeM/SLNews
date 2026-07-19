@@ -15,21 +15,36 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-
-    if (result?.error) {
-      setError("Invalid email or password");
+    const timeout = setTimeout(() => {
+      setError("Sign in is taking too long. Please try again.");
       setLoading(false);
-    } else {
-      router.push("/home");
-      router.refresh();
+    }, 15000);
+
+    try {
+      const result = await Promise.race([
+        signIn("credentials", { redirect: false, email, password }),
+        new Promise<{ error?: string }>((resolve) =>
+          setTimeout(() => resolve({ error: "timeout" }), 12000)
+        ),
+      ]);
+
+      clearTimeout(timeout);
+
+      if (result?.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+      } else {
+        router.push("/home");
+        router.refresh();
+      }
+    } catch {
+      clearTimeout(timeout);
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
