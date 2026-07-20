@@ -5,8 +5,9 @@ import { useRouter, usePathname } from "next/navigation";
 
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import MobileDrawer from "./MobileDrawer";
 
 const navLinks = [
   { name: "Home", href: "/home" },
@@ -21,6 +22,21 @@ export default function TopAppBar({ session }: { session: Session | null }) {
   const dataSaver = useAppStore((state) => state.dataSaver);
   const setDataSaver = useAppStore((state) => state.setDataSaver);
   const [searchQuery, setSearchQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
 
   const handleDataSaverToggle = () => {
     setDataSaver(!dataSaver);
@@ -40,8 +56,18 @@ export default function TopAppBar({ session }: { session: Session | null }) {
 
   return (
     <>
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} session={session} />
+
       <header className="fixed top-0 w-full h-[64px] z-40 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 lg:gap-6">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-3 -ml-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer lg:hidden"
+            aria-label="Open menu"
+          >
+            <span className="material-symbols-outlined text-on-surface-variant">menu</span>
+          </button>
+
           <Link href="/search" className="text-primary hover:bg-surface-container-low p-3 rounded-full transition-colors duration-200 cursor-pointer md:hidden" aria-label="Search news">
             <span className="material-symbols-outlined">search</span>
           </Link>
@@ -111,28 +137,30 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           )}
 
           {session?.user ? (
-            <div className="relative group focus-within:opacity-100">
-              <Link
-                href="/profile"
-                className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-colors active:scale-95"
-                aria-expanded={false}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-colors active:scale-95 cursor-pointer min-h-[44px] min-w-[44px]"
+                aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
                 {session.user.name?.[0]?.toUpperCase() || "U"}
-              </Link>
-              <div className="absolute right-0 mt-2 w-48 bg-surface dark:bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-outline-variant/30">
-                  <p className="text-sm font-semibold text-on-surface truncate">{session.user.name}</p>
-                  <p className="text-xs text-on-surface-variant truncate mt-0.5">{session.user.email}</p>
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-surface dark:bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-lg overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-outline-variant/30">
+                    <p className="text-sm font-semibold text-on-surface truncate">{session.user.name}</p>
+                    <p className="text-xs text-on-surface-variant truncate mt-0.5">{session.user.email}</p>
+                  </div>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); signOut(); }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm text-error hover:bg-error-container transition-colors cursor-pointer font-medium min-h-[44px]"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    Sign Out
+                  </button>
                 </div>
-                <button
-                  onClick={() => signOut()}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-error hover:bg-error-container transition-colors cursor-pointer font-medium"
-                >
-                  <span className="material-symbols-outlined text-[18px]">logout</span>
-                  Sign Out
-                </button>
-              </div>
+              )}
             </div>
           ) : (
             <Link
@@ -144,7 +172,6 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           )}
         </div>
       </header>
-
-    </>       
+    </>
   );
 }

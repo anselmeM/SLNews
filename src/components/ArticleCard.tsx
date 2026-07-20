@@ -15,6 +15,7 @@ export default function ArticleCard({ article }: { article: NewsArticle }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.04)" }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="bg-surface-container-lowest rounded-3xl p-3 flex gap-4 transition-shadow duration-300 group relative cursor-pointer"
     >

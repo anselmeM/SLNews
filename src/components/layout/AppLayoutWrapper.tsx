@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { useEffect, useRef } from "react";
+import BackToTop from "@/components/BackToTop";
+import InstallBanner from "@/components/InstallBanner";
 import BottomNavBar from "./BottomNavBar";
 import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
@@ -52,6 +54,8 @@ export default function AppLayoutWrapper({
           {children}
         </main>
         <BottomNavBar />
+        <BackToTop />
+        <InstallBanner />
       </div>
     </ToastProvider>
     </SessionProvider>

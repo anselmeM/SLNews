@@ -16,8 +16,8 @@ export default function BookmarkButton({
   const iconSize = variant === "featured" ? "text-[20px]" : "text-[18px]";
 
   const classes = variant === "featured"
-    ? `${base} top-4 right-4 p-2.5 backdrop-blur-md ${isSaved ? "text-primary bg-white shadow-sm" : "text-white bg-black/20 hover:bg-black/40"}`
-    : `${base} bottom-3 right-3 p-2.5 ${isSaved ? "text-primary bg-primary-container" : "text-on-surface-variant hover:bg-surface-container-high"}`;
+    ? `${base} top-4 right-4 p-3 min-w-[44px] min-h-[44px] backdrop-blur-md ${isSaved ? "text-primary bg-white shadow-sm" : "text-white bg-black/20 hover:bg-black/40"}`
+    : `${base} bottom-3 right-3 p-3 min-w-[44px] min-h-[44px] ${isSaved ? "text-primary bg-primary-container" : "text-on-surface-variant hover:bg-surface-container-high"}`;
 
   return (
     <button

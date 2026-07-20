@@ -1,17 +1,19 @@
 "use client";
 
 import { useBookmark } from "@/hooks/useBookmark";
+import { useToast } from "@/components/Toast";
 import type { NewsArticle } from "@/lib/news-service";
 
 export default function ArticleActions({ article }: { article: NewsArticle }) {
   const { isSaved, handleBookmark } = useBookmark(article);
+  const { toast } = useToast();
 
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({ title: article.title, url: window.location.href });
     } else {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      toast("Link copied to clipboard!", "success");
     }
   };
 
@@ -19,7 +21,7 @@ export default function ArticleActions({ article }: { article: NewsArticle }) {
     <div className="flex items-center gap-2">
       <button
         onClick={handleBookmark}
-        className="p-3 hover:bg-gray-100 rounded-full transition-colors text-on-surface-variant cursor-pointer"
+        className="p-3 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-full transition-colors text-on-surface-variant cursor-pointer"
         aria-label={isSaved ? "Remove bookmark" : "Bookmark article"}
         title={isSaved ? "Remove bookmark" : "Bookmark article"}
       >
@@ -32,7 +34,7 @@ export default function ArticleActions({ article }: { article: NewsArticle }) {
       </button>
       <button
         onClick={handleShare}
-        className="p-3 hover:bg-gray-100 rounded-full transition-colors text-on-surface-variant cursor-pointer"
+        className="p-3 min-h-[44px] min-w-[44px] hover:bg-gray-100 rounded-full transition-colors text-on-surface-variant cursor-pointer"
         aria-label="Share article"
         title="Share"
       >
