@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import type { Session } from "next-auth";
 import { useAppStore } from "@/store/useAppStore";
+import PushToggle from "@/components/PushToggle";
 
 interface Props {
   open: boolean;
@@ -108,6 +109,8 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
                 </span>
                 Data Saver {dataSaver ? "ON" : "OFF"}
               </button>
+
+              <PushToggle />
 
               {session?.user ? (
                 <>

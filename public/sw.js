@@ -69,3 +69,34 @@ async function fetchAndCache(request) {
   }
   return response;
 }
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  try {
+    const data = event.data.json();
+    const promise = self.registration.showNotification(data.title || "SLNews", {
+      body: data.body || "",
+      icon: data.icon || "/icon-192x192.png",
+      badge: "/icon-192x192.png",
+      data: { url: data.url || "/home" },
+      vibrate: [200, 100, 200],
+      tag: "slnews-breaking",
+    });
+    event.waitUntil(promise);
+  } catch {}
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/home";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clients) => {
+      const existing = clients.find((c) => c.url.includes(url) && "focus" in c);
+      if (existing) {
+        existing.focus();
+      } else if (self.clients.openWindow) {
+        self.clients.openWindow(url);
+      }
+    })
+  );
+});

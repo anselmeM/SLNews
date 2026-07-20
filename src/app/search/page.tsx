@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import SearchSuggestions from "./_components/SearchSuggestions";
+import InstantSearch from "./_components/InstantSearch";
 import NewsFeed from "@/components/NewsFeed";
 import { searchArticles } from "@/lib/news-service";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { getTrendingTopics } from "@/app/actions/search-actions";
 
 export const metadata: Metadata = {
   title: "Search | SLNews",
   description: "Search news articles on SLNews.",
 };
 
-const POPULAR_TOPICS = ["Politics", "Sports", "Freetown", "Economy", "Health"];
 const CATEGORY_FILTERS = ["All", "National", "Politics", "Sports", "Business", "Technology", "Health", "Entertainment"];
 
 export default async function SearchPage(props: {
@@ -42,6 +43,7 @@ export default async function SearchPage(props: {
   }
 
   const results = query ? await searchArticles(query) : [];
+  const trending = query ? [] : await getTrendingTopics();
 
   const filteredResults = category
     ? results.filter((r) => r.category.toLowerCase() === category.toLowerCase())
@@ -60,22 +62,24 @@ export default async function SearchPage(props: {
           </p>
         ) : (
           <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">
-            Use the search bar above to find news articles.
+            Search across all news articles
           </p>
         )}
       </section>
 
+      {!query && <InstantSearch />}
+
       <SearchSuggestions currentQuery={query} />
 
-      {!query && (
+      {!query && trending.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Popular Topics</h2>
+          <h2 className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Trending Topics</h2>
           <div className="flex flex-wrap gap-2">
-            {POPULAR_TOPICS.map((topic) => (
+            {trending.map((topic) => (
               <Link
                 key={topic}
                 href={`/search?q=${encodeURIComponent(topic)}`}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors"
+                className="px-4 py-2 bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 rounded-full text-sm font-semibold text-on-surface hover:border-primary hover:text-primary transition-colors"
               >
                 {topic}
               </Link>
@@ -99,7 +103,7 @@ export default async function SearchPage(props: {
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                   isActive
                     ? "bg-primary text-white shadow-sm"
-                    : "bg-white border border-gray-200 text-on-surface hover:border-primary hover:text-primary"
+                    : "bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 text-on-surface hover:border-primary hover:text-primary"
                 }`}
               >
                 {f}

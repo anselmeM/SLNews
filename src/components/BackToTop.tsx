@@ -24,7 +24,7 @@ export default function BackToTop() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.5, y: 16 }}
           whileTap={{ scale: 0.92 }}
-          className="fixed bottom-28 md:bottom-8 right-4 z-40 w-11 h-11 rounded-full bg-primary text-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
+          className="fixed bottom-28 md:bottom-8 left-4 z-40 w-11 h-11 rounded-full bg-primary text-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
           aria-label="Back to top"
         >
           <span className="material-symbols-outlined text-xl">arrow_upward</span>

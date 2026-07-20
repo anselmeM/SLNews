@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { syncFromScraper } from "@/app/actions/sync-scraper";
 import { syncWorldNews } from "@/app/actions/sync-news-api";
+import { sendPushNotifications } from "@/app/actions/push-actions";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -28,11 +29,21 @@ export async function GET(request: Request) {
   const total = (slResult.count ?? 0) + (worldResult.count ?? 0);
   const ok = slResult.success || worldResult.success;
 
+  let pushResult = { sent: 0 };
+  if (total > 0) {
+    pushResult = await sendPushNotifications(
+      "Breaking News",
+      `${total} new article${total > 1 ? "s" : ""} on SLNews. Tap to read.`,
+      "/home"
+    );
+  }
+
   return NextResponse.json({
     success: ok,
     sierraLeone: slResult,
     world: worldResult,
     count: total,
+    push: pushResult,
   });
 }
 
