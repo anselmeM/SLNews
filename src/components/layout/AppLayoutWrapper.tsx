@@ -10,6 +10,7 @@ import BottomNavBar from "./BottomNavBar";
 import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
 import { ToastProvider } from "@/components/Toast";
+import ThemeSync from "@/components/ThemeSync";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function AppLayoutWrapper({
@@ -48,6 +49,7 @@ export default function AppLayoutWrapper({
   return (
     <SessionProvider session={session}>
     <ToastProvider>
+      <ThemeSync />
       <div className="pt-[80px] pb-[100px] md:pb-16 min-h-screen bg-surface">
         <TopAppBar session={session} />
         <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
