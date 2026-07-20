@@ -1,14 +1,16 @@
-const CACHE = "slnews-v1";
-const STATIC_ASSETS = [
-  "/",
-  "/manifest.json",
-  "/icon-192x192.png",
-  "/icon-512x512.png",
-];
+const CACHE = "slnews-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE).then((cache) =>
+      cache.addAll([
+        "/",
+        "/manifest.json",
+        "/icon-192x192.png",
+        "/icon-512x512.png",
+        "/apple-touch-icon.png",
+      ])
+    )
   );
   self.skipWaiting();
 });
@@ -27,11 +29,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET") return;
-
-  if (url.origin !== self.location.origin) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
 
   if (url.pathname.startsWith("/api/")) {
     event.respondWith(networkFirst(request));
@@ -60,7 +57,7 @@ async function networkFirst(request) {
     return await fetchAndCache(request);
   } catch {
     const cached = await caches.match(request);
-    return cached || new Response("Offline", { status: 503 });
+    return cached || new Response("Offline — please check your connection.", { status: 503, statusText: "Offline" });
   }
 }
 
