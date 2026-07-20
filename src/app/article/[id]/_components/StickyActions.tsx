@@ -37,8 +37,8 @@ export function StickyActions({ article }: { article: NewsArticle }) {
           initial={{ y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 px-4 py-3 flex items-center justify-between"
-          style={{ paddingBottom: "calc(12px + env(safe-area-inset-bottom))" }}
+          className="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 px-4 py-3 flex items-center justify-between pb-[80px] md:pb-4"
+          style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}
         >
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-xs font-bold text-primary uppercase tracking-wide truncate">
