@@ -7,6 +7,7 @@ import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 import MobileDrawer from "./MobileDrawer";
 
 const navLinks = [
@@ -25,6 +26,7 @@ export default function TopAppBar({ session }: { session: Session | null }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const scrolled = useScrollPosition();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -58,7 +60,11 @@ export default function TopAppBar({ session }: { session: Session | null }) {
     <>
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} session={session} />
 
-      <header className="fixed top-0 w-full h-[64px] z-40 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className={`fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-2xl flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+        scrolled
+          ? "h-[52px] border-b border-outline-variant/30 shadow-sm"
+          : "h-[64px] border-b border-outline-variant/30"
+      }`}>
         <div className="flex items-center gap-4 lg:gap-6">
           <button
             onClick={() => setDrawerOpen(true)}
@@ -73,13 +79,17 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           </Link>
 
           <Link href="/home" className="flex items-center">
-            <h1 className="text-xl font-black text-primary tracking-tight">
+            <h1 className={`font-black text-primary tracking-tight transition-all duration-300 ${
+              scrolled ? "text-lg" : "text-xl"
+            }`}>
               SL News
             </h1>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center bg-surface-container-low rounded-2xl p-1 gap-0.5">
+          <nav className={`hidden lg:flex items-center bg-surface-container-low rounded-2xl p-1 gap-0.5 transition-all duration-300 ${
+            scrolled ? "scale-95" : ""
+          }`}>
             {navLinks.map((link) => {
               const active = isActive(link.href);
               return (
@@ -99,7 +109,9 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           </nav>
         </div>
 
-        <form onSubmit={handleSearch} className="flex-1 max-w-sm px-4 hidden md:block relative">
+        <form onSubmit={handleSearch} className={`flex-1 max-w-sm px-4 hidden md:block relative transition-all duration-300 ${
+          scrolled ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0"
+        }`}>
           <span className="material-symbols-outlined absolute left-7 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
           <input
             value={searchQuery}
@@ -110,7 +122,9 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           />
         </form>
 
-        <div className="flex items-center gap-4">
+        <div className={`flex items-center transition-all duration-300 ${
+          scrolled ? "gap-3" : "gap-4"
+        }`}>
           <button
             onClick={handleDataSaverToggle}
             className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
