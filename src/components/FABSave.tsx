@@ -18,7 +18,7 @@ export default function FABSave({ article }: { article: NewsArticle }) {
         toast(isSaved ? "Removed from saved" : "Article saved!", "success");
       }}
       whileTap={{ scale: 0.9 }}
-      className="fixed bottom-28 right-4 z-30 p-4 rounded-full shadow-lg flex items-center justify-center cursor-pointer transition-colors duration-200 min-w-[56px] min-h-[56px]"
+      className="fixed bottom-36 right-4 z-30 p-4 rounded-full shadow-lg flex items-center justify-center cursor-pointer transition-colors duration-200 min-w-[56px] min-h-[56px]"
       style={{
         backgroundColor: isSaved ? "var(--color-primary)" : "var(--color-surface-container-highest)",
         color: isSaved ? "white" : "var(--color-on-surface)",
