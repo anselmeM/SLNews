@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import NewsFeed from "@/components/NewsFeed";
+import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchSLNews } from "@/lib/news-service";
 import TabFilters from "./_components/TabFilters";
 
@@ -76,13 +77,7 @@ export default async function SLNewsPage({
         <TabFilters />
       </Suspense>
 
-      <Suspense fallback={
-        <div className="animate-pulse space-y-4">
-          <div className="h-40 bg-gray-100 rounded-xl" />
-          <div className="h-24 bg-gray-100 rounded-xl" />
-          <div className="h-24 bg-gray-100 rounded-xl" />
-        </div>
-      }>
+      <Suspense fallback={<ShimmerFeed count={3} />}>
         <SLNewsContent region={currentRegion} topic={currentTopic} page={currentPage} />
       </Suspense>
     </div>

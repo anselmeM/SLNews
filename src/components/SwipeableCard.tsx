@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { NewsArticle } from "@/lib/news-service";
 import { useBookmark } from "@/hooks/useBookmark";
 import { vibrate } from "@/lib/haptics";
+import { useLongPress } from "@/hooks/useLongPress";
 import ArticleImage from "./ArticleImage";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -16,7 +17,9 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
   const { isSaved, handleBookmark } = useBookmark(article);
   const x = useMotionValue(0);
   const [dragging, setDragging] = useState(false);
+  const [contextMenu, setContextMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const longPress = useLongPress(() => { setContextMenu(true); vibrate(30); });
 
   const saveOpacity = useTransform(x, [0, THRESHOLD], [0, 1]);
   const shareOpacity = useTransform(x, [-THRESHOLD, 0], [0, 1]);
@@ -70,6 +73,7 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
         style={{ x }}
         onDragStart={() => { setDragging(true); vibrate(); }}
         onDragEnd={() => { handleDragEnd(); setDragging(false); }}
+        {...longPress}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.04)" }}
@@ -121,6 +125,31 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
             <div className="flex-1 text-center text-sm text-on-surface-variant font-medium">
               {"< Swipe right to save • Swipe left to share >"}
             </div>
+          </div>
+        )}
+        {contextMenu && (
+          <div className="absolute inset-0 z-30 bg-surface/95 backdrop-blur-sm rounded-3xl flex items-center justify-center gap-4" onClick={() => setContextMenu(false)}>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleBookmark(); vibrate(); setContextMenu(false); }}
+              className="flex flex-col items-center gap-1 px-6 py-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-2xl text-green-600" style={isSaved ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                {isSaved ? "bookmark" : "bookmark_border"}
+              </span>
+              <span className="text-xs font-semibold">{isSaved ? "Saved" : "Save"}</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (navigator.share) navigator.share({ title: article.title, url: `${window.location.origin}/article/${article.id}` });
+                else navigator.clipboard.writeText(`${window.location.origin}/article/${article.id}`);
+                vibrate(); setContextMenu(false);
+              }}
+              className="flex flex-col items-center gap-1 px-6 py-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-2xl text-blue-600">share</span>
+              <span className="text-xs font-semibold">Share</span>
+            </button>
           </div>
         )}
         {isSaved && (

@@ -4,6 +4,7 @@ import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import PersonalizedFeed from "./_components/PersonalizedFeed";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
 
 function getGreeting(): string {
@@ -53,14 +54,7 @@ export default async function Home() {
         <RecentlyViewed />
       </Suspense>
 
-      <Suspense fallback={
-        <div className="animate-pulse space-y-4">
-          <div className="h-40 bg-gray-100 rounded-xl" />
-          <div className="h-24 bg-gray-100 rounded-xl" />
-          <div className="h-24 bg-gray-100 rounded-xl" />
-          <div className="h-24 bg-gray-100 rounded-xl" />
-        </div>
-      }>
+      <Suspense fallback={<ShimmerFeed count={4} />}>
         <HomeContent />
       </Suspense>
     </div>

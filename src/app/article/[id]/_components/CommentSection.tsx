@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { ShimmerBar } from "@/components/Shimmer";
 
 type CommentUser = { id: string; name: string | null; image: string | null };
 type CommentData = {
@@ -46,13 +47,13 @@ function UserAvatar({ user, size = 10 }: { user: CommentUser; size?: number }) {
 
 function CommentSkeleton() {
   return (
-    <div className="animate-pulse space-y-3">
+    <div className="space-y-3">
       {[1, 2, 3].map((i) => (
         <div key={i} className="flex gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+          <ShimmerBar className="w-10 h-10 rounded-full shrink-0" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 bg-gray-200 rounded w-24" />
-            <div className="h-4 bg-gray-200 rounded w-full" />
+            <ShimmerBar className="h-3 w-24" />
+            <ShimmerBar className="h-4 w-full" />
           </div>
         </div>
       ))}

@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import AuthorBioCard from "./_components/AuthorBioCard";
 import CommentSection from "./_components/CommentSection";
-import ArticleActions from "@/components/ArticleActions";
+import ShareSheet from "./_components/ShareSheet";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
 import FABSave from "@/components/FABSave";
 import ReactionButtons from "@/components/ReactionButtons";
+import { ShimmerFeed, ShimmerBar } from "@/components/Shimmer";
 import TrackArticleView from "@/components/TrackArticleView";
 import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
 
@@ -113,7 +114,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
               </div>
             </div>
             
-            <ArticleActions article={article} />
+            <ShareSheet article={article} />
           </div>
           
           {/* Hero Image */}
@@ -165,13 +166,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
       {/* Related Stories */}
       <section className="mb-12">
         <h3 className="text-lg font-bold text-on-surface mb-4">Related Stories</h3>
-        <Suspense fallback={
-          <div className="animate-pulse space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-24 bg-gray-100 rounded-xl" />
-            ))}
-          </div>
-        }>
+        <Suspense fallback={<ShimmerFeed count={2} />}>
           <RelatedStories excludeId={article.id} category={article.category} />
         </Suspense>
       </section>
