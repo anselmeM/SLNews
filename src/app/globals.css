@@ -142,6 +142,10 @@ a, button, [role="button"], input, select, textarea {
   touch-action: manipulation;
 }
 
+article a {
+  -webkit-touch-callout: none;
+}
+
 * {
   transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 0.2s;
