@@ -18,6 +18,7 @@ type ScraperArticle = {
   title?: string;
   link?: string;
   author?: string;
+  imageUrl?: string;
   paragraphs?: string[];
   pubDate?: string;
   source?: string;
@@ -114,7 +115,7 @@ export async function syncFromScraper() {
           title,
           summary,
           content,
-          imageUrl: "/globe.svg",
+          imageUrl: a.imageUrl?.trim() || "/globe.svg",
           published: true,
           status: "PUBLISHED",
           province: null,
