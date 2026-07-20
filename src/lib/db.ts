@@ -22,6 +22,22 @@ pool.on("error", (err) => {
   console.error("pg pool unexpected error:", err.message);
 });
 
+// Retry helper for Neon cold-start connection timeouts
+export async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const msg = (err as Error).message || "";
+      if (i === retries - 1 || (!msg.includes("timeout") && !msg.includes("terminated") && !msg.includes("Connection"))) {
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, 500 * (i + 1)));
+    }
+  }
+  throw new Error("unreachable");
+}
+
 const adapter = new PrismaPg(pool);
 
 declare global {
