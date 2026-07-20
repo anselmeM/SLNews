@@ -4,6 +4,7 @@ import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import PersonalizedFeed from "./_components/PersonalizedFeed";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import LatestStories from "@/components/LatestStories";
 import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
 
@@ -41,6 +42,10 @@ export default async function Home() {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-tight">{getGreeting()}</h1>
         <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">Find out what&apos;s happening around Sierra Leone</p>
       </div>
+
+      <Suspense fallback={null}>
+        <LatestStories />
+      </Suspense>
 
       <Suspense fallback={null}>
         <BreakingNewsBanner />

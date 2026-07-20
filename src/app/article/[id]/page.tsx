@@ -5,11 +5,13 @@ import { Suspense } from "react";
 import AuthorBioCard from "./_components/AuthorBioCard";
 import CommentSection from "./_components/CommentSection";
 import ShareSheet from "./_components/ShareSheet";
+import ListenButton from "@/components/ListenButton";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
 import FABSave from "@/components/FABSave";
 import ReactionButtons from "@/components/ReactionButtons";
+import ReadingProgress from "@/components/ReadingProgress";
 import { ShimmerFeed, ShimmerBar } from "@/components/Shimmer";
 import TrackArticleView from "@/components/TrackArticleView";
 import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
@@ -115,6 +117,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
             </div>
             
             <ShareSheet article={article} />
+            <ListenButton title={article.title} content={article.content} />
           </div>
           
           {/* Hero Image */}
@@ -174,6 +177,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
       <CommentSection articleId={article.id} />
       <TrackArticleView article={article} />
       <FABSave article={article} />
+      <ReadingProgress />
     </div>
   );
 }
