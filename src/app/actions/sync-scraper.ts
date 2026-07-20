@@ -96,10 +96,11 @@ export async function syncFromScraper() {
       const link = a.link?.trim();
       if (!title || !link) continue;
 
+      const byline = [a.author, a.source].filter(Boolean).join(" for ") || "SLNews";
       const paragraphs = Array.isArray(a.paragraphs) ? a.paragraphs : [];
       const body = paragraphs.join("\n\n").trim() || "Read full article on source.";
-      const content = `${body}\n\nSource: ${a.source || "SLNews Scraper"} — ${link}`;
-      const summary = a.description?.trim() || paragraphs[0]?.slice(0, 280) || title;
+      const content = `${body}\n\nSource: ${byline} — ${link}`;
+      const summary = paragraphs[0]?.slice(0, 280) || title;
 
       const publishedAt = a.pubDate
         ? new Date(a.pubDate)

@@ -24,6 +24,13 @@ type ArticleWithRelations = Article & {
 
 export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
   const categoryName = article.categories?.[0]?.name || "National";
+
+  let sourceName = article.author?.name || "SLNews Contributor";
+  if (sourceName === "News Bot") {
+    const match = article.content?.match(/Source: (.+?) —/);
+    if (match?.[1]) sourceName = match[1].trim();
+  }
+
   return {
     id: article.id,
     title: article.title,
@@ -32,7 +39,7 @@ export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
     imageUrl: article.imageUrl || "/globe.svg",
     category: categoryName,
     location: article.district || article.province || undefined,
-    source: article.author?.name || "SLNews Contributor",
+    source: sourceName,
     sourceImage: article.author?.image || undefined,
     publishedAt: article.publishedAt ? article.publishedAt.toISOString() : article.createdAt.toISOString(),
     authorId: article.authorId,
