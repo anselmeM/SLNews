@@ -8,14 +8,12 @@ export default function BottomNavBar() {
 
   const navItems = [
     { name: "Home", href: "/home", icon: "home" },
-    { name: "National", href: "/news", icon: "map" },
-    { name: "Search", href: "/search", icon: "search" },
+    { name: "News", href: "/news", icon: "map" },
     { name: "Saved", href: "/saved", icon: "bookmark" },
-    { name: "Profile", href: "/profile", icon: "person" },
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-sm z-50 flex justify-around items-center py-3 bg-surface/75 dark:bg-surface/75 backdrop-blur-xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.08)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)]">
+    <nav className="md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-[264px] z-50 flex justify-around items-center py-3 bg-surface/75 dark:bg-surface/75 backdrop-blur-xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.08)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)]">
       {navItems.map((item) => {
         const isActive = (item.href === "/home" && (pathname === "/home" || pathname === "/"))
           || (item.href !== "/home" && pathname.startsWith(item.href));
