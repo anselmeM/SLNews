@@ -70,7 +70,7 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
         drag="x"
         dragConstraints={ref}
         dragElastic={0.2}
-        style={{ x }}
+        style={{ x, WebkitTouchCallout: "none" } as Record<string, unknown>}
         onDragStart={() => { setDragging(true); vibrate(); }}
         onDragEnd={() => { handleDragEnd(); setDragging(false); }}
         {...longPress}
@@ -81,10 +81,9 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="bg-surface-container-lowest rounded-3xl p-3 flex gap-4 relative z-10 cursor-grab active:cursor-grabbing select-none"
         onContextMenu={(e) => e.preventDefault()}
-        style={{ WebkitTouchCallout: "none" } as React.CSSProperties}
       >
         {!dragging && (
-          <Link href={`/article/${article.id}`} className="flex-1 flex gap-4 w-full items-center select-none" aria-label={article.title} onContextMenu={(e) => e.preventDefault()} style={{ WebkitTouchCallout: "none" } as React.CSSProperties}>
+          <Link href={`/article/${article.id}`} className="flex-1 flex gap-4 w-full items-center select-none" aria-label={article.title}>
             {!dataSaver && (
               <div className="w-28 h-28 rounded-2xl overflow-hidden shrink-0 relative bg-surface-container">
                 <ArticleImage

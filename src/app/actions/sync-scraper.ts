@@ -18,6 +18,8 @@ type ScraperArticle = {
   title?: string;
   link?: string;
   author?: string;
+  description?: string;
+  category?: string[];
   imageUrl?: string;
   paragraphs?: string[];
   pubDate?: string;
@@ -47,11 +49,25 @@ async function getBotUser() {
   return botUser;
 }
 
+async function resolveCategories(names: string[]) {
+  const resolved = await Promise.all(
+    [...new Set(names.map(n => n.trim()).filter(Boolean))].map(async (name) => {
+      const cat = await db.category.upsert({
+        where: { name },
+        update: {},
+        create: { name },
+      });
+      return { id: cat.id };
+    })
+  );
+  return resolved;
+}
+
 export async function syncFromScraper() {
   try {
     const botUser = await getBotUser();
 
-    const category = await db.category.upsert({
+    const fallbackCategory = await db.category.upsert({
       where: { name: "National" },
       update: {},
       create: { name: "National" },
@@ -83,7 +99,7 @@ export async function syncFromScraper() {
       const paragraphs = Array.isArray(a.paragraphs) ? a.paragraphs : [];
       const body = paragraphs.join("\n\n").trim() || "Read full article on source.";
       const content = `${body}\n\nSource: ${a.source || "SLNews Scraper"} — ${link}`;
-      const summary = paragraphs[0]?.slice(0, 280) || title;
+      const summary = a.description?.trim() || paragraphs[0]?.slice(0, 280) || title;
 
       const publishedAt = a.pubDate
         ? new Date(a.pubDate)
@@ -91,20 +107,29 @@ export async function syncFromScraper() {
           ? new Date(a.createdAt)
           : new Date();
 
+      const categoryNames = (Array.isArray(a.category) && a.category.length > 0)
+        ? a.category
+        : ["National"];
+      const categories = await resolveCategories(categoryNames);
+
       const existing = await db.article.findFirst({
         where: { title },
         include: { categories: true },
       });
 
       if (existing) {
-        const alreadyCategorized = existing.categories.some(
-          (c: { id: string }) => c.id === category.id
-        );
+        const existingNames = existing.categories.map((c: { name: string }) => c.name);
+        const missingNames = categoryNames.filter(n => !existingNames.includes(n));
         const needsImage = (!existing.imageUrl || existing.imageUrl === "/globe.svg") && a.imageUrl?.trim();
+        const needsSummary = !existing.summary && summary !== title;
 
         const updateData: Record<string, unknown> = {};
-        if (!alreadyCategorized) updateData.categories = { connect: { id: category.id } };
+        if (missingNames.length > 0) {
+          const missing = await resolveCategories(missingNames);
+          updateData.categories = { connect: missing.map(c => ({ id: c.id })) };
+        }
         if (needsImage) updateData.imageUrl = a.imageUrl!.trim();
+        if (needsSummary) updateData.summary = summary;
 
         if (Object.keys(updateData).length > 0) {
           await db.article.update({
@@ -128,7 +153,7 @@ export async function syncFromScraper() {
           district: null,
           publishedAt,
           authorId: botUser.id,
-          categories: { connect: { id: category.id } },
+          categories: { connect: categories },
         },
       });
       totalCount++;
