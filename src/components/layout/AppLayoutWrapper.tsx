@@ -39,9 +39,9 @@ export default function AppLayoutWrapper({
     }
   }, [session?.user?.id, setSavedIds, setPreferences]);
 
-  const isAuthOrOnboarding = pathname === "/" || pathname === "/login";
+  const isAuthPage = pathname === "/login";
 
-  if (isAuthOrOnboarding) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 

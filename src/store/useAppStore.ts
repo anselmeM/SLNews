@@ -16,8 +16,6 @@ interface AppState {
   toggleSave: (article: NewsArticle) => void;
   isSaved: (id: string) => boolean;
   setSavedIds: (ids: string[]) => void;
-  hasCompletedOnboarding: boolean;
-  completeOnboarding: () => void;
   preferredRegion: string | null;
   setRegion: (region: string) => void;
   preferredTopics: string[];
@@ -99,8 +97,6 @@ export const useAppStore = create<AppState>()(
           const filtered = state.savedArticles.filter((a) => idSet.has(a.id));
           return { savedArticleIds: idSet, savedArticles: filtered };
         }),
-      hasCompletedOnboarding: false,
-      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
       preferredRegion: null,
       setRegion: (region) => set({ preferredRegion: region }),
       preferredTopics: [],
