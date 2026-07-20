@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useAppStore } from "@/store/useAppStore";
+import ArticleImage from "@/components/ArticleImage";
 
 export default function RecentlyViewed() {
   const recentlyViewed = useAppStore((s) => s.recentlyViewed);
+  const dataSaver = useAppStore((s) => s.dataSaver);
 
   if (recentlyViewed.length === 0) return null;
 
@@ -21,12 +23,18 @@ export default function RecentlyViewed() {
             className="shrink-0 w-40 rounded-2xl overflow-hidden bg-surface-container-lowest border border-outline-variant shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-              {a.imageUrl ? (
-                <img
-                  src={a.imageUrl.startsWith("/") ? a.imageUrl : `/api/image-proxy?url=${encodeURIComponent(a.imageUrl)}`}
+              {!dataSaver && a.imageUrl ? (
+                <ArticleImage
+                  src={a.imageUrl}
                   alt={a.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="160px"
+                  className="object-cover"
                 />
+              ) : dataSaver ? (
+                <div className="w-full h-full flex items-center justify-center bg-surface-container">
+                  <span className="material-symbols-outlined text-3xl text-outline">data_saver_on</span>
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-outline">
                   <span className="material-symbols-outlined text-3xl">article</span>
