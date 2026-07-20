@@ -17,10 +17,13 @@ import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
 import { ArticleBody } from "./_components/ArticleBody";
 import { StickyActions } from "./_components/StickyActions";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await props.params;
-  const article = await fetchArticleById(id);
-  if (!article) return { title: "Article Not Found | SLNews" };
+  let article = null;
+  try { article = await fetchArticleById(id); } catch { /* handled by page */ }
+  if (!article) return { title: "Article Not Found | SLNews", robots: { index: false } };
   return {
     title: `${article.title} | SLNews`,
     description: article.summary || `Read ${article.title} on SLNews.`,
@@ -47,7 +50,13 @@ async function RelatedStories({ excludeId, category }: { excludeId: string; cate
 
 export default async function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const article = await fetchArticleById(params.id);
+
+  let article = null;
+  try {
+    article = await fetchArticleById(params.id);
+  } catch {
+    notFound();
+  }
 
   if (!article) {
     notFound();
