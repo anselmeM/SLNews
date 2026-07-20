@@ -6,6 +6,7 @@ import NewsFeed from "@/components/NewsFeed";
 import PullToRefresh from "@/components/PullToRefresh";
 import type { NewsArticle } from "@/lib/news-service";
 import { useAppStore } from "@/store/useAppStore";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 const PAGE_SIZE = 10;
 
@@ -74,6 +75,8 @@ export default function PersonalizedFeed({ fallbackArticles }: { fallbackArticle
     });
     return "ok" as const;
   }, [seenArticleIds, addSeenArticles]);
+
+  useAutoRefresh(handleRefresh);
 
   const retry = () => {
     doFetch.current = false;
