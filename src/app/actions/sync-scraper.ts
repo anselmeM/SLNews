@@ -1,0 +1,131 @@
+"use server";
+
+import bcrypt from "bcryptjs";
+import { db } from "@/lib/db";
+
+const SCRAPER_URL =
+  "https://slnewsapiscapper.onrender.com/api/news?api_key=SCRAPER_API_KEY_REDACTED";
+
+type ScraperArticle = {
+  id?: number | string;
+  title?: string;
+  link?: string;
+  author?: string;
+  paragraphs?: string[];
+  pubDate?: string;
+  source?: string;
+  createdAt?: string;
+};
+
+async function getBotUser() {
+  let botUser = await db.user.findFirst({
+    where: { email: "news-bot@slnews.local" },
+  });
+
+  if (!botUser) {
+    const hashedPassword = await bcrypt.hash(
+      process.env.SYNC_BOT_PASSWORD || crypto.randomUUID(),
+      10
+    );
+    botUser = await db.user.create({
+      data: {
+        email: "news-bot@slnews.local",
+        name: "News Bot",
+        role: "WRITER",
+        password: hashedPassword,
+      },
+    });
+  }
+  return botUser;
+}
+
+export async function syncFromScraper() {
+  try {
+    const botUser = await getBotUser();
+
+    const category = await db.category.upsert({
+      where: { name: "National" },
+      update: {},
+      create: { name: "National" },
+    });
+
+    let res: Response;
+    try {
+      res = await fetch(SCRAPER_URL, { cache: "no-store" });
+    } catch {
+      return { success: false, error: "Scraper unreachable" };
+    }
+
+    if (!res.ok) {
+      return { success: false, error: `Scraper responded ${res.status}` };
+    }
+
+    const raw = (await res.json()) as ScraperArticle[];
+    if (!Array.isArray(raw)) {
+      return { success: false, error: "Unexpected scraper payload" };
+    }
+
+    let totalCount = 0;
+
+    for (const a of raw) {
+      const title = a.title?.trim();
+      const link = a.link?.trim();
+      if (!title || !link) continue;
+
+      const paragraphs = Array.isArray(a.paragraphs) ? a.paragraphs : [];
+      const body = paragraphs.join("\n\n").trim() || "Read full article on source.";
+      const content = `${body}\n\nSource: ${a.source || "SLNews Scraper"} — ${link}`;
+      const summary = paragraphs[0]?.slice(0, 280) || title;
+
+      const publishedAt = a.pubDate
+        ? new Date(a.pubDate)
+        : a.createdAt
+          ? new Date(a.createdAt)
+          : new Date();
+
+      const existing = await db.article.findFirst({
+        where: { title },
+        include: { categories: true },
+      });
+
+      if (existing) {
+        const alreadyCategorized = existing.categories.some(
+          (c: { id: string }) => c.id === category.id
+        );
+        if (!alreadyCategorized) {
+          await db.article.update({
+            where: { id: existing.id },
+            data: { categories: { connect: { id: category.id } } },
+          });
+          totalCount++;
+        }
+        continue;
+      }
+
+      await db.article.create({
+        data: {
+          title,
+          summary,
+          content,
+          imageUrl: "/globe.svg",
+          published: true,
+          status: "PUBLISHED",
+          province: null,
+          district: null,
+          publishedAt,
+          authorId: botUser.id,
+          categories: { connect: { id: category.id } },
+        },
+      });
+      totalCount++;
+    }
+
+    return { success: true, count: totalCount };
+  } catch (error: unknown) {
+    console.error("Scraper ingestion error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

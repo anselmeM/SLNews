@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncNewsAPI } from "@/app/actions/sync-news-api";
+import { syncFromScraper } from "@/app/actions/sync-scraper";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,11 +15,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await syncNewsAPI();
-  
-  if (result.success) {
-    return NextResponse.json({ success: true, count: result.count });
-  } else {
-    return NextResponse.json({ success: false, error: result.error }, { status: 500 });
-  }
+  const [currents, scraper] = await Promise.allSettled([
+    syncNewsAPI(),
+    syncFromScraper(),
+  ]);
+
+  const currentsResult =
+    currents.status === "fulfilled" ? currents.value : { success: false, error: "rejected", count: 0 };
+  const scraperResult =
+    scraper.status === "fulfilled" ? scraper.value : { success: false, error: "rejected", count: 0 };
+
+  const total = (currentsResult.count ?? 0) + (scraperResult.count ?? 0);
+  const ok = currentsResult.success || scraperResult.success;
+
+  return NextResponse.json({
+    success: ok,
+    currents: currentsResult,
+    scraper: scraperResult,
+    count: total,
+  });
 }
+
