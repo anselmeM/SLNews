@@ -100,10 +100,16 @@ export async function syncFromScraper() {
         const alreadyCategorized = existing.categories.some(
           (c: { id: string }) => c.id === category.id
         );
-        if (!alreadyCategorized) {
+        const needsImage = (!existing.imageUrl || existing.imageUrl === "/globe.svg") && a.imageUrl?.trim();
+
+        const updateData: Record<string, unknown> = {};
+        if (!alreadyCategorized) updateData.categories = { connect: { id: category.id } };
+        if (needsImage) updateData.imageUrl = a.imageUrl!.trim();
+
+        if (Object.keys(updateData).length > 0) {
           await db.article.update({
             where: { id: existing.id },
-            data: { categories: { connect: { id: category.id } } },
+            data: updateData as Parameters<typeof db.article.update>[0]["data"],
           });
           totalCount++;
         }
