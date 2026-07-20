@@ -8,7 +8,7 @@ export default function BottomNavBar() {
 
   const navItems = [
     { name: "Home", href: "/home", icon: "home" },
-    { name: "News", href: "/news", icon: "map" },
+    { name: "Local", href: "/news", icon: "map" },
     { name: "Saved", href: "/saved", icon: "bookmark" },
   ];
 

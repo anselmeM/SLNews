@@ -7,8 +7,8 @@ import { fetchSLNews } from "@/lib/news-service";
 import TabFilters from "./_components/TabFilters";
 
 export const metadata: Metadata = {
-  title: "News | SLNews",
-  description: "National and local news from across Sierra Leone. Filter by region, politics, economy, or education.",
+  title: "Local News | SLNews",
+  description: "Local news from across Sierra Leone. Filter by region, politics, economy, or education.",
 };
 
 const PAGE_SIZE = 10;
@@ -67,7 +67,7 @@ export default async function SLNewsPage({
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8 mt-4">
-        <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-none">News</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-none">Local News</h1>
         <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">
           Local and national news from across Sierra Leone
         </p>

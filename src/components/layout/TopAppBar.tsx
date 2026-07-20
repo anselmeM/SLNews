@@ -12,7 +12,7 @@ import MobileDrawer from "./MobileDrawer";
 
 const navLinks = [
   { name: "Home", href: "/home" },
-  { name: "National", href: "/news" },
+  { name: "Local", href: "/news" },
   { name: "International", href: "/world" },
   { name: "Saved", href: "/saved" },
 ];
