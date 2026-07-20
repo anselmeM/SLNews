@@ -1,6 +1,7 @@
 "use client";
 
 import { useBookmark } from "@/hooks/useBookmark";
+import { vibrate } from "@/lib/haptics";
 import type { NewsArticle } from "@/lib/news-service";
 
 export default function BookmarkButton({
@@ -21,7 +22,7 @@ export default function BookmarkButton({
 
   return (
     <button
-      onClick={handleBookmark}
+      onClick={(e) => { handleBookmark(e); vibrate(); }}
       aria-label={isSaved ? "Remove bookmark" : "Bookmark article"}
       className={classes}
       title={isSaved ? "Remove bookmark" : "Bookmark article"}

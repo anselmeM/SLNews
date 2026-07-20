@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { vibrate } from "@/lib/haptics";
 
 const PULL_THRESHOLD = 64;
 const MAX_PULL = 140;
@@ -29,6 +30,7 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
     refreshingRef.current = true;
     setPhase("refreshing");
     setPullDist(56);
+    vibrate(20);
     try {
       const result = await onRefresh();
       if (result === "ok") {

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { vibrate } from "@/lib/haptics";
 import { toggleReaction, getReactions } from "@/app/actions/reaction-actions";
 
 const EMOJIS = [
@@ -33,6 +34,7 @@ export default function ReactionButtons({ articleId }: { articleId: string }) {
       return;
     }
 
+    vibrate(15);
     const prev = { ...reactions };
     const current = reactions[emoji] || { count: 0, reacted: false };
     setReactions({

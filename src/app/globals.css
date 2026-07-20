@@ -178,3 +178,8 @@ a, button, [role="button"], input, select, textarea {
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

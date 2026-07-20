@@ -8,6 +8,7 @@ import ArticleActions from "@/components/ArticleActions";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
+import FABSave from "@/components/FABSave";
 import ReactionButtons from "@/components/ReactionButtons";
 import TrackArticleView from "@/components/TrackArticleView";
 import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
@@ -177,6 +178,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
 
       <CommentSection articleId={article.id} />
       <TrackArticleView article={article} />
+      <FABSave article={article} />
     </div>
   );
 }

@@ -8,9 +8,11 @@ export function useBookmark(article: NewsArticle) {
   const toggleSave = useAppStore((s) => s.toggleSave);
 
   const handleBookmark = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    (e?: React.MouseEvent) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       toggleSave(article);
       toggleSavedArticle(article.id);
     },

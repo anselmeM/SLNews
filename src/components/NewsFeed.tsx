@@ -1,6 +1,6 @@
 "use client";
 
-import ArticleCard from "@/components/ArticleCard";
+import SwipeableCard from "@/components/SwipeableCard";
 import FeaturedArticleCard from "@/components/FeaturedArticleCard";
 import type { NewsArticle } from "@/lib/news-service";
 
@@ -41,7 +41,7 @@ export default function NewsFeed({
       <div className="flex flex-col gap-4 mb-8 mt-6">
         {articles.slice(featured ? 1 : 0).map((article) => (
           <div key={article.id}>
-            <ArticleCard article={article} />
+            <SwipeableCard article={article} />
             {showDividers && (
               <div className="w-full h-px bg-surface-variant my-2"></div>
             )}
