@@ -3,8 +3,15 @@
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 
-const SCRAPER_URL =
-  "https://slnewsapiscapper.onrender.com/api/news?api_key=SCRAPER_API_KEY_REDACTED";
+const SCRAPER_BASE = "https://slnewsapiscapper.onrender.com/api/news";
+
+function buildScraperUrl(): string {
+  const key = process.env.SCRAPER_API_KEY;
+  if (!key) {
+    throw new Error("SCRAPER_API_KEY is not set");
+  }
+  return `${SCRAPER_BASE}?api_key=${encodeURIComponent(key)}`;
+}
 
 type ScraperArticle = {
   id?: number | string;
@@ -51,7 +58,7 @@ export async function syncFromScraper() {
 
     let res: Response;
     try {
-      res = await fetch(SCRAPER_URL, { cache: "no-store" });
+      res = await fetch(buildScraperUrl(), { cache: "no-store" });
     } catch {
       return { success: false, error: "Scraper unreachable" };
     }
