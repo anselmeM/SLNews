@@ -9,12 +9,17 @@ const isProduction = process.env.NODE_ENV === "production";
 const pool = new Pool({
   connectionString,
   max: isProduction ? 20 : 5,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000,
-  // Enable ssl in production if DATABASE_URL does not already include ?sslmode=require
+  idleTimeoutMillis: 60_000,
+  connectionTimeoutMillis: 15_000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10_000,
   ...(isProduction && !connectionString.includes("sslmode")
     ? { ssl: { rejectUnauthorized: false } }
     : {}),
+});
+
+pool.on("error", (err) => {
+  console.error("pg pool unexpected error:", err.message);
 });
 
 const adapter = new PrismaPg(pool);

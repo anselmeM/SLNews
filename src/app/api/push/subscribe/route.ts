@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { checkDbRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rateLimit = await checkDbRateLimit(`push-sub:${ip}`, { maxRequests: 5, windowMs: 60_000 });
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const body = await request.json();
     const { endpoint, keys } = body;
 

@@ -21,6 +21,18 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-XSS-Protection", value: "1; mode=block" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' fonts.gstatic.com",
+              "connect-src 'self' https://*.vercel.app https://*.neon.tech https://*.currentsapi.services https://slnewsapiscapper.onrender.com",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
         ],
       },
     ];

@@ -18,6 +18,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+
+    if (!name.trim()) { setError("Name is required."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+
     setLoading(true);
     setError("");
 
