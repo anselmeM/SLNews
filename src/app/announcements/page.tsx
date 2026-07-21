@@ -29,9 +29,14 @@ export default async function CommunityAnnouncementsPage(props: {
     where.location = currentRegion;
   }
 
-  const announcements = await cachedFetch(`announcements:${currentCategory}`, async () =>
-    db.announcement.findMany({ where, orderBy: { createdAt: "desc" } })
-  , 120);
+  let announcements: Array<unknown> = [];
+  try {
+    announcements = await cachedFetch(`announcements:${currentCategory}`, async () =>
+      db.announcement.findMany({ where, orderBy: { createdAt: "desc" } })
+    , 120);
+  } catch {
+    announcements = [];
+  }
 
   return (
     <div className="w-full relative min-h-screen">

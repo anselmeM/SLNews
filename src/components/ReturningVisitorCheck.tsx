@@ -7,12 +7,8 @@ export default function ReturningVisitorCheck({ children }: { children: React.Re
   const router = useRouter();
 
   useEffect(() => {
-    const visited = localStorage.getItem("slnews_visited");
-    if (visited) {
-      router.replace("/home");
-    } else {
-      localStorage.setItem("slnews_visited", "true");
-    }
+    // Set cookie on first visit so middleware redirects next time
+    document.cookie = "slnews_visited=1; path=/; max-age=" + 60 * 60 * 24 * 365;
   }, [router]);
 
   return <>{children}</>;

@@ -16,13 +16,19 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
   const { market } = await props.searchParams;
   const currentMarket = market || "Freetown Central";
 
-  const prices = await cachedFetch(`market:prices:${currentMarket}`, async () =>
-    db.marketPrice.findMany({ where: { market: currentMarket }, orderBy: { commodity: "asc" } })
-  , 300);
-
-  const regionalRice = await cachedFetch("market:regional-rice", async () =>
-    db.marketPrice.findMany({ where: { commodity: "Rice" }, orderBy: { market: "asc" } })
-  , 300);
+  let prices: Array<Record<string, unknown>> = [];
+  let regionalRice: Array<Record<string, unknown>> = [];
+  try {
+    prices = await cachedFetch(`market:prices:${currentMarket}`, async () =>
+      db.marketPrice.findMany({ where: { market: currentMarket }, orderBy: { commodity: "asc" } })
+    , 300);
+    regionalRice = await cachedFetch("market:regional-rice", async () =>
+      db.marketPrice.findMany({ where: { commodity: "Rice" }, orderBy: { market: "asc" } })
+    , 300);
+  } catch {
+    prices = [];
+    regionalRice = [];
+  }
 
   const lastUpdated = prices.length > 0
     ? new Date(Math.max(...prices.map((p) => p.updatedAt.getTime())))
