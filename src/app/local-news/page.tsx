@@ -28,26 +28,6 @@ export default async function LocalNewsPage() {
         </p>
       </div>
 
-      <section className="mb-10">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-on-surface">Provinces</h2>
-          <Link href="/local" className="text-sm font-semibold text-primary hover:underline">
-            Browse all provinces →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {["Western Area", "Southern", "Eastern", "Northern", "North-West"].map((p) => (
-            <Link
-              key={p}
-              href={`/local?province=${encodeURIComponent(p)}`}
-              className="rounded-xl p-4 bg-white border border-gray-100 hover:shadow-sm transition-all text-center"
-            >
-              <span className="font-semibold text-sm text-on-surface">{p}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <NewsFeed articles={allArticles} emptyMessage="No local or national articles found." />
     </div>
   );
