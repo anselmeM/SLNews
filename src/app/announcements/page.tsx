@@ -32,7 +32,7 @@ export default async function CommunityAnnouncementsPage(props: {
 
   let announcements: Announcement[] = [];
   try {
-    announcements = await cachedFetch(`announcements:${currentCategory}`, async () =>
+    announcements = await cachedFetch(`announcements:${currentRegion}:${currentCategory}`, async () =>
       db.announcement.findMany({ where, orderBy: { createdAt: "desc" } })
     , 120);
   } catch {

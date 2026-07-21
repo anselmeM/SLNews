@@ -16,11 +16,11 @@ export default async function proxy(req: Request) {
   const isPublicRoute = publicRoutes.some((r) => pathname.startsWith(r)) || pathname === "/";
 
   if (!isLoggedIn && !isPublicRoute) {
-    return Response.redirect(new URL("/login", url));
+    return NextResponse.redirect(new URL("/login", url));
   }
 
   if (isLoggedIn && (pathname === "/login" || pathname === "/")) {
-    return Response.redirect(new URL("/home", url));
+    return NextResponse.redirect(new URL("/home", url));
   }
 
   const response = NextResponse.next();
