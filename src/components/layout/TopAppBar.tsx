@@ -12,9 +12,10 @@ import MobileDrawer from "./MobileDrawer";
 
 const navLinks = [
   { name: "Home", href: "/home" },
-  { name: "Local News", href: "/local-news" },
-  { name: "International", href: "/world" },
-  { name: "Saved", href: "/saved" },
+  { name: "Announcements", href: "/announcements" },
+  { name: "Market", href: "/market" },
+  { name: "Profile", href: "/profile" },
+  { name: "About", href: "/about" },
 ];
 
 export default function TopAppBar({ session }: { session: Session | null }) {
