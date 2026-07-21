@@ -14,21 +14,17 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 10;
 
 type PageParams = {
-  region?: string;
   topic?: string;
   page?: string;
 };
 
-async function SLNewsContent({ region, topic, page }: { region?: string; topic?: string; page: number }) {
+async function SLNewsContent({ topic, page }: { topic?: string; page: number }) {
   const skip = (page - 1) * PAGE_SIZE;
-  const articles = await fetchSLNews(region, topic, skip, PAGE_SIZE + 1);
+  const articles = await fetchSLNews(undefined, topic, skip, PAGE_SIZE + 1);
   const hasMore = articles.length > PAGE_SIZE;
   if (hasMore) articles.pop();
 
-  const label = [
-    region || "",
-    topic || "",
-  ].filter(Boolean).join(" ");
+  const label = topic || "";
 
   return (
     <>
@@ -40,7 +36,6 @@ async function SLNewsContent({ region, topic, page }: { region?: string; topic?:
         <div className="flex justify-center mt-8 mb-12">
           <Link
             href={`/news?${new URLSearchParams({
-              ...(region ? { region } : {}),
               ...(topic ? { topic } : {}),
               page: String(page + 1),
             }).toString()}`}
@@ -60,7 +55,6 @@ export default async function SLNewsPage({
   searchParams: Promise<PageParams>;
 }) {
   const params = await searchParams;
-  const currentRegion = params.region;
   const currentTopic = params.topic;
   const currentPage = parseInt(params.page || "1", 10);
 
@@ -78,7 +72,7 @@ export default async function SLNewsPage({
       </Suspense>
 
       <Suspense fallback={<ShimmerFeed count={3} />}>
-        <SLNewsContent region={currentRegion} topic={currentTopic} page={currentPage} />
+        <SLNewsContent topic={currentTopic} page={currentPage} />
       </Suspense>
     </div>
   );
