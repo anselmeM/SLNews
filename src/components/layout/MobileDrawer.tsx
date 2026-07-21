@@ -17,8 +17,8 @@ interface Props {
 
 const links = [
   { name: "Home", href: "/home", icon: "home" },
-  { name: "News", href: "/news", icon: "newspaper" },
   { name: "Local", href: "/local", icon: "map" },
+  { name: "National", href: "/national", icon: "flag" },
   { name: "International", href: "/world", icon: "public" },
   { name: "Saved", href: "/saved", icon: "bookmark" },
   { name: "Profile", href: "/profile", icon: "person" },
