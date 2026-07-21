@@ -1,0 +1,28 @@
+{
+  "name": "SLNews - Next.js + PostgreSQL",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/app",
+  "forwardPorts": [3000, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "SLNews App",
+      "onAutoForward": "openPreview"
+    },
+    "5432": {
+      "label": "PostgreSQL"
+    }
+  },
+  "postCreateCommand": "npm install && cp -n .env.example .env 2>/dev/null; npx prisma generate; echo '\n✅ Ready! Run: npm run dev'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "prisma.prisma",
+        "github.vscode-github-actions",
+        "ms-playwright.playwright"
+      ]
+    }
+  }
+}
