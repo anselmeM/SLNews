@@ -16,8 +16,8 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
   const { market } = await props.searchParams;
   const currentMarket = market || "Freetown Central";
 
-  let prices: Array<Record<string, unknown>> = [];
-  let regionalRice: Array<Record<string, unknown>> = [];
+  let prices: any[] = [];
+  let regionalRice: any[] = [];
   try {
     prices = await cachedFetch(`market:prices:${currentMarket}`, async () =>
       db.marketPrice.findMany({ where: { market: currentMarket }, orderBy: { commodity: "asc" } })

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AnnouncementCard from "@/components/AnnouncementCard";
+import type { Announcement } from "@/components/AnnouncementCard";
 import ComingSoonButton from "@/components/ComingSoonButton";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
@@ -29,7 +30,7 @@ export default async function CommunityAnnouncementsPage(props: {
     where.location = currentRegion;
   }
 
-  let announcements: Array<unknown> = [];
+  let announcements: Announcement[] = [];
   try {
     announcements = await cachedFetch(`announcements:${currentCategory}`, async () =>
       db.announcement.findMany({ where, orderBy: { createdAt: "desc" } })

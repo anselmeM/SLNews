@@ -8,7 +8,7 @@ function urgencyColor(urgency: string | null) {
   }
 }
 
-type Announcement = {
+export type Announcement = {
   id: string; title: string; body: string; category: string; icon: string; organization: string; location: string; dateLabel: string; urgency: string | null;
 };
 
