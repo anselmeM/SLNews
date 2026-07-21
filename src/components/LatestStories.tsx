@@ -16,7 +16,7 @@ export default async function LatestStories() {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold text-on-surface">Latest</h2>
-        <Link href="/news" className="text-xs font-semibold text-primary hover:underline">
+        <Link href="/home" className="text-xs font-semibold text-primary hover:underline">
           View all
         </Link>
       </div>

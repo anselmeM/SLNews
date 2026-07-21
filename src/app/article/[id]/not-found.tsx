@@ -15,7 +15,7 @@ export default function ArticleNotFound() {
           This article may have been removed or the link is invalid.
         </p>
         <Link
-          href="/news"
+          href="/home"
           className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-md hover:bg-primary/90 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">newspaper</span>

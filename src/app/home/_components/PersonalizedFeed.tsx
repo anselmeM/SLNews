@@ -10,13 +10,14 @@ import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 const PAGE_SIZE = 10;
 
-export default function PersonalizedFeed({ fallbackArticles }: { fallbackArticles: NewsArticle[] }) {
+export default function PersonalizedFeed({ fallbackArticles, isAuthenticated }: { fallbackArticles: NewsArticle[]; isAuthenticated: boolean }) {
   const { preferredRegion, preferredTopics, seenArticleIds, addSeenArticles } = useAppStore();
-  const hasPrefs = preferredRegion || (preferredTopics && preferredTopics.length > 0);
+  const hasPrefs = !!(preferredRegion || (preferredTopics && preferredTopics.length > 0));
+  const shouldPersonalize = isAuthenticated && hasPrefs;
   const [articles, setArticles] = useState<NewsArticle[]>(fallbackArticles);
-  const [loading, setLoading] = useState(hasPrefs);
+  const [loading, setLoading] = useState(shouldPersonalize);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(hasPrefs);
+  const [hasMore, setHasMore] = useState(shouldPersonalize);
   const [error, setError] = useState(false);
   const skipRef = useRef(0);
   const seenRef = useRef(false);
@@ -25,7 +26,7 @@ export default function PersonalizedFeed({ fallbackArticles }: { fallbackArticle
   const initialLoad = useRef(true);
 
   useEffect(() => {
-    if (!hasPrefs) return;
+    if (!shouldPersonalize) return;
     let cancelled = false;
     (async () => {
       if (!initialLoad.current) {

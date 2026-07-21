@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { auth } from "@/auth";
 import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import PersonalizedFeed from "./_components/PersonalizedFeed";
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 10;
 
 async function HomeContent() {
+  const session = await auth();
+  const isAuthenticated = !!session?.user;
   let fallbackArticles: NewsArticle[] = [];
   try {
     fallbackArticles = await fetchMixedHomeFeed(PAGE_SIZE + 1);
@@ -32,7 +35,7 @@ async function HomeContent() {
   const hasMore = fallbackArticles.length > PAGE_SIZE;
   if (hasMore) fallbackArticles.pop();
 
-  return <PersonalizedFeed fallbackArticles={fallbackArticles} />;
+  return <PersonalizedFeed fallbackArticles={fallbackArticles} isAuthenticated={isAuthenticated} />;
 }
 
 export default async function Home() {
