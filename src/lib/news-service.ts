@@ -17,7 +17,7 @@ export type NewsArticle = {
   authorId: string;
 };
 
-type ArticleWithRelations = Article & {
+export type ArticleWithRelations = Article & {
   author: Pick<User, "name" | "image"> | null;
   categories: Pick<Category, "name">[];
 };

@@ -2,17 +2,17 @@ import Link from "next/link";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
 import { db } from "@/lib/db";
-import { mapPrismaArticle } from "@/lib/news-service";
+import { mapPrismaArticle, type ArticleWithRelations } from "@/lib/news-service";
 
 export default async function EditorsPicks() {
-  let articles: Awaited<ReturnType<typeof db.article.findMany>> = [];
+  let articles: ArticleWithRelations[] = [];
   try {
     articles = await db.article.findMany({
       where: { status: "PUBLISHED", published: true },
       take: 3,
       orderBy: { updatedAt: "desc" },
       include: { author: true, categories: true },
-    });
+    }) as ArticleWithRelations[];
   } catch {
     return null;
   }
