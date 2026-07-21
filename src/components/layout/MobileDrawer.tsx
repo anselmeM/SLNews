@@ -23,6 +23,12 @@ const links = [
   { name: "Profile", href: "/profile", icon: "person" },
 ];
 
+const secondaryLinks = [
+  { name: "Announcements", href: "/announcements", icon: "campaign" },
+  { name: "Market", href: "/market", icon: "trending_up" },
+  { name: "About", href: "/about", icon: "info" },
+];
+
 export default function MobileDrawer({ open, onClose, session }: Props) {
   const pathname = usePathname();
   const dataSaver = useAppStore((s) => s.dataSaver);
@@ -93,6 +99,29 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
                     >
                       {link.icon}
                     </span>
+                    {link.name}
+                  </Link>
+                );
+              })}
+
+              {/* Secondary Links */}
+              <div className="pt-4 pb-1">
+                <p className="px-4 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">More</p>
+              </div>
+              {secondaryLinks.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all duration-150 ${
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-on-surface-variant hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[22px]">{link.icon}</span>
                     {link.name}
                   </Link>
                 );
