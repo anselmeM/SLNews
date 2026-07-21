@@ -5,12 +5,17 @@ import { db } from "@/lib/db";
 import { mapPrismaArticle } from "@/lib/news-service";
 
 export default async function EditorsPicks() {
-  const articles = await db.article.findMany({
-    where: { status: "PUBLISHED", published: true },
-    take: 3,
-    orderBy: { updatedAt: "desc" },
-    include: { author: true, categories: true },
-  });
+  let articles: Awaited<ReturnType<typeof db.article.findMany>> = [];
+  try {
+    articles = await db.article.findMany({
+      where: { status: "PUBLISHED", published: true },
+      take: 3,
+      orderBy: { updatedAt: "desc" },
+      include: { author: true, categories: true },
+    });
+  } catch {
+    return null;
+  }
 
   if (articles.length === 0) return null;
 

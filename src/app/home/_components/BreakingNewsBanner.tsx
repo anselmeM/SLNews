@@ -8,17 +8,22 @@ export default async function BreakingNewsBanner() {
   const now = new Date();
   const cutoff = new Date(now.getTime() - BREAKING_WINDOW_MS);
 
-  const article = await db.article.findFirst({
-    where: {
-      status: "PUBLISHED",
-      published: true,
-      breaking: true,
-      publishedAt: { gte: cutoff },
-      categories: { some: { name: "National" } },
-    },
-    orderBy: { publishedAt: "desc" },
-    include: { author: true, categories: true },
-  });
+  let article = null;
+  try {
+    article = await db.article.findFirst({
+      where: {
+        status: "PUBLISHED",
+        published: true,
+        breaking: true,
+        publishedAt: { gte: cutoff },
+        categories: { some: { name: "National" } },
+      },
+      orderBy: { publishedAt: "desc" },
+      include: { author: true, categories: true },
+    });
+  } catch {
+    return null;
+  }
 
   if (!article) return null;
 
