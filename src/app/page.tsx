@@ -1,7 +1,9 @@
 import Link from "next/link";
+import ReturningVisitorCheck from "@/components/ReturningVisitorCheck";
 
 export default function LandingPage() {
   return (
+    <ReturningVisitorCheck>
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-4 pt-24 pb-16 text-center">
@@ -85,5 +87,6 @@ export default function LandingPage() {
         <p>SL News &mdash; Community journalism for Sierra Leone.</p>
       </footer>
     </div>
+    </ReturningVisitorCheck>
   );
 }
