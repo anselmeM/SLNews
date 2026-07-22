@@ -47,14 +47,14 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.aside
-            className="fixed top-0 left-0 bottom-0 z-50 w-[280px] max-w-[85vw] bg-surface dark:bg-surface-container-lowest shadow-2xl flex flex-col"
+            className="fixed top-0 left-0 bottom-0 z-[110] w-[280px] max-w-[85vw] bg-surface dark:bg-surface-container-lowest shadow-2xl flex flex-col"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}

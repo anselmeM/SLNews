@@ -60,7 +60,7 @@ export default function TopAppBar({ session }: { session: Session | null }) {
     <>
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} session={session} />
 
-      <header className={`fixed top-0 w-full z-40 bg-surface/80 backdrop-blur-2xl flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+      <header className={`fixed top-0 w-full z-[100] bg-surface/80 backdrop-blur-2xl flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
         scrolled
           ? "h-[52px] border-b border-outline-variant/30 shadow-sm"
           : "h-[64px] border-b border-outline-variant/30"

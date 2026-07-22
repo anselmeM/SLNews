@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("SLNews E2E", () => {
-  test("onboarding page loads", async ({ page }) => {
+  test("landing page loads", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Welcome to SLNews" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+    await expect(page.locator("main").getByRole("heading", { name: "SL News" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Start Reading" })).toBeVisible();
   });
 
   test("login page loads with form", async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe("SLNews E2E", () => {
     test("skip-to-content link is present", async ({ page }) => {
       await page.goto("/about");
       const skipLink = page.locator('a[href="#main-content"]');
-      await expect(skipLink).toBeTruthy();
+      await expect(skipLink).toHaveCount(1);
     });
 
     test("images have alt text", async ({ page }) => {

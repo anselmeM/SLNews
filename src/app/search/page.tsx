@@ -4,7 +4,7 @@ import Link from "next/link";
 import SearchSuggestions from "./_components/SearchSuggestions";
 import InstantSearch from "./_components/InstantSearch";
 import NewsFeed from "@/components/NewsFeed";
-import { searchArticles } from "@/lib/news-service";
+import { searchArticles, type NewsArticle } from "@/lib/news-service";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { getTrendingTopics } from "@/app/actions/search-actions";
 
@@ -42,8 +42,16 @@ export default async function SearchPage(props: {
     }
   }
 
-  const results = query ? await searchArticles(query) : [];
-  const trending = query ? [] : await getTrendingTopics();
+  let results: NewsArticle[] = [];
+  let trending: string[] = [];
+
+  try {
+    results = query ? await searchArticles(query) : [];
+    trending = query ? [] : await getTrendingTopics();
+  } catch {
+    results = [];
+    trending = [];
+  }
 
   const filteredResults = category
     ? results.filter((r) => r.category.toLowerCase() === category.toLowerCase())

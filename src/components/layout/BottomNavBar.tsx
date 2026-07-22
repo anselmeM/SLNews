@@ -14,7 +14,7 @@ export default function BottomNavBar() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-[320px] z-50 flex justify-around items-center py-3 bg-surface/75 dark:bg-surface/75 backdrop-blur-xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.08)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)]">
+    <nav className="md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-[320px] z-[100] flex justify-around items-center py-3 bg-surface/75 dark:bg-surface/75 backdrop-blur-xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.08)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)]">
       {navItems.map((item) => {
         const isActive = (item.href === "/home" && (pathname === "/home" || pathname === "/"))
           || (item.href !== "/home" && pathname.startsWith(item.href));

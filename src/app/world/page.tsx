@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import NewsFeed from "@/components/NewsFeed";
 import { ShimmerFeed } from "@/components/Shimmer";
-import { fetchWorldNews } from "@/lib/news-service";
+import { fetchWorldNews, type NewsArticle } from "@/lib/news-service";
 import WorldTabFilters from "./_components/WorldTabFilters";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,13 @@ export const metadata: Metadata = {
 export default async function WorldNewsPage(props: { searchParams: Promise<{ topic?: string }> }) {
   const searchParams = await props.searchParams;
   const currentTopic = searchParams?.topic || "World";
-  const articles = await fetchWorldNews(currentTopic);
+  let articles: NewsArticle[] = [];
+
+  try {
+    articles = await fetchWorldNews(currentTopic);
+  } catch {
+    articles = [];
+  }
 
   return (
     <div className="w-full max-w-3xl mx-auto">

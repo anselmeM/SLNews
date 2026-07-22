@@ -14,8 +14,9 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: "npx next dev -p 3000",
+    command: "node scripts/e2e-server.js",
     url: "http://localhost:3000",
-    reuseExistingServer: true,
+    reuseExistingServer: false,
+    timeout: 180_000,
   },
 });

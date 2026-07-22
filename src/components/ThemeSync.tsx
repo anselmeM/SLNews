@@ -1,21 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function ThemeSync() {
   const theme = useAppStore((s) => s.theme);
-  const [hasHydrated, setHasHydrated] = useState(() =>
-    useAppStore.persist.hasHydrated()
+  const hasHydrated = useSyncExternalStore(
+    (onStoreChange) => useAppStore.persist.onFinishHydration(onStoreChange),
+    () => useAppStore.persist.hasHydrated(),
+    () => false
   );
-
-  useEffect(() => {
-    const unsubscribe = useAppStore.persist.onFinishHydration(() => {
-      setHasHydrated(true);
-    });
-
-    return unsubscribe;
-  }, []);
 
   useEffect(() => {
     if (!hasHydrated) return;

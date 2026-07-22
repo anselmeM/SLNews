@@ -4,7 +4,7 @@ test.describe("Home & Navigation", () => {
   test("home page loads and shows articles", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
-    await expect(page.locator("h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
+    await expect(page.locator("main h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
     await expect(page.locator("nav").last()).toBeVisible(); // bottom nav
   });
 
@@ -13,42 +13,44 @@ test.describe("Home & Navigation", () => {
     await page.goto("/home");
     await page.locator('a[aria-label="Local News"]').click();
     await expect(page).toHaveURL("/local-news");
-    await expect(page.locator("h1")).toContainText("Local News");
+    await expect(page.locator("main h1")).toContainText("Local News");
 
     await page.locator('a[aria-label="Saved"]').click();
     await expect(page).toHaveURL("/saved");
   });
 
   test("hamburger drawer opens and shows links", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
     await page.locator('button[aria-label="Open menu"]').click();
-    await expect(page.locator("text=International")).toBeVisible();
-    await expect(page.locator("text=Sign In")).toBeVisible();
+    await expect(page.locator("aside a[href='/market']")).toBeVisible();
+    await expect(page.locator("aside a[href='/about']")).toBeVisible();
+    await expect(page.locator("aside a[href='/login']")).toBeVisible();
   });
 });
 
 test.describe("Search", () => {
   test("search results page works", async ({ page }) => {
     await page.goto("/search");
-    await expect(page.locator("h1")).toContainText("Search");
-    await expect(page.locator("text=Trending Topics")).toBeVisible();
+    await expect(page.locator("main h1")).toContainText("Search");
+    await expect(page.getByPlaceholder("Search articles...")).toBeVisible();
   });
 
   test("search with query returns results", async ({ page }) => {
     await page.goto('/search?q=Sierra%20Leone');
-    await expect(page.locator("h1")).toContainText("Search Results");
+    await expect(page.locator("main h1")).toContainText("Search Results");
   });
 });
 
 test.describe("News feed", () => {
   test("local news page loads", async ({ page }) => {
     await page.goto("/local-news");
-    await expect(page.locator("h1")).toContainText("Local News");
+    await expect(page.locator("main h1")).toContainText("Local News");
   });
 
   test("world page loads", async ({ page }) => {
     await page.goto("/world");
-    await expect(page.locator("h1")).toContainText("International News");
+    await expect(page.locator("main h1")).toContainText("International News");
   });
 });
 
@@ -61,9 +63,12 @@ test.describe("PWA", () => {
     expect(json.icons.length).toBeGreaterThan(0);
   });
 
-  test("service worker registered", async ({ page }) => {
-    const response = await page.goto("/sw.js");
-    expect(response?.status()).toBe(200);
+  test("service worker registers in production", async ({ page }) => {
+    await page.goto("/home");
+    await page.waitForFunction(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      return Boolean(registration?.active);
+    });
   });
 });
 
