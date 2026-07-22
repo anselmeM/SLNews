@@ -46,14 +46,14 @@
   --radius-3xl: 2rem;
   --radius-full: 9999px;
 
-  --font-body-lg: var(--font-inter), sans-serif;
-  --font-body-md: var(--font-inter), sans-serif;
-  --font-display-lg: var(--font-inter), sans-serif;
-  --font-display-lg-mobile: var(--font-inter), sans-serif;
-  --font-label-sm: var(--font-inter), sans-serif;
-  --font-headline-sm: var(--font-inter), sans-serif;
-  --font-headline-md: var(--font-inter), sans-serif;
-  --font-label-md: var(--font-inter), sans-serif;
+  --font-body-lg: ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: ui-sans-serif, system-ui, sans-serif;
+  --font-display-lg: ui-sans-serif, system-ui, sans-serif;
+  --font-display-lg-mobile: ui-sans-serif, system-ui, sans-serif;
+  --font-label-sm: ui-sans-serif, system-ui, sans-serif;
+  --font-headline-sm: ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: ui-sans-serif, system-ui, sans-serif;
+  --font-label-md: ui-sans-serif, system-ui, sans-serif;
 
   --text-display-lg: 3.5rem;
   --text-display-lg--line-height: 1.1;

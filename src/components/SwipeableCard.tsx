@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import type { NewsArticle } from "@/lib/news-service";
 import { useBookmark } from "@/hooks/useBookmark";

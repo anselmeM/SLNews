@@ -1,13 +1,13 @@
-import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      { source: "/local", destination: "/news", permanent: true },
-      { source: "/local/:path*", destination: "/news", permanent: true },
-      { source: "/national", destination: "/news", permanent: true },
-      { source: "/national/:path*", destination: "/news", permanent: true },
+      { source: "/local", destination: "/local-news", permanent: true },
+      { source: "/local/:path*", destination: "/local-news", permanent: true },
+      { source: "/national", destination: "/local-news", permanent: true },
+      { source: "/national/:path*", destination: "/local-news", permanent: true },
     ];
   },
   images: {
@@ -47,6 +47,4 @@ export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
 });

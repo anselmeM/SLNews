@@ -2,16 +2,18 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Home & Navigation", () => {
   test("home page loads and shows articles", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
     await expect(page.locator("h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
     await expect(page.locator("nav").last()).toBeVisible(); // bottom nav
   });
 
   test("bottom nav navigates between pages", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
-    await page.locator('a[aria-label="News"]').click();
-    await expect(page).toHaveURL("/news");
-    await expect(page.locator("h1")).toContainText("News");
+    await page.locator('a[aria-label="Local News"]').click();
+    await expect(page).toHaveURL("/local-news");
+    await expect(page.locator("h1")).toContainText("Local News");
 
     await page.locator('a[aria-label="Saved"]').click();
     await expect(page).toHaveURL("/saved");
@@ -39,11 +41,9 @@ test.describe("Search", () => {
 });
 
 test.describe("News feed", () => {
-  test("news page shows category filters", async ({ page }) => {
-    await page.goto("/news");
-    await expect(page.locator("h1")).toContainText("News");
-    await expect(page.locator("text=Western")).toBeVisible();
-    await expect(page.locator("text=Politics")).toBeVisible();
+  test("local news page loads", async ({ page }) => {
+    await page.goto("/local-news");
+    await expect(page.locator("h1")).toContainText("Local News");
   });
 
   test("world page loads", async ({ page }) => {
@@ -62,8 +62,14 @@ test.describe("PWA", () => {
   });
 
   test("service worker registered", async ({ page }) => {
-    await page.goto("/home");
-    const sw = await page.evaluate(() => "serviceWorker" in navigator);
-    expect(sw).toBe(true);
+    const response = await page.goto("/sw.js");
+    expect(response?.status()).toBe(200);
+  });
+});
+
+test.describe("Route protection", () => {
+  test("profile redirects anonymous visitors to login", async ({ page }) => {
+    await page.goto("/profile");
+    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
   });
 });

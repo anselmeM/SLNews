@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import NewsFeed from "@/components/NewsFeed";
 import { ShimmerFeed } from "@/components/Shimmer";

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import NewsFeed from "@/components/NewsFeed";
 import { fetchLocalNews, fetchNationalNews } from "@/lib/news-service";
 

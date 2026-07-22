@@ -11,13 +11,14 @@ export const metadata: Metadata = {
 };
 
 const MARKETS = ["Freetown Central", "Bo Market", "Makeni Hub", "Kenema"];
+type MarketPrice = Awaited<ReturnType<typeof db.marketPrice.findMany>>[number];
 
 export default async function MarketPricesPage(props: { searchParams: Promise<{ market?: string }> }) {
   const { market } = await props.searchParams;
   const currentMarket = market || "Freetown Central";
 
-  let prices: any[] = [];
-  let regionalRice: any[] = [];
+  let prices: MarketPrice[] = [];
+  let regionalRice: MarketPrice[] = [];
   try {
     prices = await cachedFetch(`market:prices:${currentMarket}`, async () =>
       db.marketPrice.findMany({ where: { market: currentMarket }, orderBy: { commodity: "asc" } })

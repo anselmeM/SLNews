@@ -1,18 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { auth } from "@/auth";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import PageViewTracker from "@/components/PageViewTracker";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -52,7 +44,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className={`antialiased ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <Script
           id="theme-init"

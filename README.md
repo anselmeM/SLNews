@@ -11,9 +11,10 @@ SLNews is a Sierra Leone news progressive web app built with Next.js, React, Pri
 - `/search` — search
 - `/article/[id]` — article detail, comments, reactions, and sharing
 - `/market` and `/announcements` — database-backed community data
-- `/saved`, `/profile`, and `/dashboard` — authenticated areas
+- `/saved` — offline saved stories
+- `/profile` and `/dashboard` — authenticated areas
 
-The legacy redirects for `/local` and `/national` currently target `/news`, which is not a route. See `docs/TODO.md` before relying on those legacy URLs.
+Legacy `/local` and `/national` URLs permanently redirect to `/local-news`.
 
 ## Development
 

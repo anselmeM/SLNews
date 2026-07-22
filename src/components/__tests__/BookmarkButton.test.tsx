@@ -59,7 +59,8 @@ describe("BookmarkButton", () => {
     render(<BookmarkButton article={mockArticle} />);
     const button = screen.getByRole("button");
     expect(button.className).toContain("bottom-3");
-    expect(button.className).toContain("p-2.5");
+    expect(button.className).toContain("p-3");
+    expect(button.className).toContain("min-w-[44px]");
   });
 
   it('uses "featured" variant classes when specified', () => {

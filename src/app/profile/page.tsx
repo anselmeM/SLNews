@@ -29,17 +29,6 @@ export default function ProfilePage() {
   const setLocalAlerts = useAppStore((s) => s.setLocalAlerts);
   const [bio, setBio] = useState<string | null>(null);
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = () => {
-      if (theme === "system") {
-        document.documentElement.classList.toggle("dark", mq.matches);
-      }
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [theme]);
-
   useEffect(() => { loadPreferences().then((prefs) => {
     setBio(prefs.bio);
     if (prefs.preferredRegion || prefs.preferredTopics.length > 0) {

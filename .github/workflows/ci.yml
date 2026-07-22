@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 env:
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/slnews_test"

@@ -8,11 +8,10 @@ This is not a claim that every planned product flow is complete. The verified op
 
 ## Next Priorities
 
-1. Fix or remove the `/local` and `/national` redirects, which currently send visitors to the missing `/news` route.
-2. Turn placeholder actions into real product flows: price alerts/reports, notice creation/detail, and contributor following.
-3. Close the remaining accessibility work: interactive card semantics and a deliberate contrast review.
-4. Decide whether public information pages should remain authenticated in `proxy.ts`.
-5. Add metadata for the small set of routes that still rely on root metadata.
+1. Turn placeholder actions into real product flows: price alerts/reports, notice creation/detail, and contributor following.
+2. Close the remaining accessibility work: interactive card semantics and a deliberate contrast review.
+3. Add metadata for the small set of routes that still rely on root metadata.
+4. Add test coverage reporting and production-mode PWA verification.
 
 ## Operational Features
 

@@ -67,12 +67,6 @@ export async function syncFromScraper() {
   try {
     const botUser = await getBotUser();
 
-    const fallbackCategory = await db.category.upsert({
-      where: { name: "National" },
-      update: {},
-      create: { name: "National" },
-    });
-
     let res: Response;
     try {
       res = await fetch(buildScraperUrl(), { cache: "no-store" });

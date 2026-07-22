@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { instantSearch } from "@/app/actions/search-actions";
 
 interface Suggestion {
@@ -29,7 +29,7 @@ export default function InstantSearch() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (input.length < 2) { setSuggestions([]); return; }
+    if (input.length < 2) return;
     debounceRef.current = setTimeout(() => fetchSuggestions(input), 250);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [input, fetchSuggestions]);
@@ -47,7 +47,11 @@ export default function InstantSearch() {
         <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
         <input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            const nextInput = e.target.value;
+            setInput(nextInput);
+            if (nextInput.length < 2) setSuggestions([]);
+          }}
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 200)}
           placeholder="Search articles..."
