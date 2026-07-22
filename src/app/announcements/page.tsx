@@ -5,6 +5,7 @@ import type { Announcement } from "@/components/AnnouncementCard";
 import ComingSoonButton from "@/components/ComingSoonButton";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Announcements | SLNews",
@@ -21,7 +22,7 @@ export default async function CommunityAnnouncementsPage(props: {
   const currentRegion = regionParam || "All Regions";
   const currentCategory = categoryParam || "All";
 
-  const where: Record<string, unknown> = { published: true };
+  const where: Prisma.AnnouncementWhereInput = { published: true };
 
   if (currentCategory !== "All") {
     where.category = currentCategory;
