@@ -1,42 +1,30 @@
-# SLNews Improvement Tasks
+# SLNews Current-State Inventory
 
-> **Progress: 107/107 complete** (100%)
+Last reconciled against the tracked codebase on 2026-07-21. This file is the source of truth for documentation status; the numbered audit files are retained as historical inventories.
 
-| Category | Tasks | Done | File |
-|---|---|---|---|---|
-| Hardcoded Content | 19 | 19 | [01-hardcoded-content.md](01-hardcoded-content.md) |
-| No-Op Buttons & Controls | 19 | 19 | [02-noop-buttons.md](02-noop-buttons.md) |
-| Mobile Search Gap | 3 | 3 | [03-mobile-search.md](03-mobile-search.md) |
-| Accessibility | 16 | 16 | [04-accessibility.md](04-accessibility.md) |
-| SEO | 7 | 7 | [05-seo.md](05-seo.md) |
-| Performance | 8 | 8 | [06-performance.md](06-performance.md) |
-| Code Organization | 12 | 12 | [07-code-organization.md](07-code-organization.md) |
-| Security | 9 | 9 | [08-security.md](08-security.md) |
-| Testing | 4 | 4 | [09-testing.md](09-testing.md) |
-| Dev Experience | 10 | 10 | [10-dev-experience.md](10-dev-experience.md) |
-| **Total** | **107** | **107** | |
+## Verified Implemented
 
-3 remaining: Decompose DashboardClient (C-01), Decompose Profile page (C-05) — both optional refactors. C-06 (MobileDrawer) and C-09 (CategoryTabs) are no longer applicable.
+- Database-backed market prices and announcements, including query-string filters.
+- Dashboard and profile pages decomposed into focused components.
+- Loading and error boundaries across the primary application routes.
+- Article metadata, sitemap, robots rules, Open Graph image, and page metadata for the main content routes.
+- DB-backed rate limiting for authentication, password reset, and push subscription; rate-limited search input.
+- Structured logging, error-reporting helpers, Prisma connection retry logic, health check, security headers, PWA setup, Vitest, and Playwright configuration.
+- Mobile search entry points in the header and drawer, data-driven market/announcement cards, shared bookmark controls, and centralized region constants.
 
-## Quick Wins (low effort, visible impact)
+## Open Product Work
 
-1. Fix `vercel.json` cron Authorization header → [08-security.md#S-06](08-security.md)
-2. ~~Add `loading.tsx` to all route segments → [06-performance.md#P-01](06-performance.md)~~
-3. Remove pre-filled demo credentials from login page → [01-hardcoded-content.md#H-13](01-hardcoded-content.md)
-4. ~~Fix `package.json` name from `"temp-app"` to `"slnews"` → [10-dev-experience.md#D-04](10-dev-experience.md)~~
-5. ~~Change `tsconfig.json` target from `ES2017` to `ES2022` → [10-dev-experience.md#D-01](10-dev-experience.md)~~
-6. ~~Fix PWA manifest icons + theme_color → [05-seo.md#S-05](05-seo.md)~~
-7. ~~Fix invalid HTML (`<Link>` wrapping `<button>`) → [04-accessibility.md#A-15](04-accessibility.md)~~
-8. ~~Add `opengraph-image.tsx` → [05-seo.md#S-04](05-seo.md)~~
-9. ~~Create a shared `useBookmark` hook → [07-code-organization.md#C-02](07-code-organization.md)~~
-10. ~~Add `.nvmrc` and `.prettierrc` → [10-dev-experience.md#D-07](10-dev-experience.md)~~
+| Priority | Item | Evidence |
+|---|---|---|
+| High | Repair legacy redirects | `next.config.ts` redirects `/local` and `/national` to nonexistent `/news`. |
+| High | Align environment documentation | `.env.example` uses `NEXTAUTH_SECRET` and `MEDIASTACK_API_KEY`; runtime also reads `NEWS_API_KEY`, `SCRAPER_API_KEY`, and Sentry variables. |
+| Medium | Implement market actions | Price alert and price-report controls intentionally show “coming soon.” |
+| Medium | Implement announcement actions | Notice detail and notice-posting controls intentionally show “coming soon.” |
+| Medium | Implement contributor following | The author follow control intentionally shows “coming soon.” |
+| Medium | Complete accessibility review | Market and announcement cards are presentational `div`s; contrast has not been independently audited. |
+| Low | Add route metadata where absent | Landing, auth, profile, saved, and password-reset pages rely on root or layout metadata. |
+| Low | Decide public-route policy | `proxy.ts` currently protects pages such as market, announcements, and about. |
 
-## Big Rock Epics (high effort, foundational)
+## Historical Audit Files
 
-1. **Data-drive market + announcements** — Convert 3 fully-hardcoded pages to DB-backed → [01-hardcoded-content.md](01-hardcoded-content.md)
-2. **Wire up all inert buttons** — 19 controls that do nothing → [02-noop-buttons.md](02-noop-buttons.md)
-3. **Decompose DashboardClient** — 315-line component → [07-code-organization.md#C-01](07-code-organization.md)
-4. **Set up test infrastructure** — Jest/Vitest + Playwright → [09-testing.md](09-testing.md)
-5. **Per-page SEO metadata** — generateMetadata for all routes → [05-seo.md#S-05](05-seo.md)
-6. **Mobile search UX** — Add search icon/input for mobile → [03-mobile-search.md](03-mobile-search.md)
-7. **Accessibility audit+fix** — ARIA labels, skip nav, keyboard support → [04-accessibility.md](04-accessibility.md)
+`01-hardcoded-content.md` through `10-dev-experience.md` capture the original audit and are not a live completion dashboard. Their task wording and checkmarks may predate later refactors. Use this file and the source code for current status.

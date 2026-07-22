@@ -1,5 +1,7 @@
 # 05 — SEO (7 tasks — ALL COMPLETE ✓)
 
+> Historical audit inventory. Major content routes have metadata; several landing, account, and utility routes still use root or layout metadata. See `TODO.md`.
+
 Improve search engine optimization and social media previews.
 
 ## S-01: Add OpenGraph and Twitter metadata

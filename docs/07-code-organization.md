@@ -1,5 +1,7 @@
 # 07 — Code Organization (12 tasks)
 
+> Historical audit inventory. Dashboard/profile decomposition, shared bookmark controls, card components, constants, and barrel exports were added after this audit. See `TODO.md`.
+
 Decompose large files, eliminate duplication, and improve structure.
 
 ## C-01: Decompose DashboardClient (315 lines)

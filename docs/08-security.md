@@ -1,5 +1,7 @@
 # 08 — Security (9 tasks)
 
+> Historical audit inventory. Rate limiting and sync-key handling were subsequently implemented; route-publicity policy remains an open decision. See `TODO.md`.
+
 Fix security vulnerabilities and harden the application.
 
 ## S-01: ✓ Cron job missing Authorization header

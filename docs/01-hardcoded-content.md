@@ -1,5 +1,7 @@
 # 01 — Hardcoded Content (19 tasks)
 
+> Historical audit inventory. Status has not been reconciled line by line after later refactors; see `TODO.md` for current verified work.
+
 Replace static content with data-driven sources.
 
 ## H-01: Weather display

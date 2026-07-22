@@ -1,5 +1,7 @@
 # 02 — No-Op Buttons & Controls (19 tasks — ALL COMPLETE ✓)
 
+> Historical audit inventory. The “all complete” heading is stale: market actions, notice actions, and contributor following remain intentional “coming soon” placeholders. See `TODO.md`.
+
 Wire up controls that currently do nothing when clicked.
 
 ## N-01: ✓ Dashboard — Draft save alert

@@ -1,5 +1,7 @@
 # 06 — Performance (8 tasks — ALL COMPLETE ✓)
 
+> Historical audit inventory. Loading states and key Suspense boundaries exist, but this file is not maintained as a live completion record. See `TODO.md`.
+
 Improve loading speed, Core Web Vitals, and perceived performance.
 
 ## P-01: ✓ Add loading.tsx to all route segments

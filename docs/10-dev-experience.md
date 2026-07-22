@@ -1,5 +1,7 @@
 # 10 — Dev Experience (10 tasks)
 
+> Historical audit inventory. This file predates later configuration and component changes. See `TODO.md` for current gaps.
+
 Improve developer tooling, configs, and code quality.
 
 ## D-01: ✓ Update TypeScript target

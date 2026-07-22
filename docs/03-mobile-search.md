@@ -1,5 +1,7 @@
 # 03 — Mobile Search Gap (3 tasks — ALL COMPLETE ✓)
 
+> Historical audit inventory. Header and drawer search are implemented; the bottom navigation has not been expanded with a search tab. See `TODO.md`.
+
 Fix the missing search affordance on mobile/tablet devices.
 
 ## M-01: ✓ Add mobile search icon to TopAppBar

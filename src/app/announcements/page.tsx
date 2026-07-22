@@ -5,13 +5,13 @@ import type { Announcement } from "@/components/AnnouncementCard";
 import ComingSoonButton from "@/components/ComingSoonButton";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
+import AnnouncementRegionFilter from "./_components/AnnouncementRegionFilter";
 
 export const metadata: Metadata = {
   title: "Announcements | SLNews",
   description: "Community notices, events, and public announcements across Sierra Leone.",
 };
 
-const REGIONS = ["All Regions", "Western Area", "Northern Province", "Southern Province", "Eastern Province"];
 const CATEGORIES = ["All", "Government", "NGO Announcement", "Local Event", "Death Notice"];
 
 export default async function CommunityAnnouncementsPage(props: {
@@ -49,25 +49,7 @@ export default async function CommunityAnnouncementsPage(props: {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-6">
-        <div className="relative w-full md:w-auto">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>location_on</span>
-          <select
-            aria-label="Filter by region"
-            defaultValue={currentRegion}
-            onChange={(e) => {
-              const params = new URLSearchParams(window.location.search);
-              if (e.target.value === "All Regions") params.delete("region");
-              else params.set("region", e.target.value);
-              window.location.search = params.toString();
-            }}
-            className="appearance-none bg-surface-container-lowest border border-outline/30 text-on-surface font-label-md text-label-md py-2 pl-10 pr-10 rounded-full w-full md:w-64 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors shadow-sm"
-          >
-            {REGIONS.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-          <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
-        </div>
+        <AnnouncementRegionFilter currentRegion={currentRegion} currentCategory={currentCategory} />
 
         <div className="w-full overflow-x-auto scrollbar-hide pb-1">
           <div className="flex gap-2 min-w-max">

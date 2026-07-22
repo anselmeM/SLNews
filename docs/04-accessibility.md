@@ -1,5 +1,7 @@
 # 04 — Accessibility (16 tasks)
 
+> Historical audit inventory. Several findings were addressed in later components, but interactive card semantics and a contrast audit remain open. See `TODO.md`.
+
 Fix WCAG compliance and accessibility issues.
 
 ## A-01: ArticleCard — Add aria-label to Link

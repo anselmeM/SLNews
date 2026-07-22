@@ -1,75 +1,24 @@
-# SLNews Production Roadmap
+# SLNews Roadmap
 
-## Status: Production Ready ✅
+## Current State
 
-All critical, medium, and low priority tasks complete.
+SLNews has its core production architecture in place: App Router pages, Prisma/PostgreSQL persistence, Auth.js credentials authentication, PWA configuration, request caching, structured logging, error reporting, a health endpoint, rate limiting, unit tests, and Playwright coverage.
 
----
+This is not a claim that every planned product flow is complete. The verified open work is tracked in `docs/TODO.md`.
 
-## Completed Tasks
+## Next Priorities
 
-### High Priority — Bugs & Reliability
+1. Fix or remove the `/local` and `/national` redirects, which currently send visitors to the missing `/news` route.
+2. Turn placeholder actions into real product flows: price alerts/reports, notice creation/detail, and contributor following.
+3. Close the remaining accessibility work: interactive card semantics and a deliberate contrast review.
+4. Decide whether public information pages should remain authenticated in `proxy.ts`.
+5. Add metadata for the small set of routes that still rely on root metadata.
 
-- **#1** Article not-found → force-dynamic, try/catch on fetch, `robots: noindex` meta. HTTP 200 soft-404 is a Next.js 16 dynamic-route bug. UI renders correct 404 page, SEO safe.
-- **#2** Neon retry → `keepAlive: true`, 15s connect / 60s idle timeouts, pool error handler, `withRetry()` exponential backoff in `db.ts`.
-- **#3** CSP → full Content-Security-Policy in `next.config.ts`.
-- **#4** Loading states → shimmer skeletons on article, world, saved, profile pages.
-- **#5** Error boundaries → `error.tsx` on article + news routes with retry button.
+## Operational Features
 
-### Medium Priority — Polish & Security
+- `vercel.json` schedules `/api/cron/sync` once per day at 06:30 UTC.
+- PWA service-worker output is generated during production builds.
+- Sentry is configured through `SENTRY_ORG`, `SENTRY_PROJECT`, and DSN variables.
+- The app runs as a standalone Next.js output and exposes `/api/health`.
 
-- **#6** Form validation → email regex + password strength checks client-side (login + register).
-- **#7** World tabs → client-side `TabFilters` with `startTransition` (matches /news pattern).
-- **#8** World shimmer → `ShimmerFeed` fallback on world page.
-- **#9** Rate limiting → push subscribe (5/min/IP), auth (10/min/IP).
-
-### Low Priority — Nice-to-Have
-
-- **#12** PWA screenshots → generated PNG referenced in manifest.json.
-- **#13** SEO metadata → layout files for saved, profile, profile/edit pages.
-- **#14** E2E tests → 7 Playwright test cases in `e2e/critical-flows.spec.ts`.
-
----
-
-## Deployed Features
-
-| Feature | Status |
-|---|---|
-| Mobile-first UI (bottom nav, drawer, shrink header) | ✅ |
-| PWA installable (Android + iOS) | ✅ |
-| Push notifications (Web Push) | ✅ |
-| Offline support (service worker) | ✅ |
-| Data saver mode | ✅ |
-| Text-to-speech (Web Speech API) | ✅ |
-| Reading progress bar | ✅ |
-| Instant search (debounced, trending) | ✅ |
-| Auto-refresh feed | ✅ |
-| Swipe gestures (save/share) | ✅ |
-| Haptic feedback | ✅ |
-| Shimmer skeletons | ✅ |
-| Bottom sheets | ✅ |
-| Long-press context menus | ✅ |
-| Sticky action bar | ✅ |
-| Error monitoring (Sentry) | ✅ Configured — add `SENTRY_DSN` env var to activate |
-| Branded share cards | ✅ |
-| Drop-cap article body | ✅ |
-
----
-
-## Vercel Env Vars
-
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | Neon pooled connection string |
-| `AUTH_SECRET` | NextAuth session signing |
-| `CRON_SECRET` | Cron sync endpoint authentication |
-| `NEWS_API_KEY` | Currents API (world news) |
-| `SCRAPER_API_KEY` | Sierra Leone scraper API |
-| `SENTRY_DSN` | Optional: Sentry error monitoring |
-| `NEXT_PUBLIC_SENTRY_DSN` | Optional: client-side Sentry |
-
----
-
-## Cron Schedule
-
-`30 6 * * *` (once daily at 6:30 AM UTC — Vercel Hobby plan limit)
+Environment-variable details and deployment caveats are maintained in `docs/PRODUCTION.md`.

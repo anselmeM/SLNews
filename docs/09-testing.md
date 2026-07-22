@@ -1,5 +1,7 @@
 # 09 — Testing (4 tasks)
 
+> Historical audit inventory. Vitest and Playwright configuration and test files are present. Run the configured scripts to verify their current result.
+
 Set up test infrastructure and write initial tests.
 
 ## T-01: ✓ Set up unit test framework
