@@ -5,7 +5,6 @@ import type { Announcement } from "@/components/AnnouncementCard";
 import ComingSoonButton from "@/components/ComingSoonButton";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
-import type { Prisma } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Announcements | SLNews",
@@ -22,19 +21,17 @@ export default async function CommunityAnnouncementsPage(props: {
   const currentRegion = regionParam || "All Regions";
   const currentCategory = categoryParam || "All";
 
-  const where: Prisma.AnnouncementWhereInput = { published: true };
-
-  if (currentCategory !== "All") {
-    where.category = currentCategory;
-  }
-  if (currentRegion !== "All Regions") {
-    where.location = currentRegion;
-  }
-
   let announcements: Announcement[] = [];
   try {
     announcements = await cachedFetch(`announcements:${currentRegion}:${currentCategory}`, async () =>
-      db.announcement.findMany({ where, orderBy: { createdAt: "desc" } })
+      db.announcement.findMany({
+        where: {
+          published: true,
+          ...(currentCategory !== "All" ? { category: currentCategory } : {}),
+          ...(currentRegion !== "All Regions" ? { location: currentRegion } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+      })
     , 120);
   } catch {
     announcements = [];
