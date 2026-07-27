@@ -7,7 +7,7 @@ import DataSaverSection from "./_components/DataSaverSection";
 import FollowedRegions from "./_components/FollowedRegions";
 import NotificationToggles from "./_components/NotificationToggles";
 import ProfileCard from "./_components/ProfileCard";
-import { loadPreferences } from "@/app/actions/user-actions";
+import { loadPreferences, savePreferences } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
 import { invalidate } from "@/lib/cache";
 
@@ -44,7 +44,11 @@ export default function ProfilePage() {
           <FollowedRegions
             region={preferredRegion}
             topics={preferredTopics}
-            onClear={() => setPreferences(null, [])}
+            onClear={async () => {
+              setPreferences(null, []);
+              await savePreferences(null, []);
+              toast("Preferences cleared", "info");
+            }}
           />
 
   const handleClearCache = () => {
@@ -76,7 +80,11 @@ export default function ProfilePage() {
           <FollowedRegions
             region={preferredRegion}
             topics={preferredTopics}
-            onClear={() => setPreferences(null, [])}
+            onClear={async () => {
+              setPreferences(null, []);
+              await savePreferences(null, []);
+              toast("Preferences cleared", "info");
+            }}
           />
 
           <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm">

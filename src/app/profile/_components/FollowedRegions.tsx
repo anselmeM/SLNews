@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { SL_REGIONS } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
+import { savePreferences } from "@/app/actions/user-actions";
 
 export default function FollowedRegions({
   region,
@@ -25,17 +26,22 @@ export default function FollowedRegions({
     ...topics.filter((t) => t !== region),
   ];
 
-  const addRegion = (r: string) => {
+  const addRegion = async (r: string) => {
     setPreferences(r, topics);
     setShowRegionPicker(false);
+    await savePreferences(r, topics);
     toast(`Now following ${r}`, "success");
   };
 
-  const removeRegion = (r: string) => {
+  const removeRegion = async (r: string) => {
     if (r === region) {
-      setPreferences(null, topics.filter((t) => t !== r));
+      const newTopics = topics.filter((t) => t !== r);
+      setPreferences(null, newTopics);
+      await savePreferences(null, newTopics);
     } else {
-      setPreferences(region, topics.filter((t) => t !== r));
+      const newTopics = topics.filter((t) => t !== r);
+      setPreferences(region, newTopics);
+      await savePreferences(region, newTopics);
     }
     toast(`Unfollowed ${r}`, "info");
   };
