@@ -1,8 +1,12 @@
 const META: Record<string, { icon: string; displayName: string; description: string; category: string; categoryClass: string }> = {
-  Rice: { icon: "shopping_bag", displayName: "Rice (50kg Bag)", description: "Imported - Uncle Sam", category: "Essential", categoryClass: "bg-primary/10 text-primary" },
+  "Rice (50kg)": { icon: "shopping_bag", displayName: "Rice (50kg Bag)", description: "Imported - Uncle Sam", category: "Essential", categoryClass: "bg-primary/10 text-primary" },
+  "Rice (cup)": { icon: "shopping_bag", displayName: "Rice (Per Cup)", description: "Local market price", category: "Essential", categoryClass: "bg-primary/10 text-primary" },
   Petrol: { icon: "local_gas_station", displayName: "Petrol (Liter)", description: "Pump Price", category: "Energy", categoryClass: "bg-secondary/10 text-secondary" },
-  "Palm Oil": { icon: "water_drop", displayName: "Palm Oil (5G)", description: "Locally Sourced", category: "Local Produce", categoryClass: "bg-primary/10 text-primary" },
-  Cement: { icon: "foundation", displayName: "Cement (Bag)", description: "Leocem 42.5R", category: "Construction", categoryClass: "bg-tertiary/10 text-tertiary" },
+  Diesel: { icon: "local_gas_station", displayName: "Diesel (Liter)", description: "Pump Price", category: "Energy", categoryClass: "bg-secondary/10 text-secondary" },
+  Kerosene: { icon: "local_gas_station", displayName: "Kerosene (Liter)", description: "Pump Price", category: "Energy", categoryClass: "bg-secondary/10 text-secondary" },
+  "Palm Oil": { icon: "water_drop", displayName: "Palm Oil (Liter)", description: "Locally Sourced", category: "Local Produce", categoryClass: "bg-primary/10 text-primary" },
+  "Cement (Imported)": { icon: "foundation", displayName: "Cement (Imported Bag)", description: "Imported 42.5R", category: "Construction", categoryClass: "bg-tertiary/10 text-tertiary" },
+  "Cement (Local)": { icon: "foundation", displayName: "Cement (Local Bag)", description: "Leocem 42.5R", category: "Construction", categoryClass: "bg-tertiary/10 text-tertiary" },
 };
 
 function trendColor(t: string | null) {
