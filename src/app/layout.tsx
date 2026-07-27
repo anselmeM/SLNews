@@ -5,6 +5,7 @@ import "./globals.css";
 import { auth } from "@/auth";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import PageViewTracker from "@/components/PageViewTracker";
+import { AdSenseScript } from "@/components/AdSense";
 
 export const viewport: Viewport = {
   width: "device-width",

@@ -2,6 +2,7 @@
 
 import SwipeableCard from "@/components/SwipeableCard";
 import FeaturedArticleCard from "@/components/FeaturedArticleCard";
+import { NativeAdCard } from "@/components/AdSense";
 import type { NewsArticle } from "@/lib/news-service";
 
 export default function NewsFeed({
@@ -39,11 +40,17 @@ export default function NewsFeed({
       {featured && articles[0] && <FeaturedArticleCard article={articles[0]} />}
 
       <div className="flex flex-col gap-4 mb-8 mt-6">
-        {articles.slice(featured ? 1 : 0).map((article) => (
+        {articles.slice(featured ? 1 : 0).map((article, idx) => (
           <div key={article.id}>
             <SwipeableCard article={article} />
             {showDividers && (
               <div className="w-full h-px bg-surface-variant my-2"></div>
+            )}
+            {/* Insert native ad every 5 articles */}
+            {(idx + 1) % 5 === 0 && (
+              <div className="mt-4 mb-2">
+                <NativeAdCard index={Math.floor((idx + 1) / 5) - 1} />
+              </div>
             )}
           </div>
         ))}
