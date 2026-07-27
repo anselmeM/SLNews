@@ -43,6 +43,7 @@ export function NativeAdCard({ index = 0 }: { index?: number }) {
   if (dataSaver) return null;
 
   const ad = SPONSORED[index % SPONSORED.length];
+  if (!ad) return null;
 
   return (
     <Link
