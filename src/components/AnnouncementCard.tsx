@@ -1,4 +1,4 @@
-import ComingSoonButton from "@/components/ComingSoonButton";
+import Link from "next/link";
 
 function urgencyColor(urgency: string | null) {
   switch (urgency) {
@@ -36,9 +36,12 @@ export default function AnnouncementCard({ announcement }: { announcement: Annou
       </div>
       <p className="font-body-md text-body-md text-on-surface/80 line-clamp-3 mt-2">{announcement.body}</p>
       <div className="mt-auto pt-4 border-t border-outline/10 flex justify-end">
-        <ComingSoonButton message="Full notice view coming soon!" className="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 cursor-pointer">
+        <Link
+          href={`/announcements/${announcement.id}`}
+          className="inline-flex items-center gap-1 text-primary font-label-md text-label-md hover:underline"
+        >
           Read Full Notice <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </ComingSoonButton>
+        </Link>
       </div>
     </article>
   );
