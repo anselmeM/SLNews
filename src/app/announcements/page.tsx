@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AnnouncementCard from "@/components/AnnouncementCard";
 import type { Announcement } from "@/components/AnnouncementCard";
-import ComingSoonButton from "@/components/ComingSoonButton";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
 import AnnouncementRegionFilter from "./_components/AnnouncementRegionFilter";
@@ -90,12 +89,13 @@ export default async function CommunityAnnouncementsPage(props: {
         )}
       </div>
 
-      <div className="fixed bottom-[calc(96px+env(safe-area-inset-bottom,0px))] right-4 md:bottom-8 md:right-8 z-40">
-        <ComingSoonButton message="Notice posting coming soon!" className="bg-primary text-on-primary rounded-full px-4 py-3 shadow-[0_8px_16px_rgba(27,28,28,0.12)] flex items-center gap-2 hover:bg-on-primary-container transition-colors active:scale-95 cursor-pointer">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
-          <span className="font-label-md text-label-md hidden md:inline">Post Notice</span>
-        </ComingSoonButton>
-      </div>
+      <Link
+        href="/announcements/post"
+        className="fixed bottom-[calc(96px+env(safe-area-inset-bottom,0px))] right-4 md:bottom-8 md:right-8 z-40 bg-primary text-on-primary rounded-full px-4 py-3 shadow-[0_8px_16px_rgba(27,28,28,0.12)] flex items-center gap-2 hover:bg-on-primary-container transition-colors active:scale-95"
+      >
+        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+        <span className="font-label-md text-label-md hidden md:inline">Post Notice</span>
+      </Link>
     </div>
   );
 }
