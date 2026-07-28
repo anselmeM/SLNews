@@ -7,9 +7,11 @@ const REGIONS = ["All Regions", "Western Area", "Northern Province", "Southern P
 export default function AnnouncementRegionFilter({
   currentRegion,
   currentCategory,
+  currentQuery,
 }: {
   currentRegion: string;
   currentCategory: string;
+  currentQuery?: string;
 }) {
   const router = useRouter();
 
@@ -17,6 +19,7 @@ export default function AnnouncementRegionFilter({
     const params = new URLSearchParams();
     if (region !== "All Regions") params.set("region", region);
     if (currentCategory !== "All") params.set("category", currentCategory);
+    if (currentQuery) params.set("q", currentQuery);
     const query = params.toString();
     router.push(`/announcements${query ? `?${query}` : ""}`);
   }

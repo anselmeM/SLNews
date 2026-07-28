@@ -14,24 +14,28 @@ export const metadata: Metadata = {
 const CATEGORIES = ["All", "Government", "NGO Announcement", "Local Event", "Death Notice"];
 
 export default async function CommunityAnnouncementsPage(props: {
-  searchParams: Promise<{ region?: string; category?: string }>;
+  searchParams: Promise<{ region?: string; category?: string; q?: string }>;
 }) {
-  const { region: regionParam, category: categoryParam } = await props.searchParams;
+  const { region: regionParam, category: categoryParam, q: queryParam } = await props.searchParams;
   const currentRegion = regionParam || "All Regions";
   const currentCategory = categoryParam || "All";
+  const currentQuery = queryParam || "";
 
   let announcements: Announcement[] = [];
   try {
-    announcements = await cachedFetch(`announcements:${currentRegion}:${currentCategory}`, async () =>
-      db.announcement.findMany({
-        where: {
-          published: true,
-          ...(currentCategory !== "All" ? { category: currentCategory } : {}),
-          ...(currentRegion !== "All Regions" ? { location: currentRegion } : {}),
-        },
-        orderBy: { createdAt: "desc" },
-      })
-    , 120);
+    announcements = await cachedFetch(`announcements:${currentRegion}:${currentCategory}:${currentQuery}`, async () => {
+      const where: Record<string, unknown> = { published: true };
+      if (currentCategory !== "All") where.category = currentCategory;
+      if (currentRegion !== "All Regions") where.location = currentRegion;
+      if (currentQuery) {
+        where.OR = [
+          { title: { contains: currentQuery, mode: "insensitive" } },
+          { organization: { contains: currentQuery, mode: "insensitive" } },
+          { body: { contains: currentQuery, mode: "insensitive" } },
+        ];
+      }
+      return db.announcement.findMany({ where, orderBy: { createdAt: "desc" } });
+    }, 120);
   } catch {
     announcements = [];
   }
@@ -48,31 +52,56 @@ export default async function CommunityAnnouncementsPage(props: {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-6">
-        <AnnouncementRegionFilter currentRegion={currentRegion} currentCategory={currentCategory} />
+        <AnnouncementRegionFilter currentRegion={currentRegion} currentCategory={currentCategory} currentQuery={currentQuery} />
 
-        <div className="w-full overflow-x-auto scrollbar-hide pb-1">
-          <div className="flex gap-2 min-w-max">
-            {CATEGORIES.map((cat) => {
-              const isActive = currentCategory === cat;
-              const params = new URLSearchParams();
-              if (currentRegion !== "All Regions") params.set("region", currentRegion);
-              if (cat !== "All") params.set("category", cat);
-              const qs = params.toString();
-              return (
-                <Link
-                  key={cat}
-                  href={`/announcements${qs ? `?${qs}` : ""}`}
-                  className={`px-4 py-1.5 rounded-full whitespace-nowrap transition-colors shadow-sm font-label-md text-label-md inline-block ${
-                    isActive
-                      ? "bg-primary-container text-on-primary-container"
-                      : "bg-surface-container-lowest border border-outline/30 text-on-surface-variant hover:bg-surface-container"
-                  }`}
-                >
-                  {cat}
-                </Link>
-              );
-            })}
-          </div>
+        <div className="w-full md:w-auto flex gap-2">
+          {/* Search */}
+          <form className="relative flex-1 md:flex-initial">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+            <input
+              name="q"
+              defaultValue={currentQuery}
+              placeholder="Search notices..."
+              className="w-full md:w-56 bg-surface-container-lowest border border-outline/30 rounded-xl py-2.5 pl-10 pr-4 text-sm text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            {currentQuery && (
+              <Link
+                href={`/announcements${currentRegion !== "All Regions" ? `?region=${encodeURIComponent(currentRegion)}` : ""}${currentCategory !== "All" ? `${currentRegion !== "All Regions" ? "&" : "?"}category=${encodeURIComponent(currentCategory)}` : ""}`}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </Link>
+            )}
+            <button type="submit" hidden />
+          </form>
+
+          {/* Category pills - shown below on mobile */}
+        </div>
+      </div>
+
+      <div className="w-full overflow-x-auto scrollbar-hide pb-1 mb-4">
+        <div className="flex gap-2 min-w-max">
+          {CATEGORIES.map((cat) => {
+            const isActive = currentCategory === cat;
+            const params = new URLSearchParams();
+            if (currentRegion !== "All Regions") params.set("region", currentRegion);
+            if (cat !== "All") params.set("category", cat);
+            if (currentQuery) params.set("q", currentQuery);
+            const qs = params.toString();
+            return (
+              <Link
+                key={cat}
+                href={`/announcements${qs ? `?${qs}` : ""}`}
+                className={`px-4 py-1.5 rounded-full whitespace-nowrap transition-colors shadow-sm font-label-md text-label-md inline-block ${
+                  isActive
+                    ? "bg-primary-container text-on-primary-container"
+                    : "bg-surface-container-lowest border border-outline/30 text-on-surface-variant hover:bg-surface-container"
+                }`}
+              >
+                {cat}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
