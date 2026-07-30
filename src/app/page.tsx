@@ -9,49 +9,81 @@ export default function LandingPage() {
       <section className="max-w-3xl mx-auto px-4 pt-24 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full mb-6">
           <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          Sierra Leone&apos;s Community News
+          Works on any phone. Low data mode.
         </div>
 
         <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-none mb-4">
-          SL News
+          Sierra Leone <span className="text-green-700">Community News</span>
         </h1>
 
         <p className="text-lg md:text-xl text-gray-600 font-medium max-w-lg mx-auto mb-10 leading-relaxed">
-          Local stories, national news, and community voices — all in one place. Built for Sierra Leone, by Sierra Leoneans.
+          Local news, market prices, and community notices. Built for Sierra Leone, by Sierra Leoneans. No app store needed.
         </p>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link
             href="/home"
             className="inline-flex items-center gap-2 bg-green-700 text-white font-bold px-8 py-3.5 rounded-full text-base hover:bg-green-800 transition-all shadow-lg shadow-green-200 active:scale-95"
           >
-            Start Reading
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
+            Install Free App
           </Link>
-
           <Link
             href="/home"
             className="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-8 py-3.5 rounded-full text-base border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all active:scale-95"
           >
-            Explore News
+            Start Reading →
           </Link>
         </div>
       </section>
 
       {/* Features */}
-      <section className="max-w-3xl mx-auto px-4 pb-20">
-        <div className="grid md:grid-cols-3 gap-4">
+      <section className="max-w-3xl mx-auto px-4 pb-16">
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">What you get</h2>
+        <div className="grid md:grid-cols-2 gap-4">
           {[
-            { icon: "map", title: "Local Coverage", desc: "Province-by-province news from across the country." },
-            { icon: "public", title: "International", desc: "World news curated for Sierra Leone readers." },
-            { icon: "download", title: "Install App", desc: "Add to your home screen for a native-like experience." },
+            { icon: "newspaper", title: "Local News", desc: "Stories from Sierra Leone Telegraph, Politico SL, and Concord Times in one feed." },
+            { icon: "trending_up", title: "Market Prices", desc: "Rice, petrol, cement, palm oil prices across Freetown, Bo, Makeni, Kenema." },
+            { icon: "campaign", title: "Community Notices", desc: "Government announcements, local events, and public notices. Anyone can post." },
+            { icon: "search", title: "Instant Search", desc: "Find any article or notice instantly. Filter by category or region." },
+            { icon: "download", title: "No App Store Needed", desc: "Install directly from your browser. Works on any smartphone." },
+            { icon: "cloud_off", title: "Works Offline", desc: "Saved articles and prices available even without internet connection." },
           ].map((f) => (
-            <div key={f.title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <span className="material-symbols-outlined text-3xl text-green-700 mb-3 block">{f.icon}</span>
-              <h3 className="font-bold text-gray-900 mb-1">{f.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+            <div key={f.title} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex gap-4 items-start">
+              <span className="material-symbols-outlined text-2xl text-green-700 bg-green-50 p-2.5 rounded-xl flex-shrink-0">{f.icon}</span>
+              <div>
+                <h3 className="font-bold text-gray-900 mb-0.5">{f.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Market Prices Preview */}
+      <section className="max-w-3xl mx-auto px-4 pb-16">
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Current Market Prices</h2>
+        <p className="text-sm text-gray-500 text-center mb-6">Updated weekly. Prices in New Leone (NLe).</p>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-md mx-auto">
+          {[
+            { name: "Rice (50kg bag)", price: "NLe 180,000", trend: "up", pct: "2.5%" },
+            { name: "Petrol (per litre)", price: "NLe 30", trend: "down", pct: "8%" },
+            { name: "Diesel (per litre)", price: "NLe 32", trend: "down", pct: "5%" },
+            { name: "Cement (imported bag)", price: "NLe 180,000", trend: "up", pct: "3%" },
+            { name: "Palm Oil (per litre)", price: "NLe 19,000", trend: "down", pct: "10.6%" },
+          ].map((item, i) => (
+            <div key={item.name} className={`flex justify-between items-center px-5 py-3.5 text-sm ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
+              <span className="font-semibold text-gray-900">{item.name}</span>
+              <span className="text-gray-600">
+                <span className={item.trend === "up" ? "text-red-500 font-semibold mr-1" : "text-green-600 font-semibold mr-1"}>
+                  {item.trend === "up" ? "↑" : "↓"} {item.pct}
+                </span>
+                {item.price}
+              </span>
             </div>
           ))}
         </div>
@@ -61,30 +93,43 @@ export default function LandingPage() {
       <section className="max-w-3xl mx-auto px-4 pb-24">
         <div className="bg-green-700 rounded-3xl p-8 md:p-12 text-center text-white">
           <span className="material-symbols-outlined text-5xl mb-4">install_mobile</span>
-          <h2 className="text-2xl md:text-3xl font-black mb-3">Get the App</h2>
-          <p className="text-green-100 text-sm md:text-base max-w-md mx-auto mb-6 leading-relaxed">
-            Install SLNews on your phone or desktop for offline reading and push notifications.
+          <h2 className="text-2xl md:text-3xl font-black mb-3">Install in 3 Steps</h2>
+          <p className="text-green-100 text-sm md:text-base max-w-md mx-auto mb-8 leading-relaxed">
+            Free. No app store. Works on any phone.
           </p>
-          <ol className="text-left text-sm text-green-100 space-y-2 max-w-sm mx-auto">
-            <li className="flex items-start gap-3">
-              <span className="bg-white/20 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5 text-xs">1</span>
-              <span>Open this page in Chrome or Safari</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="bg-white/20 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5 text-xs">2</span>
-              <span>Tap <strong>Share</strong> then <strong>Add to Home Screen</strong></span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="bg-white/20 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5 text-xs">3</span>
-              <span>Launch SLNews like any other app</span>
-            </li>
-          </ol>
+          <div className="grid md:grid-cols-3 gap-6 text-left max-w-lg mx-auto">
+            {[
+              { num: "1", title: "Tap Install", desc: 'Tap "Install Free App" above or the Share icon.' },
+              { num: "2", title: "Confirm", desc: "Your browser will ask if you want to add to home screen." },
+              { num: "3", title: "Open Anytime", desc: "SL News appears on your home screen. Even works offline." },
+            ].map((s) => (
+              <div key={s.num} className="flex md:flex-col items-center md:text-center gap-4 md:gap-3">
+                <span className="bg-white/20 text-white font-bold rounded-full w-10 h-10 flex items-center justify-center shrink-0 text-sm">{s.num}</span>
+                <div>
+                  <p className="font-bold text-sm mb-0.5">{s.title}</p>
+                  <p className="text-green-100 text-xs">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-3xl mx-auto px-4 pb-16 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Start reading now</h2>
+        <p className="text-sm text-gray-500 mb-6">No sign up required. No data wasted.</p>
+        <Link
+          href="/home"
+          className="inline-flex items-center gap-2 bg-green-700 text-white font-bold px-8 py-3.5 rounded-full text-base hover:bg-green-800 transition-all shadow-lg shadow-green-200 active:scale-95"
+        >
+          Open SL News →
+        </Link>
       </section>
 
       {/* Footer */}
       <footer className="max-w-3xl mx-auto px-4 pb-8 text-center text-xs text-gray-400">
-        <p>SL News &mdash; Community journalism for Sierra Leone.</p>
+        <p>SL News — Community journalism for Sierra Leone.</p>
       </footer>
     </div>
     </ReturningVisitorCheck>
