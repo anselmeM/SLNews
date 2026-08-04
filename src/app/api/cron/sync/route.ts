@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { syncFromScraper } from "@/app/actions/sync-scraper";
 import { syncWorldNews } from "@/app/actions/sync-news-api";
 import { sendPushNotifications } from "@/app/actions/push-actions";
+import { sendMorningBriefing } from "@/lib/briefing-service";
+import { processPriceAlerts } from "@/lib/price-alert-service";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,15 +18,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [sl, world] = await Promise.allSettled([
+  const [sl, world, priceAlerts, briefing] = await Promise.allSettled([
     syncFromScraper(),
     syncWorldNews(),
+    processPriceAlerts(),
+    sendMorningBriefing(),
   ]);
 
   const slResult =
     sl.status === "fulfilled" ? sl.value : { success: false, error: "rejected", count: 0 };
   const worldResult =
     world.status === "fulfilled" ? world.value : { success: false, error: "rejected", count: 0 };
+  const priceAlertResult =
+    priceAlerts.status === "fulfilled"
+      ? priceAlerts.value
+      : { notified: 0, hits: 0, error: "rejected" };
+  const briefingResult =
+    briefing.status === "fulfilled"
+      ? briefing.value
+      : { sent: 0, error: "rejected" };
 
   const total = (slResult.count ?? 0) + (worldResult.count ?? 0);
   const ok = slResult.success || worldResult.success;
@@ -42,6 +54,8 @@ export async function GET(request: Request) {
     success: ok,
     sierraLeone: slResult,
     world: worldResult,
+    priceAlerts: priceAlertResult,
+    briefing: briefingResult,
     count: total,
     push: pushResult,
   });

@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("SLNews E2E", () => {
   test("landing page loads", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("main").getByRole("heading", { name: "SL News" })).toBeVisible();
+    await expect(page.locator("main").getByRole("heading", { name: /Sierra Leone/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Start Reading" })).toBeVisible();
   });
 

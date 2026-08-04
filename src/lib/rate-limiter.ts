@@ -71,3 +71,40 @@ export function getClientIp(request: Request): string {
     "127.0.0.1"
   );
 }
+
+export function loginRateKey(email: string, ip: string): string {
+  return `login:${ip}:${email.trim().toLowerCase()}`;
+}
+
+export async function resetRateLimit(key: string): Promise<void> {
+  memoryBuckets.delete(key);
+  try {
+    await db.rateLimit.deleteMany({ where: { key } });
+  } catch {
+    // ignore — memory bucket already cleared
+  }
+}
+
+export async function getRateLimitStatus(
+  key: string
+): Promise<{ blocked: boolean; retryAfter: number }> {
+  const now = Date.now();
+  try {
+    const existing = await db.rateLimit.findUnique({ where: { key } });
+    if (existing && now < existing.expiresAt.getTime()) {
+      return {
+        blocked: true,
+        retryAfter: Math.ceil((existing.expiresAt.getTime() - now) / 1000),
+      };
+    }
+  } catch {
+    const bucket = memoryBuckets.get(key);
+    if (bucket && now < bucket.resetAt) {
+      return {
+        blocked: true,
+        retryAfter: Math.ceil((bucket.resetAt - now) / 1000),
+      };
+    }
+  }
+  return { blocked: false, retryAfter: 0 };
+}

@@ -13,14 +13,30 @@ export const metadata: Metadata = {
   description: "Search news articles on SLNews.",
 };
 
-const CATEGORY_FILTERS = ["All", "National", "Politics", "Sports", "Business", "Technology", "Health", "Entertainment"];
+const CATEGORY_FILTERS = ["All", "National", "Politics", "Business", "Tech", "Health", "Economy", "Education", "Local"];
+const PROVINCES = ["Western Area", "Northern Province", "Southern Province", "Eastern Province", "North West Province"];
+const PERIODS: { key: string; label: string }[] = [
+  { key: "", label: "All time" },
+  { key: "24h", label: "Last 24 hours" },
+  { key: "7d", label: "Last 7 days" },
+  { key: "30d", label: "Last 30 days" },
+];
+
+function periodToDate(period: string | undefined): string | undefined {
+  if (!period) return undefined;
+  const hours = period === "24h" ? 24 : period === "7d" ? 7 * 24 : period === "30d" ? 30 * 24 : 0;
+  if (hours === 0) return undefined;
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
 
 export default async function SearchPage(props: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; province?: string; period?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   const category = searchParams.category || "";
+  const province = searchParams.province || "";
+  const period = searchParams.period || "";
 
   if (query) {
     const headersList = await headers();
@@ -46,16 +62,18 @@ export default async function SearchPage(props: {
   let trending: string[] = [];
 
   try {
-    results = query ? await searchArticles(query) : [];
+    results = query
+      ? await searchArticles(query, 0, 50, {
+          category: category || undefined,
+          province: province || undefined,
+          dateFrom: periodToDate(period),
+        })
+      : [];
     trending = query ? [] : await getTrendingTopics();
   } catch {
     results = [];
     trending = [];
   }
-
-  const filteredResults = category
-    ? results.filter((r) => r.category.toLowerCase() === category.toLowerCase())
-    : results;
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
@@ -65,7 +83,7 @@ export default async function SearchPage(props: {
         </h1>
         {query ? (
           <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">
-            Found {filteredResults.length} {filteredResults.length === 1 ? "article" : "articles"} matching{" "}
+            Found {results.length} {results.length === 1 ? "article" : "articles"} matching{" "}
             <span className="font-bold text-primary">&ldquo;{query}&rdquo;</span>
           </p>
         ) : (
@@ -97,31 +115,76 @@ export default async function SearchPage(props: {
       )}
 
       {query && (
-        <div className="flex flex-wrap gap-2 pb-2">
-          {CATEGORY_FILTERS.map((f) => {
-            const isActive = f === "All" ? !category : category.toLowerCase() === f.toLowerCase();
-            const href =
-              f === "All"
-                ? `/search?q=${encodeURIComponent(query)}`
-                : `/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(f)}`;
-            return (
-              <Link
-                key={f}
-                href={href}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "bg-primary text-white shadow-sm"
-                    : "bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 text-on-surface hover:border-primary hover:text-primary"
-                }`}
-              >
-                {f}
-              </Link>
-            );
-          })}
-        </div>
+        <>
+          <div className="flex flex-wrap gap-2 pb-1" role="group" aria-label="Filter by category">
+            {CATEGORY_FILTERS.map((f) => {
+              const isActive = f === "All" ? !category : category === f;
+              const href =
+                f === "All"
+                  ? `/search?q=${encodeURIComponent(query)}${province ? `&province=${encodeURIComponent(province)}` : ""}${period ? `&period=${period}` : ""}`
+                  : `/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(f)}${province ? `&province=${encodeURIComponent(province)}` : ""}${period ? `&period=${period}` : ""}`;
+              return (
+                <Link
+                  key={f}
+                  href={href}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 text-on-surface hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {f}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-2 pb-1" role="group" aria-label="Filter by province">
+            {["All of Sierra Leone", ...PROVINCES].map((p) => {
+              const isActive = p === "All of Sierra Leone" ? !province : province === p;
+              const pValue = p === "All of Sierra Leone" ? "" : p;
+              const base = `/search?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}${period ? `&period=${period}` : ""}`;
+              const href = pValue
+                ? `${base}&province=${encodeURIComponent(pValue)}`
+                : base;
+              return (
+                <Link
+                  key={p}
+                  href={href}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 text-on-surface hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {p}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-2 pb-2" role="group" aria-label="Filter by date">
+            {PERIODS.map((p) => {
+              const isActive = (p.key === "" && !period) || period === p.key;
+              const base = `/search?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}${province ? `&province=${encodeURIComponent(province)}` : ""}`;
+              const href = p.key ? `${base}&period=${p.key}` : base;
+              return (
+                <Link
+                  key={p.key}
+                  href={href}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-white dark:bg-surface-container-lowest border border-gray-200 dark:border-gray-700 text-on-surface hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {p.label}
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {query && filteredResults.length === 0 && (
+      {query && results.length === 0 && (
         <div className="flex flex-col items-center justify-center p-12 bg-surface-container-lowest rounded-3xl border border-outline-variant text-center gap-4 shadow-sm min-h-[40vh]">
           <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-2">
             <span className="material-symbols-outlined text-4xl text-on-surface-variant select-none">search_off</span>
@@ -136,7 +199,7 @@ export default async function SearchPage(props: {
         </div>
       )}
 
-      {filteredResults.length > 0 && <NewsFeed articles={filteredResults} featured={false} />}
+      {results.length > 0 && <NewsFeed articles={results} featured={false} />}
     </div>
   );
 }

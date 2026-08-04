@@ -29,7 +29,7 @@ export default function CommodityCard({ price }: { price: Price }) {
   const meta = META[price.commodity] || { icon: "shopping_bag", displayName: price.commodity, description: "", category: "Other", categoryClass: "bg-surface-variant text-on-surface-variant" };
 
   return (
-    <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 shadow-[0_4px_12px_rgba(27,28,28,0.08)] flex flex-col justify-between h-full hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(27,28,28,0.12)] transition-all">
+    <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 shadow-[0_4px_12px_rgba(27,28,28,0.08)] flex flex-col justify-between h-full">
       <div>
         <div className="flex justify-between items-start mb-4">
           <div className={`px-3 py-1 rounded-full font-label-sm text-label-sm inline-block ${meta.categoryClass}`}>{meta.category}</div>

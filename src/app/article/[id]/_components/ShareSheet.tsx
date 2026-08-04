@@ -34,6 +34,13 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
     setOpen(false);
   };
 
+  const handleWhatsApp = () => {
+    const url = `${window.location.origin}/article/${article.id}`;
+    const text = `${article.title} — ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    setOpen(false);
+  };
+
   return (
     <>
       <button
@@ -65,6 +72,14 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
           >
             <span className="material-symbols-outlined text-xl text-primary">share</span>
             Share
+          </button>
+
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
+          >
+            <span className="material-symbols-outlined text-xl text-primary">chat</span>
+            WhatsApp
           </button>
 
           <button

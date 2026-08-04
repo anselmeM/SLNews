@@ -4,14 +4,14 @@
 
 SLNews has its core production architecture in place: App Router pages, Prisma/PostgreSQL persistence, Auth.js credentials authentication, PWA configuration, request caching, structured logging, error reporting, a health endpoint, rate limiting, unit tests, and Playwright coverage.
 
-This is not a claim that every planned product flow is complete. The verified open work is tracked in `docs/TODO.md`.
+Product flows previously marked "coming soon" are implemented: price alerts and price reporting, notice detail and posting, and contributor following. Route metadata and production-mode PWA verification are covered by tests. The verified open work is tracked in `docs/TODO.md`.
 
 ## Next Priorities
 
-1. Turn placeholder actions into real product flows: price alerts/reports, notice creation/detail, and contributor following.
-2. Close the remaining accessibility work: interactive card semantics and a deliberate contrast review.
-3. Add metadata for the small set of routes that still rely on root metadata.
-4. Add test coverage reporting and production-mode PWA verification.
+1. Deliver price alerts via push: a scheduled check that compares fresh prices against stored `PriceAlert` rows and notifies owners.
+2. Add a moderation screen for submitted `PriceReport` rows so editors can approve or reject them.
+3. Personalize the home feed with followed contributors.
+4. Enforce a test-coverage threshold in CI.
 
 ## Operational Features
 

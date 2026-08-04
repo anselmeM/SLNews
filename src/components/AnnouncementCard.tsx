@@ -24,7 +24,14 @@ export default function AnnouncementCard({ announcement }: { announcement: Annou
         <span className="font-label-sm text-label-sm text-on-surface-variant">{announcement.dateLabel}</span>
       </div>
       <div>
-        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1 group-hover:text-primary transition-colors">{announcement.title}</h2>
+        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1">
+          <Link
+            href={`/announcements/${announcement.id}`}
+            className="group-hover:text-primary transition-colors focus-visible:outline-none focus-visible:underline focus-visible:text-primary"
+          >
+            {announcement.title}
+          </Link>
+        </h2>
         <p className="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
           <span className="material-symbols-outlined text-[16px]">account_balance</span>
           {announcement.organization}

@@ -23,7 +23,7 @@ npm install
 npm run dev
 ```
 
-Copy `.env.example` to `.env` and provide `DATABASE_URL` plus `NEXTAUTH_SECRET`. Optional sync features use `NEWS_API_KEY` (or the legacy `MEDIASTACK_API_KEY`), `SCRAPER_API_KEY`, and `CRON_SECRET`.
+Copy `.env.example` to `.env` and provide `DATABASE_URL` plus `AUTH_SECRET` (`NEXTAUTH_SECRET` is accepted as a legacy alias). Optional sync features use `NEWS_API_KEY` (or the legacy `MEDIASTACK_API_KEY`), `SCRAPER_API_KEY`, and `CRON_SECRET`.
 
 ## Verification
 

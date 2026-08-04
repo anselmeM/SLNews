@@ -7,7 +7,7 @@ import DataSaverSection from "./_components/DataSaverSection";
 import FollowedRegions from "./_components/FollowedRegions";
 import NotificationToggles from "./_components/NotificationToggles";
 import ProfileCard from "./_components/ProfileCard";
-import { loadPreferences, savePreferences } from "@/app/actions/user-actions";
+import { loadPreferences, savePreferences, setDailyBriefing } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
 import { invalidate } from "@/lib/cache";
 
@@ -28,17 +28,29 @@ export default function ProfilePage() {
   const localAlerts = useAppStore((s) => s.localAlerts);
   const setLocalAlerts = useAppStore((s) => s.setLocalAlerts);
   const [bio, setBio] = useState<string | null>(null);
+  const [dailyBriefing, setDailyBriefingState] = useState(false);
 
   useEffect(() => { loadPreferences().then((prefs) => {
     setBio(prefs.bio);
+    setDailyBriefingState(prefs.dailyBriefing);
     if (prefs.preferredRegion || prefs.preferredTopics.length > 0) {
       setPreferences(prefs.preferredRegion, prefs.preferredTopics);
     }
   }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleDailyBriefing = async (v: boolean) => {
+    setDailyBriefingState(v);
+    const result = await setDailyBriefing(v);
+    if (!result.success) {
+      setDailyBriefingState(!v);
+      toast("Could not update briefing setting", "error");
+    }
+  };
+
   const notificationToggles = [
     { key: "breakingNews", label: "Breaking News", desc: "Major national headlines instantly.", checked: breakingNews, setter: setBreakingNews },
     { key: "localAlerts", label: "Local Alerts", desc: "Updates from followed regions.", checked: localAlerts, setter: setLocalAlerts },
+    { key: "dailyBriefing", label: "Morning Briefing", desc: "A daily digest of top stories each morning.", checked: dailyBriefing, setter: handleDailyBriefing },
   ];
 
           <FollowedRegions

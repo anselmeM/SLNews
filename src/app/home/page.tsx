@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { auth } from "@/auth";
 import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
+import FollowingFeed from "./_components/FollowingFeed";
 import PersonalizedFeed from "./_components/PersonalizedFeed";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import LatestStories from "@/components/LatestStories";
@@ -56,6 +57,10 @@ export default async function Home() {
 
       <Suspense fallback={null}>
         <EditorsPicks />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <FollowingFeed />
       </Suspense>
 
       <Suspense fallback={null}>

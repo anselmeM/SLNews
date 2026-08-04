@@ -116,12 +116,36 @@ export async function fetchArticleById(id: string): Promise<NewsArticle | null> 
   }, TTL.single);
 }
 
-export async function searchArticles(query: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
+export type SearchFilters = {
+  category?: string;
+  province?: string;
+  dateFrom?: string;
+};
+
+export async function searchArticles(
+  query: string,
+  skip = 0,
+  take = DEFAULT_PAGE_SIZE,
+  filters?: SearchFilters
+): Promise<NewsArticle[]> {
   const sanitized = query.trim().slice(0, 200);
   if (!sanitized) return [];
+  const f = filters ?? {};
+  const filterKey = `${f.category ?? ""}:${f.province ?? ""}:${f.dateFrom ?? ""}`;
   // Searches are user-specific — short TTL to avoid stale cache on repeat queries
-  return cachedFetch(`search:${sanitized}:${skip}:${take}`, async () => {
-    const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED", OR: [{ title: { contains: sanitized, mode: "insensitive" } }, { summary: { contains: sanitized, mode: "insensitive" } }, { content: { contains: sanitized, mode: "insensitive" } }] }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
+  return cachedFetch(`search:${sanitized}:${skip}:${take}:${filterKey}`, async () => {
+    const where: Prisma.ArticleWhereInput = {
+      published: true,
+      status: "PUBLISHED",
+      OR: [{ title: { contains: sanitized, mode: "insensitive" } }, { summary: { contains: sanitized, mode: "insensitive" } }, { content: { contains: sanitized, mode: "insensitive" } }],
+    };
+    if (f.category) where.categories = { some: { name: f.category } };
+    if (f.province) where.province = f.province;
+    if (f.dateFrom) {
+      const from = new Date(f.dateFrom);
+      if (!Number.isNaN(from.getTime())) where.publishedAt = { gte: from };
+    }
+    const articles = await db.article.findMany({ where, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
     return articles.map(mapPrismaArticle);
   }, 15);
 }
@@ -131,4 +155,24 @@ export async function fetchRelatedArticles(excludeId: string, category: string, 
     const articles = await db.article.findMany({ where: { id: { not: excludeId }, published: true, status: "PUBLISHED", categories: { some: { name: category } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, take });
     return articles.map(mapPrismaArticle);
   }, TTL.single);
+}
+
+export async function fetchFollowingNews(userId: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
+  return cachedFetch(`following:${userId}:${skip}:${take}`, async () => {
+    const follows = await db.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const authorIds = follows.map((f) => f.followingId);
+    if (authorIds.length === 0) return [];
+
+    const articles = await db.article.findMany({
+      where: { published: true, status: "PUBLISHED", authorId: { in: authorIds } },
+      orderBy: { publishedAt: "desc" },
+      include: { author: true, categories: true },
+      skip,
+      take,
+    });
+    return articles.map(mapPrismaArticle);
+  }, TTL.feed);
 }

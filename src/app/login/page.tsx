@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { getLoginRateLimitStatus } from "@/app/actions/auth-actions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,7 +40,12 @@ export default function LoginPage() {
       clearTimeout(timeout);
 
       if (result?.error) {
-        setError("Invalid email or password");
+        const status = await getLoginRateLimitStatus(email);
+        if (status.blocked) {
+          setError("Too many sign-in attempts. Please try again later.");
+        } else {
+          setError("Invalid email or password");
+        }
         setLoading(false);
       } else {
         router.push("/home");

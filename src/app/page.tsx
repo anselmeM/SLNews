@@ -1,5 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import ReturningVisitorCheck from "@/components/ReturningVisitorCheck";
+import { siteUrl } from "@/lib/site-url";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "NewsMediaOrganization",
+  name: "SLNews",
+  url: siteUrl("/"),
+  description: "Local news, market prices, and community notices for Sierra Leone.",
+  logo: siteUrl("/icon-512x512.png"),
+};
+
+export const metadata: Metadata = {
+  title: "SLNews | Sierra Leone Community News",
+  description:
+    "Local news, market prices, and community notices for Sierra Leone. Free to read, no app store needed.",
+  openGraph: {
+    title: "SLNews | Sierra Leone Community News",
+    description:
+      "Local news, market prices, and community notices for Sierra Leone. Free to read, no app store needed.",
+    type: "website",
+    siteName: "SLNews",
+  },
+};
 
 export default function LandingPage() {
   return (
@@ -128,9 +152,14 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="max-w-3xl mx-auto px-4 pb-8 text-center text-xs text-gray-400">
+      <footer className="max-w-3xl mx-auto px-4 pb-8 text-center text-xs text-gray-600">
         <p>SL News — Community journalism for Sierra Leone.</p>
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
     </div>
     </ReturningVisitorCheck>
   );

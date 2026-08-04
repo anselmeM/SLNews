@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import DashboardClient from "./_components/DashboardClient";
 import { auth } from "@/auth";
@@ -32,8 +33,20 @@ export default async function DashboardPage() {
     include: { categories: true }
   });
 
+  const isModerator = session.user.role === "EDITOR" || session.user.role === "ADMIN";
+
   return (
     <div className="w-full">
+      {isModerator && (
+        <div className="mb-4 flex justify-end">
+          <Link
+            href="/dashboard/reports"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+          >
+            <span className="material-symbols-outlined text-lg">fact_check</span> Price Reports
+          </Link>
+        </div>
+      )}
       <DashboardClient user={session.user} articles={articles as DashboardArticle[]} />
     </div>
   );

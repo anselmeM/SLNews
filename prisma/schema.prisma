@@ -45,12 +45,18 @@ model User {
   bio             String?
   preferredRegion String?
   preferredTopics String[]
+  dailyBriefing   Boolean      @default(false)
   accounts        Account[]
   articles        Article[]
   sessions        Session[]
   savedArticles   SavedArticle[]
   comments        Comment[]
   reactions       ArticleReaction[]
+  priceAlerts     PriceAlert[]
+  priceReports    PriceReport[]
+  following       Follow[]     @relation("Following")
+  followers       Follow[]     @relation("Followers")
+  announcementComments AnnouncementComment[]
 }
 
 model SavedArticle {
@@ -151,8 +157,24 @@ model Announcement {
   published    Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  comments     AnnouncementComment[]
 
   @@index([published, category, createdAt])
+}
+
+model AnnouncementComment {
+  id             String       @id @default(cuid())
+  content        String
+  announcementId String
+  userId         String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId, createdAt])
+  @@index([userId])
 }
 
 model Comment {
@@ -213,4 +235,44 @@ model PushSubscription {
   keys      Json
   userId    String?
   createdAt DateTime @default(now())
+}
+
+model PriceAlert {
+  id             String    @id @default(cuid())
+  userId         String
+  commodity      String
+  market         String
+  lastNotifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commodity, market])
+  @@index([market])
+}
+
+model PriceReport {
+  id            String   @id @default(cuid())
+  userId        String
+  commodity     String
+  market        String
+  reportedPrice Float
+  notes         String?
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
 }

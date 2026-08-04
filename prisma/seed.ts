@@ -55,8 +55,14 @@ async function main() {
     },
   });
 
-  // 3. Create articles
-  const article1 = await prisma.article.create({
+  // 3. Create articles (idempotent: skip if a title already exists — Article.title is not unique)
+  const upsertArticle = async (args: Parameters<typeof prisma.article.create>[0]) => {
+    const existing = await prisma.article.findFirst({ where: { title: args.data.title } });
+    if (existing) return existing;
+    return prisma.article.create(args);
+  };
+
+  const article1 = await upsertArticle({
     data: {
       title: "Global Summit Addresses Climate Action in Developing Nations",
       summary: "World leaders gathered to discuss new funding mechanisms for climate resilience in West Africa.",
@@ -72,7 +78,7 @@ async function main() {
     }
   });
 
-  const article2 = await prisma.article.create({
+  const article2 = await upsertArticle({
     data: {
       title: "New Solar Grid Project Launched in Bo District",
       summary: "A major renewable energy initiative aims to provide 24/7 power to over 50,000 households.",
@@ -90,7 +96,7 @@ async function main() {
     }
   });
 
-  const article3 = await prisma.article.create({
+  const article3 = await upsertArticle({
     data: {
       title: "National Assembly Passes New Tech Hub Legislation",
       summary: "Freetown is set to become a major technology hub following the passing of new tax incentives for startups.",
@@ -180,7 +186,8 @@ async function main() {
   ];
 
   for (const a of announcements) {
-    await prisma.announcement.create({ data: a });
+    const existing = await prisma.announcement.findFirst({ where: { title: a.title } });
+    if (!existing) await prisma.announcement.create({ data: a });
   }
 
   console.log('Seeding finished.');

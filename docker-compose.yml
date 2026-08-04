@@ -25,7 +25,7 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/slnews"
-      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET}"
+      AUTH_SECRET: "${AUTH_SECRET:-${NEXTAUTH_SECRET:-}}"
       NEXTAUTH_URL: "${NEXTAUTH_URL}"
       MEDIASTACK_API_KEY: "${MEDIASTACK_API_KEY:-}"
       CRON_SECRET: "${CRON_SECRET:-}"

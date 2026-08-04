@@ -78,18 +78,37 @@ export async function loadPreferences(): Promise<{
   preferredRegion: string | null;
   preferredTopics: string[];
   bio: string | null;
+  dailyBriefing: boolean;
 }> {
   const session = await auth();
-  if (!session?.user?.id) return { preferredRegion: null, preferredTopics: [], bio: null };
+  if (!session?.user?.id) {
+    return { preferredRegion: null, preferredTopics: [], bio: null, dailyBriefing: false };
+  }
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { preferredRegion: true, preferredTopics: true, bio: true },
+    select: { preferredRegion: true, preferredTopics: true, bio: true, dailyBriefing: true },
   });
 
   return {
     preferredRegion: user?.preferredRegion || null,
     preferredTopics: user?.preferredTopics || [],
     bio: user?.bio || null,
+    dailyBriefing: user?.dailyBriefing ?? false,
   };
+}
+
+export async function setDailyBriefing(enabled: boolean): Promise<{ success: boolean }> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false };
+
+  try {
+    await db.user.update({
+      where: { id: session.user.id },
+      data: { dailyBriefing: Boolean(enabled) },
+    });
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
 }

@@ -8,11 +8,15 @@ import ListenButton from "@/components/ListenButton";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
+import FollowButton from "@/components/FollowButton";
 import ReactionButtons from "@/components/ReactionButtons";
 import ReadingProgress from "@/components/ReadingProgress";
 import { ShimmerFeed } from "@/components/Shimmer";
 import TrackArticleView from "@/components/TrackArticleView";
+import { getFollowState } from "@/app/actions/follow-actions";
+import { auth } from "@/auth";
 import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
+import { siteUrl } from "@/lib/site-url";
 import { ArticleBody } from "./_components/ArticleBody";
 import { StickyActions } from "./_components/StickyActions";
 
@@ -66,8 +70,38 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
     year: "numeric", month: "long", day: "numeric",
   });
 
+  const [session, followState] = await Promise.all([
+    auth(),
+    article.authorId ? getFollowState(article.authorId) : Promise.resolve({ following: false, followerCount: 0 }),
+  ]);
+  const canFollow = Boolean(article.authorId) && session?.user?.id !== article.authorId;
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: article.title,
+    description: article.summary,
+    image: article.imageUrl?.startsWith("http")
+      ? article.imageUrl
+      : siteUrl(article.imageUrl),
+    datePublished: article.publishedAt,
+    dateModified: article.publishedAt,
+    articleSection: article.category,
+    author: { "@type": "Person", name: article.source },
+    publisher: {
+      "@type": "NewsMediaOrganization",
+      name: "SLNews",
+      url: siteUrl("/"),
+    },
+    mainEntityOfPage: siteUrl(`/article/${article.id}`),
+  };
+
   return (
     <div className="max-w-[720px] mx-auto">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <ReadingProgress />
 
       {/* Hero Image — full-width, edge-to-edge */}
@@ -108,13 +142,33 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
 
       {/* Author byline + actions */}
       <div className="flex items-center justify-between py-3 border-b border-outline-variant/20 mb-6">
-        <div>
-          <p className="font-semibold text-sm text-on-surface">
-            {article.source}
-          </p>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            {formattedDate} · {readingTime} min read
-          </p>
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-on-surface">
+              {article.authorId ? (
+                <Link
+                  href={`/author/${article.authorId}`}
+                  className="hover:text-primary transition-colors focus-visible:outline-none focus-visible:text-primary"
+                >
+                  {article.source}
+                </Link>
+              ) : (
+                article.source
+              )}
+            </p>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              {formattedDate} · {readingTime} min read
+            </p>
+          </div>
+          {canFollow && (
+            <FollowButton
+              authorId={article.authorId}
+              initialFollowing={followState.following}
+              initialFollowerCount={followState.followerCount}
+              variant="compact"
+              callbackPath={`/article/${article.id}`}
+            />
+          )}
         </div>
         <div className="flex items-center gap-1">
           <ListenButton title={article.title} content={article.content} />

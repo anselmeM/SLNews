@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getFollowState } from "@/app/actions/follow-actions";
 import ArticleCard from "@/components/ArticleCard";
-import ComingSoonButton from "@/components/ComingSoonButton";
+import FollowButton from "@/components/FollowButton";
 import { db } from "@/lib/db";
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -41,6 +42,7 @@ export default async function ContributorProfilePage(props: {
   });
 
   const publishedCount = author._count.articles;
+  const followState = await getFollowState(id);
 
   return (
     <div className="w-full">
@@ -68,9 +70,11 @@ export default async function ContributorProfilePage(props: {
             <p className="font-body-md text-body-md text-on-surface-variant mb-4">
               {author.role} contributor at SLNews.
             </p>
-            <ComingSoonButton message="Following coming soon!" className="bg-primary text-on-primary font-label-md text-label-md px-6 py-2 rounded-full shadow-sm hover:bg-primary/95 transition-colors flex items-center gap-2 cursor-pointer">
-              <span className="material-symbols-outlined">notifications_active</span> Follow
-            </ComingSoonButton>
+            <FollowButton
+              authorId={author.id}
+              initialFollowing={followState.following}
+              initialFollowerCount={followState.followerCount}
+            />
           </div>
         </div>
 

@@ -15,7 +15,7 @@
 | Variable | Required for |
 |---|---|
 | `DATABASE_URL` | Application database |
-| `NEXTAUTH_SECRET` | Auth.js session signing |
+| `AUTH_SECRET` | Auth.js session signing (`NEXTAUTH_SECRET` is accepted as a legacy alias) |
 | `NEXTAUTH_URL` | Local Auth.js callback URL |
 | `CRON_SECRET` | Scheduled sync authentication |
 
@@ -24,9 +24,10 @@
 | Variable | Used by |
 |---|---|
 | `NEWS_API_KEY` or `MEDIASTACK_API_KEY` | World-news sync |
-| `SCRAPER_API_KEY` | Sierra Leone news scraper sync |
+| `SCRAPER_API_KEY`, `SYNC_BOT_PASSWORD` | Sierra Leone news scraper sync |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CONTACT_EMAIL` | Web push notifications |
 | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` | Error monitoring DSNs |
-| `SENTRY_ORG`, `SENTRY_PROJECT` | Sentry build integration |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Sentry build integration |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL defaults |
 
 ## Deployment Checks

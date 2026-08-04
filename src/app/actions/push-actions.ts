@@ -1,9 +1,15 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import webpush from "web-push";
 import { db } from "@/lib/db";
 
-export async function sendPushNotifications(title: string, body: string, url: string) {
+export async function sendPushNotifications(
+  title: string,
+  body: string,
+  url: string,
+  opts: { userId?: string; userIds?: string[] } = {}
+) {
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
   const contactEmail = process.env.VAPID_CONTACT_EMAIL || "admin@slnews.vercel.app";
@@ -14,7 +20,14 @@ export async function sendPushNotifications(title: string, body: string, url: st
 
   webpush.setVapidDetails(`mailto:${contactEmail}`, vapidPublic, vapidPrivate);
 
-  const subscriptions = await db.pushSubscription.findMany({ take: 500 });
+  let where: Prisma.PushSubscriptionWhereInput | undefined;
+  if (opts.userIds && opts.userIds.length > 0) where = { userId: { in: opts.userIds } };
+  else if (opts.userId) where = { userId: opts.userId };
+
+  const subscriptions = await db.pushSubscription.findMany({
+    take: 500,
+    where,
+  });
   if (subscriptions.length === 0) return { sent: 0 };
 
   const payload = JSON.stringify({ title, body, url, icon: "/icon-192x192.png" });

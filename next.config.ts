@@ -39,7 +39,9 @@ const nextConfig: NextConfig = {
     ];
   },
   output: "standalone",
-  turbopack: {},
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default withSentryConfig(nextConfig, {

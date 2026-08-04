@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ComingSoonButton from "@/components/ComingSoonButton";
-import CommodityCard from "@/components/CommodityCard";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
+import CommodityCard from "@/components/CommodityCard";
+import MarketActions from "./_components/MarketActions";
 
 export const metadata: Metadata = {
   title: "Market Prices | SLNews",
@@ -34,6 +34,8 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
   const lastUpdated = prices.length > 0
     ? new Date(Math.max(...prices.map((p) => p.updatedAt.getTime())))
     : new Date();
+
+  const commodities = [...new Set(prices.map((p) => p.commodity))];
 
   return (
     <div className="w-full">
@@ -73,9 +75,12 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
             <span className="material-symbols-outlined text-[16px]">update</span>{" "}
             Last updated: {lastUpdated.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </span>
-          <ComingSoonButton message="Price alerts coming soon!" className="font-label-sm text-label-sm text-primary flex items-center gap-1 hover:underline">
+          <a
+            href="#market-actions"
+            className="font-label-sm text-label-sm text-primary flex items-center gap-1 hover:underline"
+          >
             <span className="material-symbols-outlined text-[16px]">notifications_active</span> Set Alert
-          </ComingSoonButton>
+          </a>
         </div>
       </section>
 
@@ -121,14 +126,9 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
         </div>
       </section>
 
-      <section className="flex flex-col sm:flex-row gap-6 justify-center mt-10 mb-12">
-        <ComingSoonButton message="Price alerts coming soon!" className="bg-primary text-on-primary font-label-md text-label-md px-10 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-surface-tint transition-colors shadow-lg active:scale-95 duration-150">
-          <span className="material-symbols-outlined">notifications</span> Set Price Alerts
-        </ComingSoonButton>
-        <ComingSoonButton message="Price report form coming soon!" className="bg-surface-container-highest text-on-surface font-label-md text-label-md px-10 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors border border-outline-variant/30 active:scale-95 duration-150">
-          <span className="material-symbols-outlined">report</span> Report Price Change
-        </ComingSoonButton>
-      </section>
+      <div id="market-actions">
+        <MarketActions markets={MARKETS} commodities={commodities} currentMarket={currentMarket} />
+      </div>
     </div>
   );
 }

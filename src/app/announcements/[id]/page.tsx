@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AnnouncementComments from "./_components/AnnouncementComments";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,8 @@ export default async function NoticePage({ params }: { params: Promise<{ id: str
           {notice.body}
         </div>
       </article>
+
+      <AnnouncementComments announcementId={notice.id} />
     </div>
   );
 }
