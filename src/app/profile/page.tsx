@@ -36,6 +36,8 @@ export default function ProfilePage() {
     if (prefs.preferredRegion || prefs.preferredTopics.length > 0) {
       setPreferences(prefs.preferredRegion, prefs.preferredTopics);
     }
+  }).catch(() => {
+    toast("Could not load preferences", "error");
   }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDailyBriefing = async (v: boolean) => {
@@ -52,16 +54,6 @@ export default function ProfilePage() {
     { key: "localAlerts", label: "Local Alerts", desc: "Updates from followed regions.", checked: localAlerts, setter: setLocalAlerts },
     { key: "dailyBriefing", label: "Morning Briefing", desc: "A daily digest of top stories each morning.", checked: dailyBriefing, setter: handleDailyBriefing },
   ];
-
-          <FollowedRegions
-            region={preferredRegion}
-            topics={preferredTopics}
-            onClear={async () => {
-              setPreferences(null, []);
-              await savePreferences(null, []);
-              toast("Preferences cleared", "info");
-            }}
-          />
 
   const handleClearCache = () => {
     invalidate();
@@ -93,9 +85,16 @@ export default function ProfilePage() {
             region={preferredRegion}
             topics={preferredTopics}
             onClear={async () => {
+              const prevRegion = preferredRegion;
+              const prevTopics = preferredTopics;
               setPreferences(null, []);
-              await savePreferences(null, []);
-              toast("Preferences cleared", "info");
+              try {
+                await savePreferences(null, []);
+                toast("Preferences cleared", "info");
+              } catch {
+                setPreferences(prevRegion, prevTopics);
+                toast("Could not clear preferences", "error");
+              }
             }}
           />
 

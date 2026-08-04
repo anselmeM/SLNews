@@ -7,10 +7,8 @@ import { useSession } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { updateProfile, loadPreferences } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
+import { SL_REGIONS, SL_TOPICS } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
-
-const REGIONS = ["Freetown", "Bo", "Makeni", "Kenema", "Koidu", "International"];
-const TOPICS = ["Politics", "Sports", "Technology", "Environment", "Health", "Economy", "Culture"];
 
 export default function EditProfilePage() {
   const { data: session, update } = useSession();
@@ -36,8 +34,10 @@ export default function EditProfilePage() {
       const b = prefs.bio || "";
       setBio(b);
       setStoredBio(b);
+    }).catch(() => {
+      toast("Could not load preferences", "error");
     });
-  }, []);
+  }, [toast]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,20 +76,24 @@ export default function EditProfilePage() {
   const handleSave = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    const result = await updateProfile({
-      name: name.trim(),
-      image: imageUrl || null,
-      bio: bio || null,
-      preferredRegion: selectedRegion || null,
-      preferredTopics: selectedTopics,
-    });
-    if (result.success) {
-      setPreferences(selectedRegion || null, selectedTopics);
-      await update({ name: name.trim(), image: imageUrl || null });
-      toast("Profile updated!", "success");
-      router.push("/profile");
-    } else {
-      toast(result.error || "Failed to update profile", "error");
+    try {
+      const result = await updateProfile({
+        name: name.trim(),
+        image: imageUrl || null,
+        bio: bio || null,
+        preferredRegion: selectedRegion || null,
+        preferredTopics: selectedTopics,
+      });
+      if (result.success) {
+        setPreferences(selectedRegion || null, selectedTopics);
+        await update({ name: name.trim(), image: imageUrl || null });
+        toast("Profile updated!", "success");
+        router.push("/profile");
+      } else {
+        toast(result.error || "Failed to update profile", "error");
+      }
+    } catch {
+      toast("Failed to update profile", "error");
     }
     setSaving(false);
   };
@@ -227,7 +231,7 @@ export default function EditProfilePage() {
           </h2>
           <p className="text-sm text-on-surface-variant mb-4">Get news tailored to your location.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {REGIONS.map((region) => {
+            {SL_REGIONS.map((region) => {
               const active = selectedRegion === region;
               return (
                 <button
@@ -254,7 +258,7 @@ export default function EditProfilePage() {
           </h2>
           <p className="text-sm text-on-surface-variant mb-4">Select topics that interest you.</p>
           <div className="flex flex-wrap gap-2.5">
-            {TOPICS.map((topic) => {
+            {SL_TOPICS.map((topic) => {
               const active = selectedTopics.includes(topic);
               return (
                 <button

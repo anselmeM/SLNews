@@ -29,21 +29,29 @@ export default function FollowedRegions({
   const addRegion = async (r: string) => {
     setPreferences(r, topics);
     setShowRegionPicker(false);
-    await savePreferences(r, topics);
-    toast(`Now following ${r}`, "success");
+    try {
+      await savePreferences(r, topics);
+      toast(`Now following ${r}`, "success");
+    } catch {
+      setPreferences(region, topics);
+      toast("Could not update preferences", "error");
+    }
   };
 
   const removeRegion = async (r: string) => {
+    const newTopics = topics.filter((t) => t !== r);
     if (r === region) {
-      const newTopics = topics.filter((t) => t !== r);
       setPreferences(null, newTopics);
-      await savePreferences(null, newTopics);
     } else {
-      const newTopics = topics.filter((t) => t !== r);
       setPreferences(region, newTopics);
-      await savePreferences(region, newTopics);
     }
-    toast(`Unfollowed ${r}`, "info");
+    try {
+      await savePreferences(r === region ? null : region, newTopics);
+      toast(`Unfollowed ${r}`, "info");
+    } catch {
+      setPreferences(region, topics);
+      toast("Could not update preferences", "error");
+    }
   };
 
   const availableRegions = SL_REGIONS.filter(

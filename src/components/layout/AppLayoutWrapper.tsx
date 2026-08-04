@@ -33,7 +33,7 @@ export default function AppLayoutWrapper({
           setSavedIds(ids);
           setPreferences(prefs.preferredRegion, prefs.preferredTopics);
         }
-      );
+      ).catch(() => {});
     }
     if (!session?.user?.id) {
       syncedRef.current = false;

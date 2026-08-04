@@ -30,6 +30,24 @@ async function main() {
     create: { name: 'District' },
   });
 
+  const catSports = await prisma.category.upsert({
+    where: { name: 'Sports' },
+    update: {},
+    create: { name: 'Sports' },
+  });
+
+  const catEnvironment = await prisma.category.upsert({
+    where: { name: 'Environment' },
+    update: {},
+    create: { name: 'Environment' },
+  });
+
+  const catCulture = await prisma.category.upsert({
+    where: { name: 'Culture' },
+    update: {},
+    create: { name: 'Culture' },
+  });
+
   // 2. Create writers/users
   const defaultPassword = await bcrypt.hash('password123', 10);
 

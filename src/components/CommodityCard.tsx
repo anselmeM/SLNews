@@ -47,7 +47,7 @@ export default function CommodityCard({ price }: { price: Price }) {
           <div className={`flex items-center gap-2 ${trendColor(price.trend)}`}>
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{trendIcon(price.trend)}</span>
             <span className="font-label-md text-label-md">
-              {price.trend === "stable" ? "Stable" : `${price.trend === "up" ? "+" : ""}${price.trendPct}% ${price.trendPeriod || ""}`}
+              {price.trend === "stable" ? "Stable" : `${price.trend === "up" ? "+" : ""}${price.trendPct ?? 0}% ${price.trendPeriod || ""}`}
             </span>
           </div>
         )}
