@@ -26,15 +26,17 @@ export async function syncWorldNews() {
   try {
     // Global/international categories only — Sierra Leone content comes from
     // the dedicated scraper source (sync-scraper.ts).
+    // Page size capped at 3 per category so world news stays a small fraction
+    // of the feed instead of drowning out Sierra Leone stories.
     const worldEndpoints: SyncEndpoint[] = [
-      { name: "International", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "10" } },
-      { name: "Africa", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "10" } },
-      { name: "Business", endpoint: "latest-news", params: { category: "business", language: "en", page_size: "10" } },
-      { name: "Sports", endpoint: "latest-news", params: { category: "sports", language: "en", page_size: "10" } },
-      { name: "Tech", endpoint: "latest-news", params: { category: "technology", language: "en", page_size: "10" } },
-      { name: "Health", endpoint: "latest-news", params: { category: "health", language: "en", page_size: "10" } },
-      { name: "Environment", endpoint: "latest-news", params: { category: "environment", language: "en", page_size: "10" } },
-      { name: "Culture", endpoint: "latest-news", params: { category: "entertainment", language: "en", page_size: "10" } },
+      { name: "International", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "3" } },
+      { name: "Africa", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "3" } },
+      { name: "Business", endpoint: "latest-news", params: { category: "business", language: "en", page_size: "3" } },
+      { name: "Sports", endpoint: "latest-news", params: { category: "sports", language: "en", page_size: "3" } },
+      { name: "Tech", endpoint: "latest-news", params: { category: "technology", language: "en", page_size: "3" } },
+      { name: "Health", endpoint: "latest-news", params: { category: "health", language: "en", page_size: "3" } },
+      { name: "Environment", endpoint: "latest-news", params: { category: "environment", language: "en", page_size: "3" } },
+      { name: "Culture", endpoint: "latest-news", params: { category: "entertainment", language: "en", page_size: "3" } },
     ];
 
     let totalCount = 0;
