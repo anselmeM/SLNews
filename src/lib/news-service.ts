@@ -85,7 +85,11 @@ export async function fetchTrendingNews(skip = 0, take = DEFAULT_PAGE_SIZE): Pro
 
 export async function fetchLocalNews(province?: string, district?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`local:${province}:${district}:${skip}:${take}`, async () => {
-    const where: Record<string, unknown> = { published: true, status: "PUBLISHED", categories: { some: { name: { in: ["Local"] } } } };
+    const where: Record<string, unknown> = {
+      published: true,
+      status: "PUBLISHED",
+      categories: { some: { name: { in: ["Local", "National", "Politics", "Economy", "Education"] } } },
+    };
     if (province) where.province = province;
     if (district) where.district = district;
     const articles = await db.article.findMany({ where, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });

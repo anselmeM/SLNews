@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import NewsFeed from "@/components/NewsFeed";
-import { fetchLocalNews, fetchNationalNews, type NewsArticle } from "@/lib/news-service";
+import { fetchLocalNews, type NewsArticle } from "@/lib/news-service";
 
 export const dynamic = "force-dynamic";
 
@@ -10,21 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default async function LocalNewsPage() {
-  let localArticles: NewsArticle[] = [];
-  let nationalArticles: NewsArticle[] = [];
+  let articles: NewsArticle[] = [];
 
   try {
-    [localArticles, nationalArticles] = await Promise.all([
-      fetchLocalNews(undefined, undefined, 0, 5),
-      fetchNationalNews(undefined, 0, 5),
-    ]);
+    articles = await fetchLocalNews(undefined, undefined, 0, 10);
   } catch {
-    localArticles = [];
-    nationalArticles = [];
+    articles = [];
   }
-
-  const allArticles = [...localArticles, ...nationalArticles];
-  allArticles.sort((a, b) => new Date(b.publishedAt || "").getTime() - new Date(a.publishedAt || "").getTime());
 
   return (
     <div className="w-full pt-4 max-w-3xl mx-auto">
@@ -35,7 +27,7 @@ export default async function LocalNewsPage() {
         </p>
       </div>
 
-      <NewsFeed articles={allArticles} emptyMessage="No local or national articles found." />
+      <NewsFeed articles={articles} emptyMessage="No local or national articles found." />
     </div>
   );
 }
