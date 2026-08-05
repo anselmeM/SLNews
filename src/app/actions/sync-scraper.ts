@@ -10,7 +10,17 @@ function buildScraperUrl(): string {
   if (!key) {
     throw new Error("SCRAPER_API_KEY is not set");
   }
-  return `${SCRAPER_BASE}?api_key=${encodeURIComponent(key)}`;
+  return SCRAPER_BASE;
+}
+
+function buildScraperHeaders(): HeadersInit {
+  const key = process.env.SCRAPER_API_KEY;
+  if (!key) {
+    throw new Error("SCRAPER_API_KEY is not set");
+  }
+  return {
+    Authorization: `Bearer ${key}`,
+  };
 }
 
 type ScraperArticle = {
@@ -69,7 +79,7 @@ export async function syncFromScraper() {
 
     let res: Response;
     try {
-      res = await fetch(buildScraperUrl(), { cache: "no-store" });
+      res = await fetch(buildScraperUrl(), { cache: "no-store", headers: buildScraperHeaders() });
     } catch {
       return { success: false, error: "Scraper unreachable" };
     }
