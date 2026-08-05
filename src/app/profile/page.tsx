@@ -4,7 +4,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import AppearanceSection from "./_components/AppearanceSection";
 import DataSaverSection from "./_components/DataSaverSection";
-import FollowedRegions from "./_components/FollowedRegions";
+import FollowedTopics from "./_components/FollowedTopics";
 import NotificationToggles from "./_components/NotificationToggles";
 import ProfileCard from "./_components/ProfileCard";
 import { loadPreferences, savePreferences, setDailyBriefing } from "@/app/actions/user-actions";
@@ -29,15 +29,17 @@ export default function ProfilePage() {
   const [bio, setBio] = useState<string | null>(null);
   const [dailyBriefing, setDailyBriefingState] = useState(false);
 
-  useEffect(() => { loadPreferences().then((prefs) => {
-    setBio(prefs.bio);
-    setDailyBriefingState(prefs.dailyBriefing);
-    if (prefs.preferredTopics.length > 0) {
-      setPreferences(null, prefs.preferredTopics);
-    }
-  }).catch(() => {
-    toast("Could not load preferences", "error");
-  }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    loadPreferences()
+      .then((prefs) => {
+        setBio(prefs.bio);
+        setDailyBriefingState(prefs.dailyBriefing);
+        if (prefs.preferredTopics.length > 0) {
+          setPreferences(null, prefs.preferredTopics);
+        }
+      })
+      .catch(() => toast("Could not load preferences", "error"));
+  }, [toast]);
 
   const handleDailyBriefing = async (v: boolean) => {
     setDailyBriefingState(v);
@@ -80,7 +82,7 @@ export default function ProfilePage() {
           <DataSaverSection dataSaver={dataSaver} setDataSaver={setDataSaver} />
           <AppearanceSection theme={theme} setTheme={(v) => setTheme(v)} />
           <NotificationToggles toggles={notificationToggles} />
-          <FollowedRegions
+          <FollowedTopics
             topics={preferredTopics}
             onClear={async () => {
               const prevTopics = preferredTopics;

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useToast } from "@/components/Toast";
+import { savePreferences } from "@/app/actions/user-actions";
+import { useToast, type ToastType } from "@/components/Toast";
 import { SL_TOPICS } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
-import { savePreferences } from "@/app/actions/user-actions";
 
-export default function FollowedRegions({
+export default function FollowedTopics({
   topics,
   onClear,
 }: {
@@ -17,34 +17,27 @@ export default function FollowedRegions({
   const setPreferences = useAppStore((s) => s.setPreferences);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
 
-  const hasPreferences = topics.length > 0;
-
-  const addTopic = async (t: string) => {
-    const newTopics = [...topics, t];
-    setPreferences(null, newTopics);
-    setShowTopicPicker(false);
-    try {
-      await savePreferences(null, newTopics);
-      toast(`Following ${t}`, "success");
-    } catch {
-      setPreferences(null, topics);
-      toast("Could not update preferences", "error");
-    }
-  };
-
-  const removeTopic = async (t: string) => {
-    const newTopics = topics.filter((x) => x !== t);
-    setPreferences(null, newTopics);
-    try {
-      await savePreferences(null, newTopics);
-      toast(`Unfollowed ${t}`, "info");
-    } catch {
-      setPreferences(null, topics);
-      toast("Could not update preferences", "error");
-    }
-  };
-
+  const hasTopics = topics.length > 0;
   const availableTopics = SL_TOPICS.filter((t) => !topics.includes(t));
+
+  const updateTopics = async (next: string[], message: string, type: ToastType) => {
+    setPreferences(null, next);
+    try {
+      await savePreferences(null, next);
+      toast(message, type);
+    } catch {
+      setPreferences(null, topics);
+      toast("Could not update preferences", "error");
+    }
+  };
+
+  const addTopic = (t: string) => {
+    setShowTopicPicker(false);
+    void updateTopics([...topics, t], `Following ${t}`, "success");
+  };
+
+  const removeTopic = (t: string) =>
+    void updateTopics(topics.filter((x) => x !== t), `Unfollowed ${t}`, "info");
 
   return (
     <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm">
@@ -70,7 +63,7 @@ export default function FollowedRegions({
               Add
             </button>
           )}
-          {hasPreferences && (
+          {hasTopics && (
             <button
               onClick={onClear}
               className="text-sm font-semibold text-on-surface-variant hover:text-error transition-colors cursor-pointer"
@@ -81,7 +74,7 @@ export default function FollowedRegions({
         </div>
       </div>
 
-      {hasPreferences ? (
+      {hasTopics ? (
         <div className="flex flex-wrap gap-2">
           {topics.map((item) => (
             <button
@@ -115,7 +108,7 @@ export default function FollowedRegions({
         </div>
       )}
 
-      {!hasPreferences && !showTopicPicker && (
+      {!hasTopics && !showTopicPicker && (
         <button
           onClick={() => setShowTopicPicker(true)}
           className="mt-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors cursor-pointer min-h-[44px]"

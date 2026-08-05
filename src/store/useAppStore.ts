@@ -17,9 +17,7 @@ interface AppState {
   isSaved: (id: string) => boolean;
   setSavedIds: (ids: string[]) => void;
   preferredRegion: string | null;
-  setRegion: (region: string) => void;
   preferredTopics: string[];
-  toggleTopic: (topic: string) => void;
   setPreferences: (region: string | null, topics: string[]) => void;
   breakingNews: boolean;
   setBreakingNews: (v: boolean) => void;
@@ -98,14 +96,7 @@ export const useAppStore = create<AppState>()(
           return { savedArticleIds: idSet, savedArticles: filtered };
         }),
       preferredRegion: null,
-      setRegion: (region) => set({ preferredRegion: region }),
       preferredTopics: [],
-      toggleTopic: (topic) =>
-        set((state) => ({
-          preferredTopics: state.preferredTopics.includes(topic)
-            ? state.preferredTopics.filter((t) => t !== topic)
-            : [...state.preferredTopics, topic],
-        })),
       setPreferences: (region, topics) =>
         set({ preferredRegion: region, preferredTopics: topics }),
       breakingNews: true,
