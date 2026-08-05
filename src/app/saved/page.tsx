@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import NewsFeed from "@/components/NewsFeed";
@@ -62,7 +62,7 @@ export default function SavedStoriesPage() {
       </section>
 
       {savedArticles.length === 0 ? (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -86,7 +86,7 @@ export default function SavedStoriesPage() {
           >
             Start Browsing
           </Link>
-        </motion.div>
+        </m.div>
       ) : (
         <>
           {/* Sort & Filter Controls */}

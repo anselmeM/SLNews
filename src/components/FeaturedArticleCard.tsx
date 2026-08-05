@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
 import BookmarkButton from "./BookmarkButton";
@@ -11,7 +11,7 @@ export default function FeaturedArticleCard({ article }: { article: NewsArticle 
   const dataSaver = useAppStore((state) => state.dataSaver);
 
   return (
-    <motion.article 
+    <m.article 
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -6, boxShadow: "0 24px 48px rgba(0,0,0,0.08)" }}
@@ -59,6 +59,6 @@ export default function FeaturedArticleCard({ article }: { article: NewsArticle 
       
       {/* Bookmark Button */}
       <BookmarkButton article={article} variant="featured" />
-    </motion.article>
+    </m.article>
   );
 }

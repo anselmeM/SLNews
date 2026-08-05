@@ -8,6 +8,7 @@ import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
 import BottomNavBar from "./BottomNavBar";
 import TopAppBar from "./TopAppBar";
+import MotionProvider from "./MotionProvider";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
 import { ToastProvider } from "@/components/Toast";
 import ThemeSync from "@/components/ThemeSync";
@@ -47,6 +48,7 @@ export default function AppLayoutWrapper({
   }
 
   return (
+    <MotionProvider>
     <SessionProvider session={session}>
     <ToastProvider>
       <ThemeSync />
@@ -61,5 +63,6 @@ export default function AppLayoutWrapper({
       </div>
     </ToastProvider>
     </SessionProvider>
+    </MotionProvider>
   );
 }

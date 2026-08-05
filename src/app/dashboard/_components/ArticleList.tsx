@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deleteArticle } from "@/app/actions/article-actions";
@@ -45,7 +45,7 @@ export default function ArticleList({
   return (
     <div className="space-y-3">
       {articles.map((article) => (
-        <motion.div
+        <m.div
           key={article.id}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,7 +80,7 @@ export default function ArticleList({
               {deleting === article.id ? "..." : "Delete"}
             </button>
           </div>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );

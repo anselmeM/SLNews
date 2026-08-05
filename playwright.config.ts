@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3100",
     trace: "on-first-retry",
   },
   projects: [
@@ -15,8 +15,11 @@ export default defineConfig({
   ],
   webServer: {
     command: "node scripts/e2e-server.js",
-    url: "http://localhost:3000",
+    url: "http://localhost:3100",
     reuseExistingServer: false,
     timeout: 180_000,
+    env: {
+      PORT: "3100",
+    },
   },
 });

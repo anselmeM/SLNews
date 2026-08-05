@@ -15,7 +15,7 @@ describe("ArticleImage", () => {
     const img = screen.getByRole("img");
     expect(img).toHaveAttribute(
       "src",
-      "/api/image-proxy?url=https%3A%2F%2Fexample.com%2Fimage.jpg"
+      "/api/image-proxy?url=https%3A%2F%2Fexample.com%2Fimage.jpg&w=960&f=webp"
     );
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { m, useMotionValue, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { NewsArticle } from "@/lib/news-service";
@@ -44,29 +44,29 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
   return (
     <div className="relative overflow-hidden rounded-3xl" ref={ref}>
       {/* Swipe action backgrounds */}
-      <motion.div
+      <m.div
         className="absolute inset-y-0 left-0 flex items-center pl-6 z-0"
         style={{ opacity: saveOpacity }}
       >
-        <motion.div style={{ scale: saveScale }} className="flex items-center gap-2 text-green-600">
+        <m.div style={{ scale: saveScale }} className="flex items-center gap-2 text-green-600">
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
             bookmark
           </span>
           <span className="text-sm font-bold">Save</span>
-        </motion.div>
-      </motion.div>
-      <motion.div
+        </m.div>
+      </m.div>
+      <m.div
         className="absolute inset-y-0 right-0 flex items-center pr-6 z-0"
         style={{ opacity: shareOpacity }}
       >
-        <motion.div style={{ scale: shareScale }} className="flex items-center gap-2 text-blue-600">
+        <m.div style={{ scale: shareScale }} className="flex items-center gap-2 text-blue-600">
           <span className="text-sm font-bold">Share</span>
           <span className="material-symbols-outlined text-2xl">share</span>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
 
       {/* Swipeable card */}
-      <motion.div
+      <m.div
         drag="x"
         dragConstraints={ref}
         dragElastic={0.2}
@@ -158,7 +158,7 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
           </div>
         )}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

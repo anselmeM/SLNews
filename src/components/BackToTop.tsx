@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function BackToTop() {
@@ -18,7 +18,7 @@ export default function BackToTop() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.button
+        <m.button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           initial={{ opacity: 0, scale: 0.5, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -28,7 +28,7 @@ export default function BackToTop() {
           aria-label="Back to top"
         >
           <span className="material-symbols-outlined text-xl">arrow_upward</span>
-        </motion.button>
+        </m.button>
       )}
     </AnimatePresence>
   );

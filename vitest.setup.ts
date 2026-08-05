@@ -87,7 +87,15 @@ vi.mock("framer-motion", async () => {
       article: createTag("article"),
       div: createTag("div"),
     },
+    m: {
+      article: createTag("article"),
+      div: createTag("div"),
+      button: createTag("button"),
+      aside: createTag("aside"),
+    },
     AnimatePresence: ({ children }: { children?: React.ReactNode }) => children,
+    LazyMotion: ({ children }: { children?: React.ReactNode }) => children,
+    domMax: {},
     useMotionValue: (initial: number) => ({ get: () => initial }),
     useTransform: () => 1,
   };

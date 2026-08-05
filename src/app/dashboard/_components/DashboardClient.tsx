@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AdminSyncPanel from "./AdminSyncPanel";
@@ -160,7 +160,7 @@ export default function DashboardClient({
         {/* Right: editor */}
         <div className="col-span-9 flex flex-col overflow-hidden">
           {activeTab === "write" && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-5 flex flex-col flex-1 overflow-hidden"
@@ -190,7 +190,7 @@ export default function DashboardClient({
                 <span>{articleId ? "Editing existing article" : "New article"}</span>
                 <span>{wordCount.toLocaleString()} word{wordCount !== 1 ? "s" : ""}</span>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {activeTab !== "write" && (
@@ -232,7 +232,7 @@ export default function DashboardClient({
         </div>
 
         {activeTab === "write" && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
             <EditorForm
               articleId={articleId}
               title={title}
@@ -258,7 +258,7 @@ export default function DashboardClient({
               <span>{articleId ? "Existing article" : "New article"}</span>
               <span>{wordCount.toLocaleString()} word{wordCount !== 1 ? "s" : ""}</span>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {activeTab === "drafts" && (

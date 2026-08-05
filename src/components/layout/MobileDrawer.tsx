@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import type { Session } from "next-auth";
 import { useAppStore } from "@/store/useAppStore";
@@ -46,14 +46,14 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          <motion.aside
+          <m.aside
             className="fixed top-0 left-0 bottom-0 z-[110] w-[280px] max-w-[85vw] bg-surface dark:bg-surface-container-lowest shadow-2xl flex flex-col"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
@@ -147,7 +147,7 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
                 </Link>
               )}
             </div>
-          </motion.aside>
+          </m.aside>
         </>
       )}
     </AnimatePresence>
