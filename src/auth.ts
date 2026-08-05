@@ -4,7 +4,7 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { authCallbacks } from "@/lib/auth-callbacks"
 import { db as prisma } from "@/lib/db"
-import { checkDbRateLimit, getClientIp, loginRateKey, resetRateLimit } from "@/lib/rate-limiter"
+import { checkDbRateLimit, getClientIp, loginRateKey, resetRateLimit, LOGIN_MAX_ATTEMPTS } from "@/lib/rate-limiter"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const rateKey = loginRateKey(email, ip);
 
         const rate = await checkDbRateLimit(rateKey, {
-          maxRequests: 5,
+          maxRequests: LOGIN_MAX_ATTEMPTS,
           windowMs: 15 * 60 * 1000,
         });
         if (!rate.allowed) return null;

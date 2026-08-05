@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getPersonalizedNews, getUnseenNews } from "@/app/actions/feed-actions";
 import NewsFeed from "@/components/NewsFeed";
 import PullToRefresh from "@/components/PullToRefresh";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import type { NewsArticle } from "@/lib/news-service";
 import { useAppStore } from "@/store/useAppStore";
-import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 
 const PAGE_SIZE = 10;
 
@@ -109,7 +109,11 @@ export default function PersonalizedFeed({ fallbackArticles, isAuthenticated }: 
         const hasMorePages = data.length > PAGE_SIZE;
         if (hasMorePages) data.pop();
         addSeenArticles(data.map(a => a.id));
-        setArticles(prev => [...prev, ...data]);
+        setArticles(prev => {
+          const existingIds = new Set(prev.map(a => a.id));
+          const unique = data.filter(a => !existingIds.has(a.id));
+          return [...prev, ...unique];
+        });
         setHasMore(hasMorePages);
         skipRef.current = skip;
       } catch (err) {

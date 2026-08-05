@@ -48,7 +48,7 @@ export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
 
 const DEFAULT_PAGE_SIZE = 10;
 const TTL = { feed: 30, single: 60 };
-const LOCAL_FEED_CATEGORIES = ["Local", "National", "Politics", "Economy", "Education"];
+export const LOCAL_FEED_CATEGORIES = ["Local", "National", "Politics", "Economy", "Education"];
 const NATIONAL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education"];
 
 export async function fetchSLNews(region?: string, topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {

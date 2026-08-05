@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { getRateLimitStatus, loginRateKey } from "@/lib/rate-limiter";
+import { getRateLimitStatus, loginRateKey, LOGIN_MAX_ATTEMPTS } from "@/lib/rate-limiter";
 
 export async function getLoginRateLimitStatus(email: string): Promise<{
   blocked: boolean;
@@ -15,7 +15,7 @@ export async function getLoginRateLimitStatus(email: string): Promise<{
     headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     headersList.get("x-real-ip") ||
     "127.0.0.1";
-  return getRateLimitStatus(loginRateKey(email, ip));
+  return getRateLimitStatus(loginRateKey(email, ip), LOGIN_MAX_ATTEMPTS);
 }
 
 export async function registerUser(data: {

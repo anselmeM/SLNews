@@ -1,7 +1,17 @@
 "use server";
 
 import { auth } from "@/auth";
+import { SL_TOPICS } from "@/lib/constants";
 import { db } from "@/lib/db";
+
+const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
+
+// Topics were renamed in 1dea548 ("Technology" -> "Tech"). Normalize any
+// legacy values saved to the DB so followed topics still match categories.
+function normalizeTopics(topics: string[]): string[] {
+  const mapped = topics.map((t) => LEGACY_TOPIC_MAP[t] ?? t);
+  return [...new Set(mapped)].filter((t) => SL_TOPICS.includes(t));
+}
 
 export async function toggleSavedArticle(articleId: string): Promise<boolean> {
   const session = await auth();
@@ -92,7 +102,7 @@ export async function loadPreferences(): Promise<{
 
   return {
     preferredRegion: user?.preferredRegion || null,
-    preferredTopics: user?.preferredTopics || [],
+    preferredTopics: normalizeTopics(user?.preferredTopics || []),
     bio: user?.bio || null,
     dailyBriefing: user?.dailyBriefing ?? false,
   };

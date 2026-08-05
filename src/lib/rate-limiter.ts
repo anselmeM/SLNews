@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 
 const memoryBuckets = new Map<string, { count: number; resetAt: number }>();
 
+export const LOGIN_MAX_ATTEMPTS = 5;
+
 interface RateLimiterOptions {
   maxRequests: number;
   windowMs: number;
@@ -86,14 +88,15 @@ export async function resetRateLimit(key: string): Promise<void> {
 }
 
 export async function getRateLimitStatus(
-  key: string
+  key: string,
+  maxRequests: number
 ): Promise<{ blocked: boolean; retryAfter: number }> {
   const now = Date.now();
   try {
     const existing = await db.rateLimit.findUnique({ where: { key } });
     if (existing && now < existing.expiresAt.getTime()) {
       return {
-        blocked: true,
+        blocked: existing.count >= maxRequests,
         retryAfter: Math.ceil((existing.expiresAt.getTime() - now) / 1000),
       };
     }
@@ -101,7 +104,7 @@ export async function getRateLimitStatus(
     const bucket = memoryBuckets.get(key);
     if (bucket && now < bucket.resetAt) {
       return {
-        blocked: true,
+        blocked: bucket.count >= maxRequests,
         retryAfter: Math.ceil((bucket.resetAt - now) / 1000),
       };
     }

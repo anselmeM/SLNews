@@ -126,6 +126,23 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'slnews-app-storage',
+      version: 2,
+      migrate: (persistedState, version) => {
+        // Clean up preferences persisted by older app versions:
+        // - `preferredRegion` was removed as a preference (120edaa) — clear
+        //   stale values so they can't region-scope the feed into a dead end.
+        // - Topic names were renamed ("Technology" -> "Tech", 1dea548) —
+        //   normalize so followed topics still match categories.
+        if (version < 2) {
+          const state = (persistedState ?? {}) as Partial<AppState>;
+          const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
+          const topics = (state.preferredTopics ?? []).map(
+            (t) => LEGACY_TOPIC_MAP[t] ?? t
+          );
+          return { ...state, preferredRegion: null, preferredTopics: topics };
+        }
+        return persistedState as AppState;
+      },
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
