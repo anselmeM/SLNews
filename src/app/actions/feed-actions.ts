@@ -46,6 +46,16 @@ export async function getPersonalizedNews(
     take,
   });
 
+  // If the region filter matched nothing (articles lack region data),
+  // fall back to topics-only, then to the mixed feed so users never
+  // see an empty dead feed.
+  if (articles.length === 0 && region) {
+    return getPersonalizedNews(null, topics, skip, take);
+  }
+  if (articles.length === 0) {
+    return fetchMixedHomeFeed(take);
+  }
+
   return articles.map(mapPrismaArticle);
 }
 
