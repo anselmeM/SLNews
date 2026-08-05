@@ -20,7 +20,6 @@ export default function ProfilePage() {
   const setTheme = useAppStore((s) => s.setTheme);
   const dataSaver = useAppStore((s) => s.dataSaver);
   const setDataSaver = useAppStore((s) => s.setDataSaver);
-  const preferredRegion = useAppStore((s) => s.preferredRegion);
   const preferredTopics = useAppStore((s) => s.preferredTopics);
   const setPreferences = useAppStore((s) => s.setPreferences);
   const breakingNews = useAppStore((s) => s.breakingNews);
@@ -33,8 +32,8 @@ export default function ProfilePage() {
   useEffect(() => { loadPreferences().then((prefs) => {
     setBio(prefs.bio);
     setDailyBriefingState(prefs.dailyBriefing);
-    if (prefs.preferredRegion || prefs.preferredTopics.length > 0) {
-      setPreferences(prefs.preferredRegion, prefs.preferredTopics);
+    if (prefs.preferredTopics.length > 0) {
+      setPreferences(null, prefs.preferredTopics);
     }
   }).catch(() => {
     toast("Could not load preferences", "error");
@@ -51,7 +50,7 @@ export default function ProfilePage() {
 
   const notificationToggles = [
     { key: "breakingNews", label: "Breaking News", desc: "Major national headlines instantly.", checked: breakingNews, setter: setBreakingNews },
-    { key: "localAlerts", label: "Local Alerts", desc: "Updates from followed regions.", checked: localAlerts, setter: setLocalAlerts },
+    { key: "localAlerts", label: "Local Alerts", desc: "Updates from your followed topics.", checked: localAlerts, setter: setLocalAlerts },
     { key: "dailyBriefing", label: "Morning Briefing", desc: "A daily digest of top stories each morning.", checked: dailyBriefing, setter: handleDailyBriefing },
   ];
 
@@ -82,17 +81,15 @@ export default function ProfilePage() {
           <AppearanceSection theme={theme} setTheme={(v) => setTheme(v)} />
           <NotificationToggles toggles={notificationToggles} />
           <FollowedRegions
-            region={preferredRegion}
             topics={preferredTopics}
             onClear={async () => {
-              const prevRegion = preferredRegion;
               const prevTopics = preferredTopics;
               setPreferences(null, []);
               try {
                 await savePreferences(null, []);
                 toast("Preferences cleared", "info");
               } catch {
-                setPreferences(prevRegion, prevTopics);
+                setPreferences(null, prevTopics);
                 toast("Could not clear preferences", "error");
               }
             }}

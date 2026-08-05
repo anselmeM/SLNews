@@ -31,7 +31,7 @@ export default function AppLayoutWrapper({
       Promise.all([getSavedArticleIds(), loadPreferences()]).then(
         ([ids, prefs]) => {
           setSavedIds(ids);
-          setPreferences(prefs.preferredRegion, prefs.preferredTopics);
+          setPreferences(null, prefs.preferredTopics);
         }
       ).catch(() => {});
     }

@@ -7,14 +7,13 @@ import { useSession } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { updateProfile, loadPreferences } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
-import { SL_REGIONS, SL_TOPICS } from "@/lib/constants";
+import { SL_TOPICS } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function EditProfilePage() {
   const { data: session, update } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const storeRegion = useAppStore((s) => s.preferredRegion);
   const storeTopics = useAppStore((s) => s.preferredTopics);
   const setPreferences = useAppStore((s) => s.setPreferences);
 
@@ -22,7 +21,6 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState("");
   const [storedBio, setStoredBio] = useState("");
   const [imageUrl, setImageUrl] = useState(session?.user?.image || "");
-  const [selectedRegion, setSelectedRegion] = useState(storeRegion || "");
   const [selectedTopics, setSelectedTopics] = useState<string[]>(storeTopics);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -81,11 +79,11 @@ export default function EditProfilePage() {
         name: name.trim(),
         image: imageUrl || null,
         bio: bio || null,
-        preferredRegion: selectedRegion || null,
+        preferredRegion: null,
         preferredTopics: selectedTopics,
       });
       if (result.success) {
-        setPreferences(selectedRegion || null, selectedTopics);
+        setPreferences(null, selectedTopics);
         await update({ name: name.trim(), image: imageUrl || null });
         toast("Profile updated!", "success");
         router.push("/profile");
@@ -102,7 +100,6 @@ export default function EditProfilePage() {
     name.trim() !== (session?.user?.name || "") ||
     imageUrl !== (session?.user?.image || "") ||
     bio !== storedBio ||
-    selectedRegion !== (storeRegion || "") ||
     JSON.stringify(selectedTopics) !== JSON.stringify(storeTopics);
 
   return (
@@ -220,33 +217,6 @@ export default function EditProfilePage() {
               />
               <p className="text-xs text-on-surface-variant mt-1.5 ml-0.5">Email cannot be changed.</p>
             </div>
-          </div>
-        </div>
-
-        {/* Preferred Region */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-6">
-          <h2 className="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>map</span>
-            Preferred Region
-          </h2>
-          <p className="text-sm text-on-surface-variant mb-4">Get news tailored to your location.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {SL_REGIONS.map((region) => {
-              const active = selectedRegion === region;
-              return (
-                <button
-                  key={region}
-                  onClick={() => setSelectedRegion(active ? "" : region)}
-                  className={`py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                    active
-                      ? "bg-primary text-on-primary shadow-sm"
-                      : "bg-surface-container border border-outline-variant text-on-surface hover:bg-surface-container-high"
-                  }`}
-                >
-                  {region}
-                </button>
-              );
-            })}
           </div>
         </div>
 
