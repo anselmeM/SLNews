@@ -19,6 +19,9 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const refreshingRef = useRef(false);
+  // Must survive effect re-runs (the effect re-attaches listeners on every
+  // pullDist change) or mouseup would always see `pulling === false`.
+  const pullingRef = useRef(false);
 
   const reset = useCallback(() => {
     setPullDist(0);
@@ -79,7 +82,6 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
     if (!el) return;
 
     let startMouseY = 0;
-    let pulling = false;
 
     const onMouseDown = (e: MouseEvent) => {
       if (refreshingRef.current) return;
@@ -91,11 +93,11 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
       if (refreshingRef.current) return;
       if (startMouseY === 0) return;
       const dist = e.clientY - startMouseY;
-      if (dist > 20 && !pulling) {
-        pulling = true;
+      if (dist > 20 && !pullingRef.current) {
+        pullingRef.current = true;
         setPhase("pulling");
       }
-      if (pulling) {
+      if (pullingRef.current) {
         const damped = Math.min(dist * 0.45, MAX_PULL);
         setPullDist(damped);
         setPhase(damped >= PULL_THRESHOLD ? "ready" : "pulling");
@@ -104,8 +106,8 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
 
     const onMouseUp = () => {
       startMouseY = 0;
-      if (pulling) {
-        pulling = false;
+      if (pullingRef.current) {
+        pullingRef.current = false;
         if (pullDist >= PULL_THRESHOLD) {
           doRefresh();
         } else {

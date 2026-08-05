@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import NewsFeed from "@/components/NewsFeed";
+import LocalNewsFeed from "./LocalNewsFeed";
 import { fetchLocalNews, type NewsArticle } from "@/lib/news-service";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function LocalNewsPage() {
         </p>
       </div>
 
-      <NewsFeed articles={articles} emptyMessage="No local or national articles found." />
+      <LocalNewsFeed initialArticles={articles} />
     </div>
   );
 }

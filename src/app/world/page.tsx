@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import NewsFeed from "@/components/NewsFeed";
+import WorldTabFilters from "./_components/WorldTabFilters";
+import WorldNewsFeed from "./WorldNewsFeed";
 import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchWorldNews, type NewsArticle } from "@/lib/news-service";
-import WorldTabFilters from "./_components/WorldTabFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +35,9 @@ export default async function WorldNewsPage(props: { searchParams: Promise<{ top
       </Suspense>
 
       <Suspense fallback={<ShimmerFeed count={4} />}>
-        <NewsFeed
-          articles={articles}
-          emptyMessage={`No articles found for ${currentTopic}.`}
-        />
+        {/* key={topic} remounts the feed when the tab changes so the
+            paginated state (articles/hasMore/skip) doesn't leak across topics */}
+        <WorldNewsFeed key={currentTopic} initialArticles={articles} topic={currentTopic} />
       </Suspense>
     </div>
   );
