@@ -8,6 +8,7 @@ import { requestReset } from "@/app/actions/password-reset-actions";
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [devLink, setDevLink] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +20,13 @@ export default function ForgotPasswordPage() {
     try {
       const result = await requestReset(email);
       if (result.success) {
+        if (result.token) {
+          // Development only — the server never returns the token in production.
+          setDevLink(`${window.location.origin}/reset-password?token=${result.token}`);
+        }
         setSent(true);
+      } else {
+        setError(result.error || "Something went wrong. Try again.");
       }
     } catch {
       setError("Something went wrong. Try again.");
@@ -55,6 +62,12 @@ export default function ForgotPasswordPage() {
               <p className="text-sm text-on-surface-variant">
                 If an account exists with that email, a reset link has been sent. Check your inbox.
               </p>
+              {devLink && (
+                <p className="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3 break-all">
+                  <span className="font-bold text-on-surface block mb-1">Dev reset link</span>
+                  <a href={devLink} className="text-primary underline break-all">{devLink}</a>
+                </p>
+              )}
               <Link href="/login" className="text-sm text-primary font-semibold hover:underline block">
                 Back to sign in
               </Link>
