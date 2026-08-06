@@ -14,7 +14,7 @@ export default function LocalNewsFeed({ initialArticles }: { initialArticles: Ne
     <PaginatedNewsFeed
       initialArticles={initialArticles}
       fetchPage={fetchPage}
-      emptyMessage="No local or national articles found."
+      emptyMessage="No national articles found."
     />
   );
 }

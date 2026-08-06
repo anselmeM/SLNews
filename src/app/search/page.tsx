@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "Search news articles on SLNews.",
 };
 
-const CATEGORY_FILTERS = ["All", "National", "Politics", "Business", "Tech", "Health", "Economy", "Education", "Local"];
+const CATEGORY_FILTERS = ["All", "National", "Politics", "Business", "Tech", "Health", "Economy", "Education"];
 const PROVINCES = ["Western Area", "Northern Province", "Southern Province", "Eastern Province", "North West Province"];
 const PERIODS: { key: string; label: string }[] = [
   { key: "", label: "All time" },

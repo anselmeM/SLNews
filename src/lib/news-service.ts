@@ -48,12 +48,13 @@ export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
 
 const DEFAULT_PAGE_SIZE = 10;
 const TTL = { feed: 30, single: 60 };
-export const LOCAL_FEED_CATEGORIES = ["Local", "National", "Politics", "Economy", "Education"];
-const NATIONAL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education"];
+// Sierra Leone news feed categories. "Local" and "National" were merged into
+// a single "National" tag — they drove the same feed.
+export const SL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education"];
 
 export async function fetchSLNews(region?: string, topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`slnews:${region}:${topic}:${skip}:${take}`, async () => {
-    const categoryNames = topic ? [topic] : LOCAL_FEED_CATEGORIES;
+    const categoryNames = topic ? [topic] : SL_FEED_CATEGORIES;
     const where: Prisma.ArticleWhereInput = { published: true, status: "PUBLISHED", categories: { some: { name: { in: categoryNames } } } };
     if (region) where.province = region;
     const articles = await db.article.findMany({ where, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
@@ -63,18 +64,8 @@ export async function fetchSLNews(region?: string, topic?: string, skip = 0, tak
 
 export async function fetchMixedHomeFeed(take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`home:${take}`, async () => {
-    const half = Math.ceil(take / 2);
-    const local = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: "Local" } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, take: half });
-    const national = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: { in: NATIONAL_FEED_CATEGORIES } } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, take: half });
-    const allLocal = local.map(mapPrismaArticle);
-    const allNational = national.map(mapPrismaArticle);
-    const mixed: NewsArticle[] = [];
-    let li = 0, ni = 0;
-    while (mixed.length < take && (li < allLocal.length || ni < allNational.length)) {
-      const localItem = allLocal[li]; if (localItem) mixed.push(localItem); li++;
-      const nationalItem = allNational[ni]; if (nationalItem && mixed.length < take) mixed.push(nationalItem); ni++;
-    }
-    return mixed;
+    const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: { in: SL_FEED_CATEGORIES } } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, take });
+    return articles.map(mapPrismaArticle);
   }, TTL.feed);
 }
 
@@ -90,7 +81,7 @@ export async function fetchLocalNews(province?: string, district?: string, skip 
     const where: Record<string, unknown> = {
       published: true,
       status: "PUBLISHED",
-      categories: { some: { name: { in: LOCAL_FEED_CATEGORIES } } },
+      categories: { some: { name: { in: SL_FEED_CATEGORIES } } },
     };
     if (province) where.province = province;
     if (district) where.district = district;

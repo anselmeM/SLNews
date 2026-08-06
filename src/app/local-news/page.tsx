@@ -5,8 +5,8 @@ import { fetchLocalNews, type NewsArticle } from "@/lib/news-service";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Local News | SLNews",
-  description: "Local and national news from across Sierra Leone.",
+  title: "National News | SLNews",
+  description: "National news from across Sierra Leone.",
 };
 
 export default async function LocalNewsPage() {
@@ -21,9 +21,9 @@ export default async function LocalNewsPage() {
   return (
     <div className="w-full pt-4 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-none">Local News</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-none">National News</h1>
         <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">
-          Local and national stories from across Sierra Leone
+          National stories from across Sierra Leone
         </p>
       </div>
 

@@ -19,7 +19,7 @@ type EditorFormProps = {
 
 const CATEGORIES = [
   "National", "Politics", "Economy", "Education",
-  "Local", "International", "Sports", "Tech",
+  "International", "Sports", "Tech",
   "Health", "Environment", "Culture",
 ];
 

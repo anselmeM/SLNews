@@ -70,7 +70,7 @@ export default function LandingPage() {
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">What you get</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
-            { icon: "newspaper", title: "Local News", desc: "Stories from Sierra Leone Telegraph, Politico SL, and Concord Times in one feed." },
+            { icon: "newspaper", title: "National News", desc: "Stories from Sierra Leone Telegraph, Politico SL, and Concord Times in one feed." },
             { icon: "trending_up", title: "Market Prices", desc: "Rice, petrol, cement, palm oil prices across Freetown, Bo, Makeni, Kenema." },
             { icon: "campaign", title: "Community Notices", desc: "Government announcements, local events, and public notices. Anyone can post." },
             { icon: "search", title: "Instant Search", desc: "Find any article or notice instantly. Filter by category or region." },

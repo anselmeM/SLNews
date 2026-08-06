@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import type { NewsArticle } from "@/lib/news-service";
-import { mapPrismaArticle, fetchMixedHomeFeed, fetchLocalNews, fetchWorldNews, LOCAL_FEED_CATEGORIES } from "@/lib/news-service";
+import { mapPrismaArticle, fetchMixedHomeFeed, fetchLocalNews, fetchWorldNews, SL_FEED_CATEGORIES } from "@/lib/news-service";
 
 export async function getPersonalizedNews(
   region: string | null,
@@ -69,7 +69,7 @@ export async function getPersonalizedNews(
       where: {
         published: true,
         status: "PUBLISHED",
-        categories: { some: { name: { in: LOCAL_FEED_CATEGORIES } } },
+        categories: { some: { name: { in: SL_FEED_CATEGORIES } } },
       },
       orderBy: { publishedAt: "desc" },
       include: {
