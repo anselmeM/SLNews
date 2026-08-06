@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
+
+// Lightweight auth instance for the Edge Runtime — see src/auth.config.ts.
+// Importing the full "@/auth" here would pull the Prisma adapter, bcrypt and
+// pg into the edge bundle and could 500 protected pages intermittently.
+const { auth } = NextAuth(authConfig);
 
 const protectedRoutes = ["/profile", "/dashboard"];
 

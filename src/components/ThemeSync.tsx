@@ -5,9 +5,14 @@ import { useAppStore } from "@/store/useAppStore";
 
 export default function ThemeSync() {
   const theme = useAppStore((s) => s.theme);
+  // `persist` may be undefined if storage is unavailable (blocked/private mode)
+  // — guard so ThemeSync can never throw during render.
   const hasHydrated = useSyncExternalStore(
-    (onStoreChange) => useAppStore.persist.onFinishHydration(onStoreChange),
-    () => useAppStore.persist.hasHydrated(),
+    (onStoreChange) => {
+      if (!useAppStore.persist) return () => {};
+      return useAppStore.persist.onFinishHydration(onStoreChange);
+    },
+    () => useAppStore.persist?.hasHydrated() ?? false,
     () => false
   );
 

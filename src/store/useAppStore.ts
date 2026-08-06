@@ -127,6 +127,17 @@ export const useAppStore = create<AppState>()(
     {
       name: 'slnews-app-storage',
       version: 2,
+      // Hydrate after mount (in AppLayoutWrapper) instead of at module load so
+      // the client's first render matches the SSR defaults — otherwise every
+      // page that renders persisted prefs throws a hydration mismatch (#418).
+      skipHydration: true,
+      // savedArticleIds is a Set (not JSON-serializable) and is refetched from
+      // the server on load — exclude it from persistence.
+      partialize: (state) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { savedArticleIds, ...rest } = state;
+        return rest as AppState;
+      },
       migrate: (persistedState, version) => {
         // Clean up preferences persisted by older app versions:
         // - `preferredRegion` was removed as a preference (120edaa) — clear

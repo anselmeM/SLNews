@@ -4,14 +4,14 @@ import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { useEffect, useRef } from "react";
+import BottomNavBar from "./BottomNavBar";
+import MotionProvider from "./MotionProvider";
+import TopAppBar from "./TopAppBar";
+import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
 import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
-import BottomNavBar from "./BottomNavBar";
-import TopAppBar from "./TopAppBar";
-import MotionProvider from "./MotionProvider";
-import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
-import { ToastProvider } from "@/components/Toast";
 import ThemeSync from "@/components/ThemeSync";
+import { ToastProvider } from "@/components/Toast";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function AppLayoutWrapper({
@@ -27,6 +27,10 @@ export default function AppLayoutWrapper({
   const syncedRef = useRef(false);
 
   useEffect(() => {
+    // Rehydrate persisted preferences after mount so the client's first
+    // render matches SSR defaults (see useAppStore skipHydration).
+    useAppStore.persist?.rehydrate();
+
     if (session?.user?.id && !syncedRef.current) {
       syncedRef.current = true;
       Promise.all([getSavedArticleIds(), loadPreferences()]).then(

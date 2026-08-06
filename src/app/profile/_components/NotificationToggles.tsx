@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useToast } from "@/components/Toast";
 
 type ToggleItem = {
@@ -18,7 +18,13 @@ function getPermissionStatus(): NotificationPermission | "unsupported" {
 
 export default function NotificationToggles({ toggles }: { toggles: ToggleItem[] }) {
   const { toast } = useToast();
-  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(getPermissionStatus);
+  // Server snapshot is always "unsupported" so the first client render matches
+  // SSR (no hydration mismatch); the client snapshot reads the real permission.
+  const permission = useSyncExternalStore(
+    () => () => {},
+    getPermissionStatus,
+    () => "unsupported" as const
+  );
 
   const handleToggle = async (checked: boolean, setter: (v: boolean) => void, label: string) => {
     if (checked) {
@@ -33,7 +39,6 @@ export default function NotificationToggles({ toggles }: { toggles: ToggleItem[]
       if (permission === "default") {
         try {
           const result = await Notification.requestPermission();
-          setPermission(result);
           if (result === "denied") {
             toast("Notification permission denied.", "error");
             return;
@@ -47,11 +52,16 @@ export default function NotificationToggles({ toggles }: { toggles: ToggleItem[]
         }
       }
 
-      new Notification("SLNews Alerts", {
-        body: `You'll now receive ${label.toLowerCase()} notifications.`,
-        icon: "/icon-192x192.png",
-        tag: "slnews-settings",
-      });
+      try {
+        new Notification("SLNews Alerts", {
+          body: `You'll now receive ${label.toLowerCase()} notifications.`,
+          icon: "/icon-192x192.png",
+          tag: "slnews-settings",
+        });
+      } catch {
+        toast("Could not show a test notification.", "error");
+        return;
+      }
 
       setter(true);
       toast(`${label} notifications enabled`, "success");
