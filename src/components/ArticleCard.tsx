@@ -1,5 +1,6 @@
 "use client";
 
+import { formatArticleDate } from "@/lib/format-date";
 import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
@@ -50,7 +51,7 @@ export default function ArticleCard({ article }: { article: NewsArticle }) {
             <span className="truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px] font-medium">{article.source || "News"}</span>
             <span>•</span>
             <span>
-              {new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              {formatArticleDate(article.publishedAt)}
             </span>
           </div>
         </div>

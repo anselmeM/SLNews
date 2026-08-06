@@ -1,5 +1,6 @@
 "use client";
 
+import { formatShortDate } from "@/lib/format-date";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
@@ -23,7 +24,7 @@ function timeAgo(dateStr: string) {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatShortDate(dateStr);
 }
 
 function UserAvatar({ user, size = 10 }: { user: CommentUser; size?: number }) {

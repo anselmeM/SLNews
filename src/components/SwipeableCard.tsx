@@ -1,5 +1,6 @@
 "use client";
 
+import { formatArticleDate } from "@/lib/format-date";
 import { m, useMotionValue, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -115,7 +116,7 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
                 </span>
                 <span>•</span>
                 <span>
-                  {new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  {formatArticleDate(article.publishedAt)}
                 </span>
               </div>
             </div>

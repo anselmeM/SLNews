@@ -1,5 +1,6 @@
 "use client";
 
+import { formatArticleDate } from "@/lib/format-date";
 import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
@@ -48,7 +49,7 @@ export default function FeaturedArticleCard({ article }: { article: NewsArticle 
           </div>
           
           <div className="flex items-center gap-2 mb-2 text-white/80 text-sm">
-            <span className="font-medium">{new Date(article.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+            <span className="font-medium">{formatArticleDate(article.publishedAt)}</span>
           </div>
           
           <h2 className="font-headline-sm md:font-headline-md text-xl md:text-2xl font-bold leading-snug group-hover:text-gray-200 transition-colors duration-200 line-clamp-3">
