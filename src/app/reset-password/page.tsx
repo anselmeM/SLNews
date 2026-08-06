@@ -49,19 +49,14 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob" />
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-secondary rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
-      </div>
-
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative">
       <m.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[448px]"
+        className="relative w-full max-w-[448px]"
       >
-        <div className="bg-white/75 backdrop-blur-xl border border-white/50 rounded-3xl shadow-lg p-8 overflow-hidden">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-lg p-8 overflow-hidden">
           {done ? (
             <div className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">

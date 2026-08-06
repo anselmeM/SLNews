@@ -58,18 +58,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background decoration (Subtle) */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-secondary rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-      </div>
-
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative">
       {/* Plain div (no motion) — the login page must render fully visible even
           if an animation runtime never initializes; it's the only page rendered
-          outside MotionProvider. */}
-      <div className="relative z-10 w-full max-w-[448px]">
-        <div className="bg-white/75 backdrop-blur-xl border border-white/50 rounded-3xl shadow-lg p-8 overflow-hidden">
+          outside MotionProvider. Solid, theme-aware surfaces only: animated
+          blur/blend backgrounds caused content to never paint on some GPUs. */}
+      <div className="relative w-full max-w-[448px]">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-lg p-8 overflow-hidden">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-black text-on-surface mb-1.5 tracking-tighter leading-none">Welcome Back</h1>
             <p className="font-medium text-gray-500 text-sm tracking-tight">Sign in to your SLNews account</p>
@@ -83,7 +78,7 @@ export default function LoginPage() {
             )}
             
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1" htmlFor="email">
+              <label className="text-xs font-bold text-gray-500 dark:text-on-surface-variant uppercase tracking-widest px-1" htmlFor="email">
                 Email Address
               </label>
               <input
@@ -92,13 +87,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-on-surface placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
+                className="w-full px-4 py-3 bg-white dark:bg-surface-container border border-gray-200 dark:border-white/10 rounded-2xl text-on-surface placeholder-gray-300 dark:placeholder-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
                 placeholder="you@example.com"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1" htmlFor="password">
+              <label className="text-xs font-bold text-gray-500 dark:text-on-surface-variant uppercase tracking-widest px-1" htmlFor="password">
                 Password
               </label>
               <input
@@ -107,7 +102,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-on-surface placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
+                className="w-full px-4 py-3 bg-white dark:bg-surface-container border border-gray-200 dark:border-white/10 rounded-2xl text-on-surface placeholder-gray-300 dark:placeholder-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
               placeholder="••••••••"
             />
             <div className="flex justify-end">

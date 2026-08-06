@@ -1,23 +1,12 @@
 "use client";
 
-import { m, AnimatePresence } from "framer-motion";
-import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
+// Route transition wrapper. Deliberately a plain div — no framer-motion.
+// The previous m.div started every page at `opacity: 0` until the animation
+// runtime ran; on any page rendered without MotionProvider (e.g. /login) the
+// animation never fired and the whole page stayed invisible. A plain div is
+// always visible, on every page, in every browser.
 export default function Template({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  return (
-    <AnimatePresence mode="wait">
-      <m.div
-        key={pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
-      >
-        {children}
-      </m.div>
-    </AnimatePresence>
-  );
+  return <>{children}</>;
 }
