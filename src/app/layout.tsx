@@ -16,6 +16,11 @@ export const viewport: Viewport = {
   ],
 };
 
+// Give serverless functions headroom to wake the (serverless) Neon database
+// from cold start — the default limit can time out the first query after
+// the compute has been idle, surfacing as a random "Something went wrong".
+export const maxDuration = 60;
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "SLNews | Sierra Leone News",

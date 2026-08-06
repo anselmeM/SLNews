@@ -24,6 +24,11 @@ export default function ErrorFallback({
       <p className="text-on-surface-variant text-sm max-w-md mb-6">
         We couldn&apos;t load this page. Please try again or return home.
       </p>
+      {error?.digest && (
+        <p className="text-xs text-on-surface-variant/60 mb-6 font-mono">
+          Error reference: {error.digest}
+        </p>
+      )}
       <div className="flex gap-3">
         <button
           onClick={reset}

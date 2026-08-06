@@ -43,7 +43,10 @@ export default async function Home() {
   return (
     <div className="max-w-3xl mx-auto w-full">
       <div className="mb-8 mt-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-tight">{getGreeting()}</h1>
+        {/* suppressHydrationWarning: the greeting is time-based and the server
+            and client clocks can disagree, which otherwise throws React
+            hydration error #418 */}
+        <h1 suppressHydrationWarning className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-tight">{getGreeting()}</h1>
         <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">Find out what&apos;s happening around Sierra Leone</p>
       </div>
 
