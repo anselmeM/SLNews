@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { auth } from "@/auth";
 import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import FollowingFeed from "./_components/FollowingFeed";
-import PersonalizedFeed from "./_components/PersonalizedFeed";
-import RecentlyViewed from "@/components/RecentlyViewed";
+import HomeFeed from "./_components/HomeFeed";
 import LatestStories from "@/components/LatestStories";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
 
@@ -25,8 +24,6 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 10;
 
 async function HomeContent() {
-  const session = await auth();
-  const isAuthenticated = !!session?.user;
   let fallbackArticles: NewsArticle[] = [];
   try {
     fallbackArticles = await fetchMixedHomeFeed(PAGE_SIZE + 1);
@@ -36,7 +33,7 @@ async function HomeContent() {
   const hasMore = fallbackArticles.length > PAGE_SIZE;
   if (hasMore) fallbackArticles.pop();
 
-  return <PersonalizedFeed fallbackArticles={fallbackArticles} isAuthenticated={isAuthenticated} />;
+  return <HomeFeed fallbackArticles={fallbackArticles} />;
 }
 
 export default async function Home() {

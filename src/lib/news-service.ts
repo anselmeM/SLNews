@@ -49,8 +49,10 @@ export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
 const DEFAULT_PAGE_SIZE = 10;
 const TTL = { feed: 30, single: 60 };
 // Sierra Leone news feed categories. "Local" and "National" were merged into
-// a single "National" tag — they drove the same feed.
+// a single "National" tag — they drive the national feed.
 export const SL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education"];
+// International / world news categories (populated by the world-news sync).
+const WORLD_FEED_CATEGORIES = ["International", "Africa", "Business", "Sports", "Tech", "Health", "Environment", "Culture"];
 
 export async function fetchSLNews(region?: string, topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`slnews:${region}:${topic}:${skip}:${take}`, async () => {
@@ -62,11 +64,53 @@ export async function fetchSLNews(region?: string, topic?: string, skip = 0, tak
   }, TTL.feed);
 }
 
+// One page of the home feed: interleaves Sierra Leone news with international
+// news so the home page always shows a mix of both, never one-sided.
+async function fetchMixedFeedPage(skip: number, take: number): Promise<ArticleWithRelations[]> {
+  const half = Math.ceil(take / 2);
+  // Both groups advance by the same offset so every page stays a half/half mix.
+  const groupSkip = Math.floor(skip / 2);
+  const [sl, world] = await Promise.all([
+    db.article.findMany({
+      where: { published: true, status: "PUBLISHED", categories: { some: { name: { in: SL_FEED_CATEGORIES } } } },
+      orderBy: { publishedAt: "desc" },
+      include: { author: true, categories: true },
+      skip: groupSkip,
+      take: half,
+    }),
+    db.article.findMany({
+      where: { published: true, status: "PUBLISHED", categories: { some: { name: { in: WORLD_FEED_CATEGORIES } } } },
+      orderBy: { publishedAt: "desc" },
+      include: { author: true, categories: true },
+      skip: groupSkip,
+      take: half,
+    }),
+  ]);
+
+  const mixed: ArticleWithRelations[] = [];
+  let li = 0;
+  let wi = 0;
+  while (mixed.length < take && (li < sl.length || wi < world.length)) {
+    const slItem = sl[li];
+    if (slItem) mixed.push(slItem);
+    li++;
+    const worldItem = world[wi];
+    if (worldItem && mixed.length < take) mixed.push(worldItem);
+    wi++;
+  }
+  return mixed;
+}
+
+// First page of the home feed (cached — shared by SSR and the client feed).
 export async function fetchMixedHomeFeed(take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`home:${take}`, async () => {
-    const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: { in: SL_FEED_CATEGORIES } } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, take });
-    return articles.map(mapPrismaArticle);
+    return (await fetchMixedFeedPage(0, take)).map(mapPrismaArticle);
   }, TTL.feed);
+}
+
+// Paginated home feed (used for "More Articles" / pull-to-refresh).
+export async function fetchMixedNews(skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
+  return (await fetchMixedFeedPage(skip, take)).map(mapPrismaArticle);
 }
 
 export async function fetchTrendingNews(skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
