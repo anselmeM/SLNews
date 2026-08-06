@@ -28,14 +28,17 @@ export async function syncWorldNews() {
     // the dedicated scraper source (sync-scraper.ts).
     // Page size capped at 3 per category so world news stays a small fraction
     // of the feed instead of drowning out Sierra Leone stories.
+    // Currents valid categories: world, business, sports, technology, health,
+    // entertainment, ... — there is NO "africa" or "environment" category, so
+    // Africa uses the /search endpoint with keywords, and Environment was
+    // removed (it returned junk for an invalid category value).
     const worldEndpoints: SyncEndpoint[] = [
       { name: "International", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "3" } },
-      { name: "Africa", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "3" } },
+      { name: "Africa", endpoint: "search", params: { keywords: "Africa", language: "en", page_size: "3" } },
       { name: "Business", endpoint: "latest-news", params: { category: "business", language: "en", page_size: "3" } },
       { name: "Sports", endpoint: "latest-news", params: { category: "sports", language: "en", page_size: "3" } },
       { name: "Tech", endpoint: "latest-news", params: { category: "technology", language: "en", page_size: "3" } },
       { name: "Health", endpoint: "latest-news", params: { category: "health", language: "en", page_size: "3" } },
-      { name: "Environment", endpoint: "latest-news", params: { category: "environment", language: "en", page_size: "3" } },
       { name: "Culture", endpoint: "latest-news", params: { category: "entertainment", language: "en", page_size: "3" } },
     ];
 

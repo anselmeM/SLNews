@@ -51,8 +51,10 @@ const TTL = { feed: 30, single: 60 };
 // Sierra Leone news feed categories. "Local" and "National" were merged into
 // a single "National" tag — they drive the national feed.
 export const SL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education"];
-// International / world news categories (populated by the world-news sync).
-const WORLD_FEED_CATEGORIES = ["International", "Africa", "Business", "Sports", "Tech", "Health", "Environment", "Culture"];
+// International / world news categories (populated by the world-news sync;
+// mirrors the /world page tabs: World, Africa, Business, Tech, Health,
+// Sports, Culture).
+const WORLD_FEED_CATEGORIES = ["International", "Africa", "Business", "Sports", "Tech", "Health", "Culture"];
 
 export async function fetchSLNews(region?: string, topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
   return cachedFetch(`slnews:${region}:${topic}:${skip}:${take}`, async () => {
