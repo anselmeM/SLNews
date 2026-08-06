@@ -17,7 +17,9 @@ export default defineConfig({
     command: "node scripts/e2e-server.js",
     url: "http://localhost:3100",
     reuseExistingServer: false,
-    timeout: 180_000,
+    // The command builds the app first (npm run build + standalone copy);
+    // give it room to finish on slower machines.
+    timeout: 300_000,
     env: {
       PORT: "3100",
     },
