@@ -1,10 +1,19 @@
-const CACHE = "slnews-v2";
+// SLNews service worker.
+//
+// Online-first strategy: this app is server-rendered and DB-backed, so HTML
+// documents and API responses always come from the network. Caching documents
+// here caused blank screens (a stale page shell cached from a broken deployment
+// was served on fetch failures). We only cache immutable hashed build assets.
+//
+// The cache name is bumped whenever the caching strategy changes so old caches
+// are purged on activate.
+
+const CACHE = "slnews-v3";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) =>
       cache.addAll([
-        "/",
         "/manifest.json",
         "/icon-192x192.png",
         "/icon-512x512.png",
@@ -29,18 +38,15 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET") return;
+  // Documents always come from the network — never serve a stale cached page.
+  if (request.mode === "navigate") return;
+  // API responses (auth, feeds, image proxy, ...) always come from the network.
+  if (url.pathname.startsWith("/api/")) return;
 
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-
-  if (isStaticAsset(url.pathname)) {
+  // Cache only hashed, immutable build assets.
+  if (url.pathname.startsWith("/_next/") && isStaticAsset(url.pathname)) {
     event.respondWith(cacheFirst(request));
-    return;
   }
-
-  event.respondWith(networkFirst(request));
 });
 
 function isStaticAsset(pathname) {
@@ -50,15 +56,6 @@ function isStaticAsset(pathname) {
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   return cached || fetchAndCache(request);
-}
-
-async function networkFirst(request) {
-  try {
-    return await fetchAndCache(request);
-  } catch {
-    const cached = await caches.match(request);
-    return cached || new Response("Offline — please check your connection.", { status: 503, statusText: "Offline" });
-  }
 }
 
 async function fetchAndCache(request) {
