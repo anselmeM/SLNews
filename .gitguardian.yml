@@ -1,0 +1,13 @@
+# GitGuardian allowlist.
+#
+# The following are CI-ONLY test credentials (localhost postgres service on
+# GitHub Actions runners). They are not real secrets: the database is created
+# and destroyed inside the job, is never exposed, and the same value is used by
+# the pre-existing `typecheck` job. Allowlisting documents this intent instead
+# of silently tripping the scanner on every workflow edit.
+version: 2
+matches:
+  - name: CI test database URL (localhost, slnews_test)
+    match: postgres:postgres@localhost:5432/slnews_test
+  - name: CI postgres service password (localhost, test-only)
+    match: POSTGRES_PASSWORD: postgres
