@@ -80,7 +80,7 @@ Errors:
 - [ ] Webhook/email on quota exhaustion or payment failure.
 
 ### Phase 4 — Hardening & legal (before real customers)
-- [ ] **Licensing check — do this early**: verify you may resell content scraped from Sierra Leone Telegraph / Politico SL / Concord Times. Options: license agreements, linking-back attribution, or selling the *feed structure/API* while keeping full-text rights restricted. This is a real blocker if unaddressed.
+- [ ] **Resolve content licensing (see §4A below) — do this FIRST, before selling anything.**
 - [ ] Caching layer (Redis or in-memory) so repeated requests don't re-scrape.
 - [ ] Observability: request logs, error tracking, uptime alerts.
 - [ ] Uptime target & a status page.
@@ -88,13 +88,52 @@ Errors:
 
 ---
 
+## 4A. Selling access to scraped content — the licensing question
+
+This is the make-or-break legal item, so it gets its own section. **Scraping ≠ owning.** Copyright in the articles belongs to the publishers (Sierra Leone Telegraph, Politico SL, Concord Times) and their authors. `robots.txt` only says whether crawlers are welcome on the site — it is **not** a license to redistribute or sell the content.
+
+### What the sources' `robots.txt` say (checked — all allow article crawling)
+
+| Source | URL | robots.txt |
+|---|---|---|
+| The Sierra Leone Telegraph | thesierraleonetelegraph.com | Allows content; only `/wp-admin/` disallowed |
+| Politico SL | politicosl.com | Allows content (generic Drupal file) |
+| Concord Times | concordtimes.com | `Disallow:` (allows everything) |
+
+Being allowed to crawl does **not** grant resale rights. You still need explicit permission to sell access to the full text.
+
+### The three viable models
+
+1. **Full-text resale (highest value, needs permission)**
+   - Requires a **written license/partnership** with each publisher (revenue share or flat fee).
+   - The publishers get paid → defensible, sustainable, and a selling point ("licensed from the publishers").
+   - If they say no, this model is off the table.
+
+2. **Link + summary (safe default, works today)**
+   - Sell **metadata + headline + summary + link** (like Google News / RSS readers). No full-text republishing.
+   - This is what most news aggregators and news APIs (e.g. Currents, NewsAPI) actually sell for publisher content.
+   - The current scraper already captures `description`/summary + `link` — the API can simply not expose full `paragraphs` to paid customers.
+   - Legally the safest without signed agreements; still keep attribution.
+
+3. **Original/partnered content (no licensing issue at all)**
+   - Sell access to content you (or paying contributors) produce — zero third-party rights involved.
+   - The API product can mix models: licensed full-text tiers + free link/summary tier.
+
+### Concrete next steps
+- [ ] Email each publisher (editor@…, listed contact) asking about a licensing/partnership arrangement — attach the proposed revenue-share terms.
+- [ ] Until agreements are signed, ship the API in **link + summary** mode (full `paragraphs` only for your own SLNews app, or behind signed licenses).
+- [ ] Keep the current attribution in the app's content (`Source: {byline} — {link}`) — it's good practice but not a substitute for a license.
+- [ ] If any publisher objects, add them to a blocklist in the API and stop ingesting their content.
+
+---
+
 ## 4. Key decisions to make (owner's call)
 
 | Decision | Options | Notes |
 |---|---|---|
+| Content rights | **link+summary (safe)** vs full-text resale (needs licenses) | Resolve §4A first — everything else depends on it |
 | Pricing | per-call, per-month, per-tier | Metered billing suits data APIs |
 | Where to sell | direct (Stripe) vs marketplace (RapidAPI) | Marketplace = faster discovery, higher fees |
-| Content rights | full-text resale vs link+summary | Legal dependency — resolve first |
 | SLA/uptime | none vs paid tier | Don't promise SLA on free tier |
 | Docs | OpenAPI + quickstart + changelog | Developer experience sells data APIs |
 
