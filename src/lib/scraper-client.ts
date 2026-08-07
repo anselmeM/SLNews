@@ -60,7 +60,11 @@ function normalizePayload(json: unknown): ScraperArticle[] {
 export async function fetchScraperNews(): Promise<ScraperArticle[]> {
   const key = apiKey();
   const base = baseUrl();
-  const urls = [`${base}/v1/news`, `${base}/api/news`];
+  // The app is the full-text consumer: it reads `link`/`paragraphs`/`pubDate`
+  // from the legacy endpoint. `/v1/news` is the metadata-only business contract
+  // for future paying customers — the app must NOT switch to it, or the sync
+  // would skip every article (no `link`, no full text).
+  const urls = [`${base}/api/news`];
 
   let lastError: unknown;
   for (const url of urls) {
