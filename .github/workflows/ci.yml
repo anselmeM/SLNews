@@ -7,9 +7,8 @@ on:
     branches: [master]
 
 env:
-  # sslmode=disable: the app adds ssl (NODE_ENV=production) unless the URL
-  # contains "sslmode"; the CI postgres service has SSL off, so without this
-  # every app DB query silently fails and feed pages prerender empty.
+  # sslmode=disable: the local postgres service does not support TLS, and db.ts
+  # enables client-side SSL for production builds unless the URL carries sslmode.
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/slnews_test?sslmode=disable"
   NEXTAUTH_SECRET: "ci-test-secret-not-for-production"
   NEXTAUTH_URL: "http://localhost:3000"
@@ -84,7 +83,8 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: slnews_test
-          POSTGRES_PASSWORD: postgres
+          # Trust auth: localhost-only CI database, no password needed.
+          POSTGRES_HOST_AUTH_METHOD: trust
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -100,7 +100,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-      - run: npx prisma db push
-      - run: npm run seed
       - run: npx playwright install --with-deps chromium
+      # The feed, articles, and announcements pages read the database — the
+      # schema and seed data must exist or e2e sees empty pages.
+      - run: npx prisma db push
+      - run: npx tsx prisma/seed.ts
       - run: npm run test:e2e

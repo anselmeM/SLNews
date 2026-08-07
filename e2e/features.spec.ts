@@ -49,9 +49,14 @@ test.describe("Contributor following", () => {
 });
 
 test.describe("Announcements", () => {
+  // The "Post a Notice" action link (/announcements/post) also matches
+  // a[href^="/announcements/"] and precedes the cards in the DOM — exclude it
+  // so these tests click a real notice card, not the form page.
+  const noticeCard = 'a[href^="/announcements/"]:not([href$="/post"])';
+
   test("announcement card title links to notice detail", async ({ page }) => {
     await page.goto("/announcements");
-    const cardLink = page.locator('a[href^="/announcements/"]').first();
+    const cardLink = page.locator(noticeCard).first();
     await expect(cardLink).toBeVisible();
     await cardLink.click();
     await expect(page).toHaveURL(/\/announcements\/[^/]+$/);
@@ -60,10 +65,10 @@ test.describe("Announcements", () => {
 
   test("notice detail page shows comments section", async ({ page }) => {
     await page.goto("/announcements");
-    const cardLink = page.locator('a[href^="/announcements/"]').first();
+    const cardLink = page.locator(noticeCard).first();
     await cardLink.click();
     await expect(page.getByRole("heading", { name: /Comments/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
   });
 });
 
