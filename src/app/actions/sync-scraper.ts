@@ -2,40 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-
-const SCRAPER_BASE = "https://slnewsapiscapper.onrender.com/api/news";
-
-function buildScraperUrl(): string {
-  const key = process.env.SCRAPER_API_KEY;
-  if (!key) {
-    throw new Error("SCRAPER_API_KEY is not set");
-  }
-  return SCRAPER_BASE;
-}
-
-function buildScraperHeaders(): HeadersInit {
-  const key = process.env.SCRAPER_API_KEY;
-  if (!key) {
-    throw new Error("SCRAPER_API_KEY is not set");
-  }
-  return {
-    Authorization: `Bearer ${key}`,
-  };
-}
-
-type ScraperArticle = {
-  id?: number | string;
-  title?: string;
-  link?: string;
-  author?: string;
-  description?: string;
-  category?: string[];
-  imageUrl?: string;
-  paragraphs?: string[];
-  pubDate?: string;
-  source?: string;
-  createdAt?: string;
-};
+import { fetchScraperNews, ScraperUnreachableError, type ScraperArticle } from "@/lib/scraper-client";
 
 async function getBotUser() {
   let botUser = await db.user.findFirst({
@@ -92,25 +59,22 @@ export async function syncFromScraper() {
   try {
     const botUser = await getBotUser();
 
-    let res: Response;
+    let articles: ScraperArticle[];
     try {
-      res = await fetch(buildScraperUrl(), { cache: "no-store", headers: buildScraperHeaders() });
-    } catch {
-      return { success: false, error: "Scraper unreachable" };
-    }
-
-    if (!res.ok) {
-      return { success: false, error: `Scraper responded ${res.status}` };
-    }
-
-    const raw = (await res.json()) as ScraperArticle[];
-    if (!Array.isArray(raw)) {
-      return { success: false, error: "Unexpected scraper payload" };
+      articles = await fetchScraperNews();
+    } catch (error) {
+      if (error instanceof ScraperUnreachableError) {
+        return { success: false, error: "Scraper unreachable" };
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown scraper error",
+      };
     }
 
     let totalCount = 0;
 
-    for (const a of raw) {
+    for (const a of articles) {
       const title = a.title?.trim();
       const link = a.link?.trim();
       if (!title || !link) continue;
