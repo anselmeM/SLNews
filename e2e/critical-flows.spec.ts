@@ -11,9 +11,9 @@ test.describe("Home & Navigation", () => {
   test("bottom nav navigates between pages", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
-    await page.locator('a[aria-label="Local News"]').click();
+    await page.locator('a[aria-label="National News"]').click();
     await expect(page).toHaveURL("/local-news");
-    await expect(page.locator("main h1")).toContainText("Local News");
+    await expect(page.locator("main h1")).toContainText("National News");
 
     await page.locator('a[aria-label="Saved"]').click();
     await expect(page).toHaveURL("/saved");
@@ -45,7 +45,7 @@ test.describe("Search", () => {
 test.describe("News feed", () => {
   test("local news page loads", async ({ page }) => {
     await page.goto("/local-news");
-    await expect(page.locator("main h1")).toContainText("Local News");
+    await expect(page.locator("main h1")).toContainText("National News");
   });
 
   test("world page loads", async ({ page }) => {
