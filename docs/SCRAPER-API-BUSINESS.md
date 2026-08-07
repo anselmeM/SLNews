@@ -30,6 +30,8 @@
 
 ## 2. The future API contract (v1) — what the app already expects
 
+> **Starting model: LINK + SUMMARY (locked in).** The API sells metadata — headline, summary, source, published date, and the link back to the publisher's site. Full article text (`paragraphs`) is **not** exposed to customers; the SLNews app keeps its own internal full-text copy for its readers. This needs no publisher permission and mirrors what Google News / Currents / NewsAPI do.
+
 ```
 GET /v1/news
 Authorization: Bearer <api-key>
@@ -41,11 +43,21 @@ Query params (proposed):
   page        int        default 1
   page_size   int        default 20, max 100
 
-Response:
+Response (customer view — no full text):
 {
-  "data": [ ...ScraperArticle ],
+  "data": [
+    {
+      "id": "...", "title": "...", "summary": "...",
+      "source": "The Sierra Leone Telegraph", "category": ["politics"],
+      "url": "https://thesierraleonetelegraph.com/...",
+      "published_at": "2026-08-07T06:30:00Z"
+    }
+  ],
   "meta": { "page": 1, "page_size": 20, "total": 512, "has_more": true }
 }
+
+Internal/app-only fields NEVER sent to customers: paragraphs (full text),
+author contact details, raw image binaries.
 
 Errors:
   401  invalid/missing key
@@ -60,7 +72,7 @@ Errors:
 ## 3. Roadmap — do in this order
 
 ### Phase 1 — Ship `/v1/news` on Render (foundation)
-- [ ] Implement `GET /v1/news` matching the contract above (same scraper, new route).
+- [ ] Implement `GET /v1/news` matching the contract above — **link + summary only** (no `paragraphs`/full text in customer responses).
 - [ ] Return the `{ data, meta }` envelope with pagination.
 - [ ] Keep `/api/news` working as the fallback during transition.
 - [ ] Basic OpenAPI/Swagger doc (`/v1/docs`) so the contract is inspectable.
@@ -120,10 +132,11 @@ Being allowed to crawl does **not** grant resale rights. You still need explicit
    - The API product can mix models: licensed full-text tiers + free link/summary tier.
 
 ### Concrete next steps
-- [ ] Email each publisher (editor@…, listed contact) asking about a licensing/partnership arrangement — attach the proposed revenue-share terms.
-- [ ] Until agreements are signed, ship the API in **link + summary** mode (full `paragraphs` only for your own SLNews app, or behind signed licenses).
-- [ ] Keep the current attribution in the app's content (`Source: {byline} — {link}`) — it's good practice but not a substitute for a license.
-- [ ] If any publisher objects, add them to a blocklist in the API and stop ingesting their content.
+- [ ] **Start in link + summary mode** (no publisher permission required) — this is the locked-in starting model (§2).
+- [ ] Send the outreach email to each publisher (template: `docs/publisher-outreach-email.md`) — goodwill + opens the door to full-text licensing later.
+- [ ] Until agreements are signed, the API serves link + summary only; full `paragraphs` stay internal to the SLNews app (or behind signed licenses).
+- [ ] Keep the current attribution in the app's content (`Source: {byline} — {link}`) — good practice, not a substitute for a license.
+- [ ] If any publisher objects to even link+summary, add them to a blocklist in the API and stop ingesting their content.
 
 ---
 
