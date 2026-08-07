@@ -68,7 +68,7 @@ test.describe("Announcements", () => {
     const cardLink = page.locator(noticeCard).first();
     await cardLink.click();
     await expect(page.getByRole("heading", { name: /Comments/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
   });
 });
 
