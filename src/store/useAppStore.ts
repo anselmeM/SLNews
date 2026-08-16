@@ -3,12 +3,15 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { NewsArticle } from '@/lib/news-service';
 
 type Theme = "light" | "dark" | "system";
+export type FontSize = "normal" | "large" | "xlarge";
 
 interface AppState {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   dataSaver: boolean;
   setDataSaver: (value: boolean) => void;
+  fontSize: FontSize;
+  setFontSize: (size: FontSize) => void;
   savedArticles: NewsArticle[];
   savedArticleIds: Set<string>;
   saveArticle: (article: NewsArticle) => void;
@@ -59,6 +62,8 @@ export const useAppStore = create<AppState>()(
         set({ dataSaver: value });
         applyDataSaver(value);
       },
+      fontSize: "normal" as FontSize,
+      setFontSize: (size) => set({ fontSize: size }),
       savedArticles: [],
       savedArticleIds: new Set<string>(),
       saveArticle: (article) =>

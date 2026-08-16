@@ -1,11 +1,12 @@
 "use client";
 
-import { formatArticleDate } from "@/lib/format-date";
 import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
 import BookmarkButton from "./BookmarkButton";
+import { formatArticleDate } from "@/lib/format-date";
 import type { NewsArticle } from "@/lib/news-service";
+import { calculateReadingTime } from "@/lib/reading-time";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function FeaturedArticleCard({ article }: { article: NewsArticle }) {
@@ -50,6 +51,8 @@ export default function FeaturedArticleCard({ article }: { article: NewsArticle 
           
           <div className="flex items-center gap-2 mb-2 text-white/80 text-sm">
             <span className="font-medium">{formatArticleDate(article.publishedAt)}</span>
+            <span>•</span>
+            <span className="font-medium">{calculateReadingTime(article.content || article.summary).text}</span>
           </div>
           
           <h2 className="font-headline-sm md:font-headline-md text-xl md:text-2xl font-bold leading-snug group-hover:text-gray-200 transition-colors duration-200 line-clamp-3">

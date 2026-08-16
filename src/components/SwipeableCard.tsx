@@ -1,19 +1,27 @@
 "use client";
 
-import { formatArticleDate } from "@/lib/format-date";
 import { m, useMotionValue, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
 import Link from "next/link";
-import type { NewsArticle } from "@/lib/news-service";
-import { useBookmark } from "@/hooks/useBookmark";
-import { vibrate } from "@/lib/haptics";
-import { useLongPress } from "@/hooks/useLongPress";
+import { useRef, useState } from "react";
 import ArticleImage from "./ArticleImage";
+import HighlightText from "./HighlightText";
+import { useBookmark } from "@/hooks/useBookmark";
+import { useLongPress } from "@/hooks/useLongPress";
+import { formatArticleDate } from "@/lib/format-date";
+import { vibrate } from "@/lib/haptics";
+import type { NewsArticle } from "@/lib/news-service";
+import { calculateReadingTime } from "@/lib/reading-time";
 import { useAppStore } from "@/store/useAppStore";
 
 const THRESHOLD = 80;
 
-export default function SwipeableCard({ article }: { article: NewsArticle }) {
+export default function SwipeableCard({
+  article,
+  highlightQuery,
+}: {
+  article: NewsArticle;
+  highlightQuery?: string;
+}) {
   const dataSaver = useAppStore((s) => s.dataSaver);
   const { isSaved, handleBookmark } = useBookmark(article);
   const x = useMotionValue(0);
@@ -108,7 +116,7 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
                 </span>
               </div>
               <h3 className="font-headline-sm text-base sm:text-lg leading-snug font-bold mb-1.5 text-on-surface pr-8 line-clamp-2">
-                {article.title}
+                <HighlightText text={article.title} query={highlightQuery} />
               </h3>
               <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-xs">
                 <span className="truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px] font-medium">
@@ -118,6 +126,8 @@ export default function SwipeableCard({ article }: { article: NewsArticle }) {
                 <span>
                   {formatArticleDate(article.publishedAt)}
                 </span>
+                <span>•</span>
+                <span>{calculateReadingTime(article.content || article.summary).text}</span>
               </div>
             </div>
           </Link>

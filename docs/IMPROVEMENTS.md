@@ -47,6 +47,41 @@ Prioritized improvement tasks to enhance developer experience, reader offline ca
 
 ---
 
+## 6. Dynamic Reading Time Estimation
+**Goal:** Calculate accurate read times across feeds and reader view based on actual article length (~200 wpm standard).
+
+- [x] Create `src/lib/reading-time.ts` utility function.
+- [x] Add unit tests in `src/lib/__tests__/reading-time.test.ts` (3/3 passed).
+- [x] Integrate reading time in `ArticleCard.tsx`, `FeaturedArticleCard.tsx`, `SwipeableCard.tsx`, and `/article/[id]/page.tsx`.
+
+---
+
+## 7. Reader Font Sizing Preferences
+**Goal:** Provide custom text sizing (`1x`, `1.2x`, `1.4x`) for enhanced reader comfort and accessibility.
+
+- [x] Add `fontSize` (`normal` / `large` / `xlarge`) to `useAppStore.ts`.
+- [x] Create `TextSizeSelector.tsx` toggle component.
+- [x] Apply dynamic font styling in `ArticleBody.tsx`.
+
+---
+
+## 8. Real-Time Offline Network Status Banner
+**Goal:** Detect when internet connectivity drops and inform the reader that cached content and saved stories remain available.
+
+- [x] Create `NetworkStatusBar.tsx` listening to `navigator.onLine` and `online`/`offline` window events.
+- [x] Mount `NetworkStatusBar` in `AppLayoutWrapper.tsx`.
+
+---
+
+## 9. Search Query Highlighting
+**Goal:** Highlight matched keywords in search result article titles for fast scanning.
+
+- [x] Create `HighlightText.tsx` component with case-insensitive token highlighting.
+- [x] Add unit tests in `src/components/__tests__/HighlightText.test.tsx` (3/3 passed).
+- [x] Connect `highlightQuery` prop to `NewsFeed`, `SwipeableCard`, and `/search/page.tsx`.
+
+---
+
 ## Verification Suite
 Before completing changes:
 ```bash
@@ -55,3 +90,4 @@ npm run test:run
 npx tsc --noEmit
 npm run build
 ```
+

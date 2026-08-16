@@ -1,8 +1,8 @@
 "use client";
 
-import SwipeableCard from "@/components/SwipeableCard";
-import FeaturedArticleCard from "@/components/FeaturedArticleCard";
 import { NativeAdCard } from "@/components/AdSense";
+import FeaturedArticleCard from "@/components/FeaturedArticleCard";
+import SwipeableCard from "@/components/SwipeableCard";
 import type { NewsArticle } from "@/lib/news-service";
 
 export default function NewsFeed({
@@ -14,6 +14,7 @@ export default function NewsFeed({
   loadMoreLabel,
   onLoadMore,
   loadingMore = false,
+  highlightQuery,
 }: {
   articles: NewsArticle[];
   emptyMessage?: string;
@@ -23,6 +24,7 @@ export default function NewsFeed({
   loadMoreLabel?: string;
   onLoadMore?: () => void;
   loadingMore?: boolean;
+  highlightQuery?: string;
 }) {
   if (articles.length === 0) {
     return (
@@ -42,7 +44,7 @@ export default function NewsFeed({
       <div className="flex flex-col gap-4 mb-8 mt-6">
         {articles.slice(featured ? 1 : 0).map((article, idx) => (
           <div key={article.id}>
-            <SwipeableCard article={article} />
+            <SwipeableCard article={article} highlightQuery={highlightQuery} />
             {showDividers && (
               <div className="w-full h-px bg-surface-variant my-2"></div>
             )}
