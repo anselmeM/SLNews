@@ -9,6 +9,8 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     exclude: ["e2e/**", "node_modules/**"],
+    pool: "threads",
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
