@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
-import SearchSuggestions from "./_components/SearchSuggestions";
 import InstantSearch from "./_components/InstantSearch";
+import SearchSuggestions from "./_components/SearchSuggestions";
+import { getTrendingTopics } from "@/app/actions/search-actions";
 import NewsFeed from "@/components/NewsFeed";
 import { searchArticles, type NewsArticle } from "@/lib/news-service";
 import { checkRateLimit } from "@/lib/rate-limiter";
-import { getTrendingTopics } from "@/app/actions/search-actions";
 
 export const metadata: Metadata = {
   title: "Search | SLNews",
@@ -199,7 +199,9 @@ export default async function SearchPage(props: {
         </div>
       )}
 
-      {results.length > 0 && <NewsFeed articles={results} featured={false} />}
+      {results.length > 0 && (
+        <NewsFeed articles={results} featured={false} highlightQuery={query} />
+      )}
     </div>
   );
 }

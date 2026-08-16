@@ -2,23 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import ShareSheet from "./_components/ShareSheet";
+import { ArticleBody } from "./_components/ArticleBody";
 import CommentSection from "./_components/CommentSection";
-import ListenButton from "@/components/ListenButton";
+import ShareSheet from "./_components/ShareSheet";
+import { StickyActions } from "./_components/StickyActions";
+import TextSizeSelector from "./_components/TextSizeSelector";
+import { getFollowState } from "@/app/actions/follow-actions";
+import { auth } from "@/auth";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
 import FollowButton from "@/components/FollowButton";
+import ListenButton from "@/components/ListenButton";
 import ReactionButtons from "@/components/ReactionButtons";
 import ReadingProgress from "@/components/ReadingProgress";
 import { ShimmerFeed } from "@/components/Shimmer";
 import TrackArticleView from "@/components/TrackArticleView";
-import { getFollowState } from "@/app/actions/follow-actions";
-import { auth } from "@/auth";
 import { fetchArticleById, fetchRelatedArticles } from "@/lib/news-service";
+import { calculateReadingTime } from "@/lib/reading-time";
 import { siteUrl } from "@/lib/site-url";
-import { ArticleBody } from "./_components/ArticleBody";
-import { StickyActions } from "./_components/StickyActions";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +67,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
     notFound();
   }
 
-  const readingTime = Math.max(1, Math.ceil(article.content.split(/\s+/).length / 200));
+  const readTime = calculateReadingTime(article.content);
   const formattedDate = new Date(article.publishedAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -157,7 +159,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
               )}
             </p>
             <p className="text-xs text-on-surface-variant mt-0.5">
-              {formattedDate} · {readingTime} min read
+              {formattedDate} · {readTime.text}
             </p>
           </div>
           {canFollow && (
@@ -170,7 +172,8 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
             />
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
+          <TextSizeSelector />
           <ListenButton title={article.title} content={article.content} />
           <ShareSheet article={article} />
         </div>

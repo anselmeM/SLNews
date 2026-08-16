@@ -1,5 +1,7 @@
 "use client";
 
+import { useAppStore } from "@/store/useAppStore";
+
 function cleanContent(content: string): string[] {
   // Split into paragraphs, filter out the "Source:" attribution line
   return content
@@ -8,7 +10,15 @@ function cleanContent(content: string): string[] {
     .filter((p) => p && !p.startsWith("Source:"));
 }
 
+const FONT_CLASSES: Record<string, string> = {
+  normal: "text-[17px] leading-[1.75]",
+  large: "text-[20px] leading-[1.8]",
+  xlarge: "text-[23px] leading-[1.85]",
+};
+
 export function ArticleBody({ content }: { content: string }) {
+  const fontSize = useAppStore((state) => state.fontSize);
+  const fontClass = FONT_CLASSES[fontSize] || FONT_CLASSES.normal;
   const paragraphs = cleanContent(content);
 
   if (paragraphs.length === 0) {
@@ -16,7 +26,7 @@ export function ArticleBody({ content }: { content: string }) {
   }
 
   return (
-    <div className="text-[17px] leading-[1.75] text-on-surface space-y-5">
+    <div className={`${fontClass} text-on-surface space-y-5 transition-all duration-200`}>
       {paragraphs.map((p, i) => {
         const isFirst = i === 0;
         return (

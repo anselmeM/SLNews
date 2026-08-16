@@ -1,11 +1,12 @@
 "use client";
 
-import { formatArticleDate } from "@/lib/format-date";
 import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
 import BookmarkButton from "./BookmarkButton";
+import { formatArticleDate } from "@/lib/format-date";
 import type { NewsArticle } from "@/lib/news-service";
+import { calculateReadingTime } from "@/lib/reading-time";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function ArticleCard({ article }: { article: NewsArticle }) {
@@ -53,6 +54,8 @@ export default function ArticleCard({ article }: { article: NewsArticle }) {
             <span>
               {formatArticleDate(article.publishedAt)}
             </span>
+            <span>•</span>
+            <span>{calculateReadingTime(article.content || article.summary).text}</span>
           </div>
         </div>
       </Link>

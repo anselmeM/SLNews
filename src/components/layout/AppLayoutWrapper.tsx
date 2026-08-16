@@ -10,6 +10,7 @@ import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
 import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
+import NetworkStatusBar from "@/components/NetworkStatusBar";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
 import { useAppStore } from "@/store/useAppStore";
@@ -57,6 +58,7 @@ export default function AppLayoutWrapper({
     <ToastProvider>
       <ThemeSync />
       <div className="pt-[80px] pb-[100px] md:pb-16 min-h-screen bg-surface">
+        <NetworkStatusBar />
         <TopAppBar session={session} />
         <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           {children}
