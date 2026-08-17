@@ -12,6 +12,7 @@ export default defineConfig({
     pool: "threads",
     fileParallelism: false,
     maxWorkers: 1,
+    isolate: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
