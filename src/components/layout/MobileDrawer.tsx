@@ -1,13 +1,13 @@
 "use client";
 
+import { m, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { m, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
 import type { Session } from "next-auth";
-import { useAppStore } from "@/store/useAppStore";
+import { signOut } from "next-auth/react";
+import { useEffect } from "react";
 import PushToggle from "@/components/PushToggle";
+import { useAppStore } from "@/store/useAppStore";
 
 interface Props {
   open: boolean;
@@ -17,6 +17,7 @@ interface Props {
 
 const links = [
   { name: "Home", href: "/home", icon: "home" },
+  { name: "Daily Briefing", href: "/digest", icon: "newspaper" },
   { name: "Announcements", href: "/announcements", icon: "campaign" },
   { name: "Market", href: "/market", icon: "trending_up" },
   { name: "Profile", href: "/profile", icon: "person" },

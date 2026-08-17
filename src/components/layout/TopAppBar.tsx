@@ -6,12 +6,13 @@ import { useRouter, usePathname } from "next/navigation";
 import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
-import { useAppStore } from "@/store/useAppStore";
-import { useScrollPosition } from "@/hooks/useScrollPosition";
 import MobileDrawer from "./MobileDrawer";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
+import { useAppStore } from "@/store/useAppStore";
 
 const navLinks = [
   { name: "Home", href: "/home" },
+  { name: "Briefing", href: "/digest" },
   { name: "National News", href: "/local-news" },
   { name: "International", href: "/world" },
   { name: "Saved", href: "/saved" },
