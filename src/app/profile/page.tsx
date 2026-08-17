@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import AppearanceSection from "./_components/AppearanceSection";
@@ -79,6 +80,24 @@ export default function ProfilePage() {
         </section>
 
         <div className="lg:col-span-8 space-y-6">
+          <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 border border-primary/20 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">newspaper</span>
+                <h3 className="text-base font-bold text-on-surface">Daily Morning Briefing</h3>
+              </div>
+              <p className="text-xs text-on-surface-variant mt-1">
+                Read or listen to your curated Sierra Leone news digest anytime.
+              </p>
+            </div>
+            <Link
+              href="/digest"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm cursor-pointer min-h-[38px]"
+            >
+              Open Briefing <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </section>
+
           <DataSaverSection dataSaver={dataSaver} setDataSaver={setDataSaver} />
           <AppearanceSection theme={theme} setTheme={(v) => setTheme(v)} />
           <NotificationToggles toggles={notificationToggles} />
