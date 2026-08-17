@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AnnouncementRegionFilter from "./_components/AnnouncementRegionFilter";
 import AnnouncementCard from "@/components/AnnouncementCard";
 import type { Announcement } from "@/components/AnnouncementCard";
+import { ANNOUNCEMENT_CATEGORIES } from "@/lib/announcement-constants";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
-import AnnouncementRegionFilter from "./_components/AnnouncementRegionFilter";
 
 export const metadata: Metadata = {
   title: "Announcements | SLNews",
   description: "Community notices, events, and public announcements across Sierra Leone.",
 };
 
-const CATEGORIES = ["All", "Government", "NGO Announcement", "Local Event", "Death Notice"];
+const CATEGORIES = ANNOUNCEMENT_CATEGORIES;
 
 export default async function CommunityAnnouncementsPage(props: {
   searchParams: Promise<{ region?: string; category?: string; q?: string }>;

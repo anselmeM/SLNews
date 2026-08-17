@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AnnouncementComments from "./_components/AnnouncementComments";
+import { extractContactPhone, getWhatsAppUrl, getTelUrl } from "@/lib/contact-utils";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,10 @@ export default async function NoticePage({ params }: { params: Promise<{ id: str
   }
 
   if (!notice) notFound();
+
+  const contactPhone = extractContactPhone(notice.body);
+  const waUrl = getWhatsAppUrl(contactPhone, `Hello, regarding your notice "${notice.title}" on SLNews:`);
+  const telUrl = getTelUrl(contactPhone);
 
   return (
     <div className="w-full max-w-3xl mx-auto py-8 px-4">
@@ -68,7 +73,39 @@ export default async function NoticePage({ params }: { params: Promise<{ id: str
           </span>
         </div>
 
-        <div className="prose prose-sm md:prose-base max-w-none text-on-surface/90 leading-relaxed whitespace-pre-line">
+        {/* Contact Action Bar */}
+        {contactPhone && (
+          <div className="bg-surface-container-low border border-outline/20 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-0.5">Contact Lister</p>
+              <p className="text-sm font-semibold text-on-surface">{contactPhone}</p>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {waUrl && (
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">chat</span>
+                  <span>WhatsApp</span>
+                </a>
+              )}
+              {telUrl && (
+                <a
+                  href={telUrl}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-primary text-on-primary hover:bg-primary/90 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">call</span>
+                  <span>Call</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="prose prose-sm md:prose-base max-w-none text-on-surface/90 leading-relaxed whitespace-pre-line bg-surface-container-lowest p-6 rounded-2xl border border-outline/10 mb-8">
           {notice.body}
         </div>
       </article>

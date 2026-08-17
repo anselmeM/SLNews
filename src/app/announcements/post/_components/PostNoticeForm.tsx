@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { postAnnouncement } from "@/app/actions/announcements";
+import { ANNOUNCEMENT_CATEGORIES } from "@/lib/announcement-constants";
 
-const CATEGORIES = ["Government", "NGO Announcement", "Local Event", "Death Notice"];
+const FORM_CATEGORIES = ANNOUNCEMENT_CATEGORIES.filter((c) => c !== "All");
 
 export default function PostNoticeForm() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function PostNoticeForm() {
           name="title"
           required
           maxLength={200}
-          placeholder="e.g. National Clean-Up Day"
+          placeholder="e.g. Hiring Senior Accountant / 3-Bedroom House for Rent"
           className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline/30 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
@@ -63,7 +64,7 @@ export default function PostNoticeForm() {
           className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline/30 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
           <option value="">Select a category...</option>
-          {CATEGORIES.map((c) => (
+          {FORM_CATEGORIES.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
@@ -96,19 +97,32 @@ export default function PostNoticeForm() {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="urgency" className="block text-sm font-semibold text-on-surface mb-1">
-          Urgency
-        </label>
-        <select
-          id="urgency"
-          name="urgency"
-          className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline/30 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        >
-          <option value="">Normal</option>
-          <option value="warning">Warning</option>
-          <option value="urgent">Urgent</option>
-        </select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="urgency" className="block text-sm font-semibold text-on-surface mb-1">
+            Urgency
+          </label>
+          <select
+            id="urgency"
+            name="urgency"
+            className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline/30 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          >
+            <option value="">Normal</option>
+            <option value="warning">Warning</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="contact" className="block text-sm font-semibold text-on-surface mb-1">
+            WhatsApp / Phone (Optional)
+          </label>
+          <input
+            id="contact"
+            name="contact"
+            placeholder="e.g. 076 123 456 or +232 78 987 654"
+            className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline/30 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
       </div>
 
       <div>
