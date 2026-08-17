@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import MarketActions from "./_components/MarketActions";
+import CommodityCard from "@/components/CommodityCard";
+import FxConverterWidget from "@/components/FxConverterWidget";
+import FxRatesTable from "@/components/FxRatesTable";
 import { cachedFetch } from "@/lib/cache";
 import { db } from "@/lib/db";
-import CommodityCard from "@/components/CommodityCard";
-import MarketActions from "./_components/MarketActions";
 
 export const metadata: Metadata = {
   title: "Market Prices | SLNews",
@@ -94,6 +96,12 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
             <p className="font-semibold text-sm">No price data for {currentMarket}.</p>
           </div>
         )}
+      </section>
+
+      {/* Foreign Exchange Rates & Currency Converter */}
+      <section className="space-y-8 mb-12">
+        <FxRatesTable />
+        <FxConverterWidget />
       </section>
 
       <section className="mb-12 bg-surface-container border border-outline-variant/20 rounded-xl p-6 md:p-10">
