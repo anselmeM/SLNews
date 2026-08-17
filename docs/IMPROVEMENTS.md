@@ -82,6 +82,26 @@ Prioritized improvement tasks to enhance developer experience, reader offline ca
 
 ---
 
+## 10. Community Announcements & Classifieds Polish
+**Goal:** Expand `/announcements` with structured categories (`Jobs`, `Real Estate`, `Public Notices`, `Events`) and one-tap WhatsApp / Call contact buttons.
+
+- [x] Create Sierra Leone phone normalization & WhatsApp link generator in `src/lib/contact-utils.ts`.
+- [x] Add unit tests in `src/lib/__tests__/contact-utils.test.ts` (6/6 passed).
+- [x] Expand category list and icon mappings in `src/lib/announcement-constants.ts`.
+- [x] Update `PostNoticeForm.tsx` to support classifieds categories and optional contact phone.
+- [x] Add one-tap WhatsApp and Call buttons on `AnnouncementCard.tsx` and `/announcements/[id]/page.tsx`.
+
+---
+
+## 11. Rich Social Share Cards & OpenGraph Generator
+**Goal:** Enhance dynamic share cards (`/api/share-card`) with Sierra Leone tri-color branding, bold typography, category pills, and source attribution badges.
+
+- [x] Redesign 1200x630 vector share card in `src/app/api/share-card/route.ts`.
+- [x] Add unit tests in `src/lib/__tests__/share-card.test.ts` (2/2 passed).
+- [x] Update `/article/[id]/page.tsx` OpenGraph and Twitter card metadata with dynamic share card fallback.
+
+---
+
 ## Verification Suite
 Before completing changes:
 ```bash

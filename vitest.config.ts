@@ -11,6 +11,7 @@ export default defineConfig({
     exclude: ["e2e/**", "node_modules/**"],
     pool: "threads",
     fileParallelism: false,
+    maxWorkers: 1,
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
