@@ -8,6 +8,7 @@ import BottomNavBar from "./BottomNavBar";
 import MotionProvider from "./MotionProvider";
 import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
+import AudioPlayerBar from "@/components/AudioPlayerBar";
 import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
@@ -64,6 +65,7 @@ export default function AppLayoutWrapper({
           {children}
         </main>
         <BottomNavBar />
+        <AudioPlayerBar />
         <BackToTop />
         <InstallBanner />
       </div>

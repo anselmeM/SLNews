@@ -18,6 +18,7 @@ interface Props {
 const links = [
   { name: "Home", href: "/home", icon: "home" },
   { name: "Daily Briefing", href: "/digest", icon: "newspaper" },
+  { name: "Listen Studio", href: "/listen", icon: "headphones" },
   { name: "Announcements", href: "/announcements", icon: "campaign" },
   { name: "Market", href: "/market", icon: "trending_up" },
   { name: "Profile", href: "/profile", icon: "person" },
