@@ -21,3 +21,18 @@ export function formatShortDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return "";
   return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
 }
+
+/** "5m ago", "2h ago", "3d ago", or "Just now" */
+export function formatDistanceToNow(timestamp: number | Date | string): string {
+  const time = typeof timestamp === "number" ? timestamp : new Date(timestamp).getTime();
+  if (Number.isNaN(time)) return "";
+  const diffSec = Math.floor((Date.now() - time) / 1000);
+  if (diffSec < 60) return "Just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatShortDate(new Date(time).toISOString());
+}
