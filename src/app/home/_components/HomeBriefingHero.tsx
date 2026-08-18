@@ -83,9 +83,9 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
             </span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-on-surface tracking-tight">
+          <h1 suppressHydrationWarning className="text-2xl sm:text-3xl md:text-4xl font-black text-on-surface tracking-tight">
             {digest.greeting}
-          </h2>
+          </h1>
           <p className="text-xs sm:text-sm font-medium text-on-surface-variant mt-0.5">
             {digest.dateFormatted}
           </p>
