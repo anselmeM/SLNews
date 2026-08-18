@@ -4,14 +4,45 @@ import Link from "next/link";
 import { useState } from "react";
 import ListenButton from "@/components/ListenButton";
 import { useToast } from "@/components/Toast";
-import type { PersonalizedDigest } from "@/lib/digest-generator";
+import type { PersonalizedDigest, DigestArticle } from "@/lib/digest-generator";
 import { generateDigestAudioScript } from "@/lib/digest-generator";
+import type { NewsArticle } from "@/lib/news-service";
+import { useAudioPlayerStore } from "@/store/useAudioPlayerStore";
+
+function digestArticleToNewsArticle(a: DigestArticle): NewsArticle {
+  return {
+    id: a.id,
+    title: a.title,
+    summary: a.summary,
+    content: a.content,
+    category: a.category,
+    imageUrl: a.imageUrl,
+    source: a.source,
+    publishedAt: a.publishedAt,
+    location: a.location,
+    authorId: "slnews-system",
+  };
+}
 
 export default function DigestClient({ digest }: { digest: PersonalizedDigest }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const audioScript = generateDigestAudioScript(digest);
+  const playQueue = useAudioPlayerStore((s) => s.playQueue);
+  const isPlaying = useAudioPlayerStore((s) => s.isPlaying);
+
+  const allDigestArticles: NewsArticle[] = [
+    ...(digest.leadStory ? [digestArticleToNewsArticle(digest.leadStory)] : []),
+    ...digest.regionalStories.map(digestArticleToNewsArticle),
+    ...digest.topicStories.map(digestArticleToNewsArticle),
+  ];
+
+  const handlePlayPlaylist = () => {
+    if (allDigestArticles.length === 0) return;
+    playQueue(allDigestArticles, 0);
+    toast(`Playing Morning Audio Playlist (${allDigestArticles.length} stories)`, "success");
+  };
 
   const handleShareWhatsApp = () => {
     const text = `📰 *SLNews Morning Briefing* (${digest.dateFormatted})\n\n⭐ *Top Story:* ${digest.leadStory?.title || "Daily News"}\n\n👉 Read your personalized Sierra Leone digest at: https://slnews.org/digest`;
@@ -55,6 +86,19 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            {allDigestArticles.length > 0 && (
+              <button
+                type="button"
+                onClick={handlePlayPlaylist}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-primary hover:bg-primary/95 text-white font-bold text-xs transition-all shadow-sm active:scale-95 cursor-pointer min-h-[44px]"
+                aria-label="Play all briefing articles in audio player"
+              >
+                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  {isPlaying ? "volume_up" : "playlist_play"}
+                </span>
+                Play Playlist ({allDigestArticles.length})
+              </button>
+            )}
             <ListenButton title="SLNews Daily Briefing" content={audioScript} />
             <button
               type="button"
