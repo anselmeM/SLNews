@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { formatDistanceToNow } from "@/lib/format-date";
+import { vibrateLight, vibrateSuccess } from "@/lib/haptics";
 import { useNotificationStore, type AppNotification } from "@/store/useNotificationStore";
 
 export default function NotificationBell() {
@@ -47,7 +48,18 @@ export default function NotificationBell() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
+  const handleToggleOpen = () => {
+    vibrateLight();
+    setOpen(!open);
+  };
+
+  const handleMarkAllRead = () => {
+    vibrateSuccess();
+    markAllAsRead();
+  };
+
   const handleNotificationClick = (notif: AppNotification) => {
+    vibrateLight();
     markAsRead(notif.id);
     setOpen(false);
     router.push(notif.url);
@@ -72,7 +84,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggleOpen}
         className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
         aria-label={`Notifications (${unreadCount} unread)`}
         aria-expanded={open}
@@ -92,7 +104,7 @@ export default function NotificationBell() {
 
       {/* Popover Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-surface-container-lowest border border-outline-variant/60 rounded-3xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed sm:absolute top-16 sm:top-auto right-3 sm:right-0 left-3 sm:left-auto max-w-sm sm:max-w-none sm:w-96 bg-surface-container-lowest border border-outline-variant/60 rounded-3xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant/40 bg-surface-container-low">
             <div className="flex items-center gap-2">
@@ -106,7 +118,7 @@ export default function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllRead}
                 className="text-xs font-semibold text-primary hover:underline cursor-pointer"
               >
                 Mark all read
