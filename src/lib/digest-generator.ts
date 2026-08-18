@@ -111,11 +111,11 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
   const { userName, preferredRegion, preferredTopics = [], articles, targetDate = new Date() } = options;
 
   const hours = targetDate.getHours();
-  let timeGreeting = "Good morning";
+  let timeGreeting = "Good Morning";
   if (hours >= 12 && hours < 17) {
-    timeGreeting = "Good afternoon";
+    timeGreeting = "Good Afternoon";
   } else if (hours >= 17) {
-    timeGreeting = "Good evening";
+    timeGreeting = "Good Evening";
   }
 
   const greeting = userName ? `${timeGreeting}, ${userName.split(" ")[0]}` : `${timeGreeting}`;

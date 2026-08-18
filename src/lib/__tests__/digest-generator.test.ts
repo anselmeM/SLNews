@@ -67,7 +67,7 @@ describe("digest-generator", () => {
         targetDate: new Date("2026-08-17T08:30:00"),
       });
 
-      expect(digest.greeting).toBe("Good morning, Anselme");
+      expect(digest.greeting).toBe("Good Morning, Anselme");
       expect(digest.leadStory).not.toBeNull();
       expect(digest.preferredRegion).toBe("Northern");
       expect(digest.preferredTopics).toEqual(["Politics", "Tech"]);
@@ -89,7 +89,7 @@ describe("digest-generator", () => {
         targetDate: new Date("2026-08-17T14:00:00"),
       });
 
-      expect(digest.greeting).toBe("Good afternoon");
+      expect(digest.greeting).toBe("Good Afternoon");
       expect(digest.fallbackToNational).toBe(true);
       expect(digest.leadStory).not.toBeNull();
       expect(digest.regionalStories.length).toBe(0);
