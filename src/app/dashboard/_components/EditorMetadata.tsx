@@ -47,11 +47,11 @@ export default function EditorMetadata({
   return (
     <>
       {/* Metadata Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface-container-low p-4 rounded-2xl border border-outline-variant/40">
         <div>
           <label
             htmlFor="editor-province"
-            className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 px-1"
+            className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 px-1"
           >
             Province
           </label>
@@ -59,7 +59,7 @@ export default function EditorMetadata({
             id="editor-province"
             value={province}
             onChange={(e) => setProvince(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-xl p-2.5 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all shadow-inner"
+            className="w-full bg-surface-container border border-outline-variant/60 rounded-xl p-2.5 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all shadow-inner"
           >
             <option value="">Select Province</option>
             {PROVINCES.map((p) => (
@@ -72,7 +72,7 @@ export default function EditorMetadata({
         <div>
           <label
             htmlFor="editor-category"
-            className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 px-1"
+            className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5 px-1"
           >
             Category
           </label>
@@ -83,8 +83,8 @@ export default function EditorMetadata({
               setCategoryName(e.target.value);
               onClearCategoryError();
             }}
-            className={`w-full bg-white border rounded-xl p-2.5 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all shadow-inner ${
-              categoryError ? "border-red-300" : "border-gray-200 focus:border-primary"
+            className={`w-full bg-surface-container border rounded-xl p-2.5 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all shadow-inner ${
+              categoryError ? "border-red-300" : "border-outline-variant/60 focus:border-primary"
             }`}
           >
             <option value="">Select Category</option>
@@ -102,10 +102,10 @@ export default function EditorMetadata({
 
       {/* Breaking news toggle */}
       {isAdmin && (
-        <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-2xl p-4">
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/40 rounded-2xl p-4">
           <div>
-            <p className="text-sm font-bold text-red-800">Breaking News</p>
-            <p className="text-xs text-red-600 mt-0.5">
+            <p className="text-sm font-bold text-red-800 dark:text-red-300">Breaking News</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
               Reserved for urgent National stories with an image.
             </p>
           </div>
@@ -113,7 +113,7 @@ export default function EditorMetadata({
             type="button"
             onClick={() => setBreaking(!breaking)}
             className={`relative w-12 h-7 rounded-full transition-colors duration-200 cursor-pointer ${
-              breaking ? "bg-red-600" : "bg-gray-300"
+              breaking ? "bg-red-600" : "bg-surface-container-highest"
             }`}
             aria-label="Toggle breaking news"
           >

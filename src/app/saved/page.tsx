@@ -92,23 +92,23 @@ export default function SavedStoriesPage() {
           {/* Sort & Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
             {/* Sort */}
-            <div className="flex items-center gap-1.5 bg-gray-100/70 rounded-xl p-1">
+            <div className="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
               <button
                 onClick={() => setSortOrder("newest")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   sortOrder === "newest"
-                    ? "bg-white text-on-surface shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-surface-container-lowest text-on-surface shadow-xs"
+                    : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
                 Newest
               </button>
               <button
                 onClick={() => setSortOrder("oldest")}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   sortOrder === "oldest"
-                    ? "bg-white text-on-surface shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-surface-container-lowest text-on-surface shadow-xs"
+                    : "text-on-surface-variant hover:text-on-surface"
                 }`}
               >
                 Oldest
@@ -117,13 +117,13 @@ export default function SavedStoriesPage() {
 
             {/* Search/Filter */}
             <div className="relative w-full sm:w-56">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
                 search
               </span>
               <input
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
-                className="w-full bg-gray-100/70 border-none rounded-full py-2 pl-9 pr-9 text-sm text-on-surface placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:bg-white transition-all"
+                className="w-full bg-surface-container border border-outline-variant/30 rounded-full py-2 pl-9 pr-9 text-sm text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:bg-surface-container-lowest transition-all"
                 placeholder="Filter by title..."
                 type="text"
               />

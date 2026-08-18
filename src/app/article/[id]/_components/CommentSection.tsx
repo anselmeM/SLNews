@@ -1,10 +1,10 @@
 "use client";
 
-import { formatShortDate } from "@/lib/format-date";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { ShimmerBar } from "@/components/Shimmer";
+import { formatShortDate } from "@/lib/format-date";
 
 type CommentUser = { id: string; name: string | null; image: string | null };
 type CommentData = {
@@ -165,7 +165,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
                       placeholder="Share your thoughts..."
                       rows={3}
                       maxLength={2000}
-                      className="w-full resize-none rounded-xl border border-gray-200 bg-white p-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                      className="w-full resize-none rounded-xl border border-outline-variant/60 bg-surface-container p-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />
                     <div className="flex items-center justify-between mt-2">
                       <span className={`text-xs ${text.length > 1900 ? "text-red-500" : "text-on-surface-variant"}`}>

@@ -40,8 +40,8 @@ export default function EditorImageUploader({
   };
 
   return (
-    <div className="space-y-3 pt-4 border-t border-gray-100">
-      <label htmlFor="editor-image" className="block text-xs font-bold text-gray-500 uppercase tracking-widest px-1">
+    <div className="space-y-3 pt-4 border-t border-outline-variant/40">
+      <label htmlFor="editor-image" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1">
         Featured Image
       </label>
       <div className="flex flex-col sm:flex-row gap-3">
@@ -52,8 +52,8 @@ export default function EditorImageUploader({
             setImageUrl(e.target.value);
             onClearError();
           }}
-          className={`flex-1 bg-white border rounded-2xl p-3 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all shadow-inner ${
-            error ? "border-red-300" : "border-gray-200 focus:border-primary"
+          className={`flex-1 bg-surface-container border rounded-2xl p-3 font-semibold text-sm text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all shadow-inner ${
+            error ? "border-red-300" : "border-outline-variant/60 focus:border-primary"
           }`}
           placeholder="Paste image URL..."
           type="text"
@@ -70,7 +70,7 @@ export default function EditorImageUploader({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="px-4 py-3 rounded-2xl font-bold text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px] flex items-center gap-1.5"
+            className="px-4 py-3 rounded-2xl font-bold text-sm bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px] flex items-center gap-1.5 border border-outline-variant/40"
           >
             <span className="material-symbols-outlined text-lg">upload</span>
             {uploading ? "Uploading..." : "Upload"}

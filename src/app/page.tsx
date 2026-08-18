@@ -58,7 +58,7 @@ export default function LandingPage() {
           </Link>
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-8 py-3.5 rounded-full text-base border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 bg-surface-container-lowest text-on-surface font-semibold px-8 py-3.5 rounded-full text-base border border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all active:scale-95 shadow-xs"
           >
             Start Reading →
           </Link>
@@ -67,7 +67,7 @@ export default function LandingPage() {
 
       {/* Features */}
       <section className="max-w-3xl mx-auto px-4 pb-16">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">What you get</h2>
+        <h2 className="text-2xl font-bold text-center text-on-surface mb-8">What you get</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
             { icon: "newspaper", title: "National News", desc: "Stories from Sierra Leone Telegraph, Politico SL, and Concord Times in one feed." },
@@ -77,11 +77,11 @@ export default function LandingPage() {
             { icon: "download", title: "No App Store Needed", desc: "Install directly from your browser. Works on any smartphone." },
             { icon: "cloud_off", title: "Works Offline", desc: "Saved articles and prices available even without internet connection." },
           ].map((f) => (
-            <div key={f.title} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex gap-4 items-start">
-              <span className="material-symbols-outlined text-2xl text-green-700 bg-green-50 p-2.5 rounded-xl flex-shrink-0">{f.icon}</span>
+            <div key={f.title} className="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/50 shadow-xs hover:shadow-md transition-all flex gap-4 items-start">
+              <span className="material-symbols-outlined text-2xl text-primary bg-primary-container/40 p-2.5 rounded-xl flex-shrink-0">{f.icon}</span>
               <div>
-                <h3 className="font-bold text-gray-900 mb-0.5">{f.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-on-surface mb-0.5">{f.title}</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">{f.desc}</p>
               </div>
             </div>
           ))}
@@ -90,9 +90,9 @@ export default function LandingPage() {
 
       {/* Market Prices Preview */}
       <section className="max-w-3xl mx-auto px-4 pb-16">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Current Market Prices</h2>
-        <p className="text-sm text-gray-500 text-center mb-6">Updated weekly. Prices in New Leone (NLe).</p>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-md mx-auto">
+        <h2 className="text-2xl font-bold text-center text-on-surface mb-2">Current Market Prices</h2>
+        <p className="text-sm text-on-surface-variant text-center mb-6">Updated weekly. Prices in New Leone (NLe).</p>
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/50 shadow-xs overflow-hidden max-w-md mx-auto">
           {[
             { name: "Rice (50kg bag)", price: "NLe 180,000", trend: "up", pct: "2.5%" },
             { name: "Petrol (per litre)", price: "NLe 30", trend: "down", pct: "8%" },
@@ -100,10 +100,10 @@ export default function LandingPage() {
             { name: "Cement (imported bag)", price: "NLe 180,000", trend: "up", pct: "3%" },
             { name: "Palm Oil (per litre)", price: "NLe 19,000", trend: "down", pct: "10.6%" },
           ].map((item, i) => (
-            <div key={item.name} className={`flex justify-between items-center px-5 py-3.5 text-sm ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
-              <span className="font-semibold text-gray-900">{item.name}</span>
-              <span className="text-gray-600">
-                <span className={item.trend === "up" ? "text-red-500 font-semibold mr-1" : "text-green-600 font-semibold mr-1"}>
+            <div key={item.name} className={`flex justify-between items-center px-5 py-3.5 text-sm ${i % 2 === 0 ? "bg-surface-container-low" : "bg-surface-container-lowest"}`}>
+              <span className="font-semibold text-on-surface">{item.name}</span>
+              <span className="text-on-surface-variant">
+                <span className={item.trend === "up" ? "text-red-500 font-semibold mr-1" : "text-emerald-600 font-semibold mr-1"}>
                   {item.trend === "up" ? "↑" : "↓"} {item.pct}
                 </span>
                 {item.price}

@@ -50,7 +50,14 @@ export default function AppLayoutWrapper({
   const isAuthPage = pathname === "/login";
 
   if (isAuthPage) {
-    return <>{children}</>;
+    return (
+      <SessionProvider session={session}>
+        <ToastProvider>
+          <ThemeSync />
+          {children}
+        </ToastProvider>
+      </SessionProvider>
+    );
   }
 
   return (
