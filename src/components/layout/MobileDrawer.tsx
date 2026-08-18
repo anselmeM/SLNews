@@ -7,6 +7,7 @@ import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { useEffect } from "react";
 import PushToggle from "@/components/PushToggle";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useAppStore } from "@/store/useAppStore";
 
 interface Props {
@@ -28,6 +29,7 @@ const links = [
 
 export default function MobileDrawer({ open, onClose, session }: Props) {
   const pathname = usePathname();
+  const { promptInstall, isStandalone } = usePWAInstall();
   const dataSaver = useAppStore((s) => s.dataSaver);
   const setDataSaver = useAppStore((s) => s.setDataSaver);
 
@@ -103,6 +105,19 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
             </nav>
 
             <div className="border-t border-outline-variant/30 px-4 py-4 space-y-3">
+              {!isStandalone && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    promptInstall();
+                  }}
+                  className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-2xl text-sm font-bold bg-primary text-white hover:bg-primary/95 shadow-sm transition-all active:scale-95 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[20px]">download</span>
+                  Install App on Device
+                </button>
+              )}
+
               <button
                 onClick={() => setDataSaver(!dataSaver)}
                 className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"

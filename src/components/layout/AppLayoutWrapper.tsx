@@ -11,6 +11,7 @@ import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions"
 import AudioPlayerBar from "@/components/AudioPlayerBar";
 import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
+import InstallModal from "@/components/InstallModal";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
@@ -75,6 +76,7 @@ export default function AppLayoutWrapper({
         <AudioPlayerBar />
         <BackToTop />
         <InstallBanner />
+        <InstallModal />
       </div>
     </ToastProvider>
     </SessionProvider>

@@ -10,13 +10,14 @@ import NotificationToggles from "./_components/NotificationToggles";
 import ProfileCard from "./_components/ProfileCard";
 import { loadPreferences, savePreferences, setDailyBriefing } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { invalidate } from "@/lib/cache";
-
 import { useAppStore } from "@/store/useAppStore";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const { toast } = useToast();
+  const { promptInstall, isStandalone } = usePWAInstall();
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
   const dataSaver = useAppStore((s) => s.dataSaver);
@@ -115,6 +116,34 @@ export default function ProfilePage() {
               }
             }}
           />
+
+          <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {isStandalone ? "check_circle" : "install_mobile"}
+                  </span>
+                  {isStandalone ? "App Installed" : "Download & Install App"}
+                </h3>
+                <p className="text-sm text-on-surface-variant mt-1">
+                  {isStandalone
+                    ? "SLNews is installed on this device with offline access enabled."
+                    : "Install SLNews directly on your home screen for quick offline access and breaking alerts."}
+                </p>
+              </div>
+
+              {!isStandalone && (
+                <button
+                  onClick={promptInstall}
+                  className="px-5 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/95 shadow-sm transition-all active:scale-95 flex items-center gap-2 cursor-pointer min-h-[44px]"
+                >
+                  <span className="material-symbols-outlined text-[20px]">download</span>
+                  Install on Device
+                </button>
+              )}
+            </div>
+          </section>
 
           <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm">
             <h3 className="text-lg font-bold text-on-surface flex items-center gap-2 mb-3">
