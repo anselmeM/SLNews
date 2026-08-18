@@ -3,22 +3,17 @@ import { Suspense } from "react";
 import BreakingNewsBanner from "./_components/BreakingNewsBanner";
 import EditorsPicks from "./_components/EditorsPicks";
 import FollowingFeed from "./_components/FollowingFeed";
+import HomeBriefingHero from "./_components/HomeBriefingHero";
 import HomeFeed from "./_components/HomeFeed";
+import { getPersonalizedDigest } from "@/app/actions/digest-actions";
 import LatestStories from "@/components/LatestStories";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { ShimmerFeed } from "@/components/Shimmer";
 import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good Morning";
-  if (h < 17) return "Good Afternoon";
-  return "Good Evening";
-}
-
 export const metadata: Metadata = {
-  title: "Home | SLNews",
-  description: "Top stories and trending news from Sierra Leone.",
+  title: "Home & Daily Briefing | SLNews",
+  description: "Personalized daily news briefing, top stories and trending headlines from Sierra Leone.",
 };
 
 const PAGE_SIZE = 10;
@@ -37,15 +32,12 @@ async function HomeContent() {
 }
 
 export default async function Home() {
+  const digest = await getPersonalizedDigest();
+
   return (
-    <div className="max-w-3xl mx-auto w-full">
-      <div className="mb-8 mt-4">
-        {/* suppressHydrationWarning: the greeting is time-based and the server
-            and client clocks can disagree, which otherwise throws React
-            hydration error #418 */}
-        <h1 suppressHydrationWarning className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface mb-1.5 tracking-tighter leading-tight">{getGreeting()}</h1>
-        <p className="font-medium text-gray-500 text-sm md:text-base tracking-tight">Find out what&apos;s happening around Sierra Leone</p>
-      </div>
+    <div className="max-w-3xl mx-auto w-full pt-2">
+      {/* Personalized Executive Briefing Hero Card */}
+      <HomeBriefingHero digest={digest} />
 
       <Suspense fallback={null}>
         <LatestStories />
