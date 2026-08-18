@@ -3,13 +3,16 @@
 import { m } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import NewsFeed from "@/components/NewsFeed";
+import OfflineArticleModal from "./_components/OfflineArticleModal";
+import ArticleCard from "@/components/ArticleCard";
+import type { NewsArticle } from "@/lib/news-service";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function SavedStoriesPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [filterText, setFilterText] = useState("");
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   const savedArticles = useAppStore((state) => state.savedArticles);
 
   useEffect(() => {
@@ -94,6 +97,7 @@ export default function SavedStoriesPage() {
             {/* Sort */}
             <div className="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
               <button
+                type="button"
                 onClick={() => setSortOrder("newest")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   sortOrder === "newest"
@@ -104,6 +108,7 @@ export default function SavedStoriesPage() {
                 Newest
               </button>
               <button
+                type="button"
                 onClick={() => setSortOrder("oldest")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   sortOrder === "oldest"
@@ -129,6 +134,7 @@ export default function SavedStoriesPage() {
               />
               {filterText && (
                 <button
+                  type="button"
                   onClick={() => setFilterText("")}
                   aria-label="Clear filter"
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
@@ -139,13 +145,41 @@ export default function SavedStoriesPage() {
             </div>
           </div>
 
-          <NewsFeed
-            articles={filteredAndSorted}
-            featured={false}
-            emptyMessage="No bookmarked stories match your search"
-          />
+          <div className="flex flex-col gap-4">
+            {filteredAndSorted.length === 0 ? (
+              <div className="text-center py-12 text-on-surface-variant text-sm font-medium">
+                No bookmarked stories match your search
+              </div>
+            ) : (
+              filteredAndSorted.map((article) => (
+                <div key={article.id} className="relative group">
+                  <ArticleCard article={article} />
+                  {/* Quick Offline Reader Shortcut */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedArticle(article);
+                    }}
+                    className="absolute top-3 right-12 z-20 inline-flex items-center gap-1 bg-surface-container-highest/90 hover:bg-primary hover:text-white text-on-surface font-bold text-[11px] px-2.5 py-1 rounded-full shadow-xs backdrop-blur-sm transition-all cursor-pointer"
+                    title="Read full article offline"
+                  >
+                    <span className="material-symbols-outlined text-xs">chrome_reader_mode</span>
+                    <span className="hidden sm:inline">Offline Reader</span>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </>
       )}
+
+      {/* Offline Reader Modal */}
+      <OfflineArticleModal
+        article={selectedArticle}
+        onClose={() => setSelectedArticle(null)}
+      />
     </div>
   );
 }
