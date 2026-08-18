@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/Toast";
 import { formatDistanceToNow } from "@/lib/format-date";
+import { vibrateLight, vibrateSuccess, vibrateWarning } from "@/lib/haptics";
 import { useNotificationStore, type AppNotification, type NotificationType } from "@/store/useNotificationStore";
+
+function getNotificationPermission(): NotificationPermission | "unsupported" {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return "unsupported";
+  }
+  return Notification.permission;
+}
 
 export default function NotificationsClient() {
   const [activeTab, setActiveTab] = useState<"all" | "unread" | NotificationType>("all");
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(() =>
+    getNotificationPermission()
+  );
+  const [requestingPush, setRequestingPush] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -17,6 +29,7 @@ export default function NotificationsClient() {
   const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
   const removeNotification = useNotificationStore((s) => s.removeNotification);
   const clearAll = useNotificationStore((s) => s.clearAll);
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   useEffect(() => {
     useNotificationStore.persist?.rehydrate();
@@ -31,19 +44,62 @@ export default function NotificationsClient() {
   });
 
   const handleNotificationClick = (notif: AppNotification) => {
+    vibrateLight();
     markAsRead(notif.id);
     router.push(notif.url);
   };
 
+  const handleTabChange = (tabKey: "all" | "unread" | NotificationType) => {
+    vibrateLight();
+    setActiveTab(tabKey);
+  };
+
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    vibrateWarning();
     removeNotification(id);
     toast("Notification removed", "info");
   };
 
+  const handleMarkAllRead = () => {
+    vibrateSuccess();
+    markAllAsRead();
+    toast("All marked as read", "success");
+  };
+
   const handleClearAll = () => {
+    vibrateWarning();
     clearAll();
     toast("All notifications cleared", "info");
+  };
+
+  const handleEnablePush = async () => {
+    if (permission === "unsupported") {
+      toast("Push notifications are not supported on this browser.", "info");
+      return;
+    }
+    setRequestingPush(true);
+    try {
+      const res = await Notification.requestPermission();
+      setPermission(res);
+      if (res === "granted") {
+        vibrateSuccess();
+        toast("Push alerts enabled! You will receive breaking news notifications.", "success");
+        addNotification({
+          title: "Device Push Notifications Active",
+          body: "You will now receive instant alerts for breaking news and morning briefings.",
+          url: "/notifications",
+          category: "system",
+          icon: "notifications_active",
+        });
+      } else if (res === "denied") {
+        toast("Notifications are blocked in your browser settings.", "error");
+      }
+    } catch {
+      toast("Could not request notification permissions.", "error");
+    } finally {
+      setRequestingPush(false);
+    }
   };
 
   const getCategoryBadge = (category: AppNotification["category"]) => {
@@ -94,7 +150,7 @@ export default function NotificationsClient() {
           {unreadCount > 0 && (
             <button
               type="button"
-              onClick={markAllAsRead}
+              onClick={handleMarkAllRead}
               className="px-4 py-2 rounded-full font-bold text-xs bg-primary/10 hover:bg-primary/20 text-primary transition-colors cursor-pointer min-h-[38px] flex items-center gap-1.5"
             >
               <span className="material-symbols-outlined text-[18px]">done_all</span>
@@ -121,6 +177,27 @@ export default function NotificationsClient() {
         </div>
       </div>
 
+      {/* Push Notification Opt-in Prompt Banner */}
+      {permission === "default" && (
+        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-primary text-2xl">notifications_active</span>
+            <div>
+              <p className="text-xs font-bold text-on-surface">Enable Device Push Notifications</p>
+              <p className="text-[11px] text-on-surface-variant">Get instant alerts for breaking Sierra Leone news on your device.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleEnablePush}
+            disabled={requestingPush}
+            className="px-4 py-2 rounded-full bg-primary hover:bg-primary/90 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {requestingPush ? "Enabling..." : "Enable Push Alerts"}
+          </button>
+        </div>
+      )}
+
       {/* Tabs Filter Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-outline-variant/40">
         {tabs.map((tab) => {
@@ -128,7 +205,7 @@ export default function NotificationsClient() {
           return (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => handleTabChange(tab.key)}
               className={`px-4 py-2.5 text-xs font-bold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer min-h-[38px] ${
                 active
                   ? "bg-primary text-white shadow-xs"
