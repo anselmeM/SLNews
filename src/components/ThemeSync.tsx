@@ -22,13 +22,15 @@ export default function ThemeSync() {
     const isDark =
       theme === "dark" ||
       (theme === "system" &&
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList.toggle("dark", isDark);
   }, [hasHydrated, theme]);
 
   // Also listen for system changes when in system mode
   useEffect(() => {
-    if (!hasHydrated || theme !== "system") return;
+    if (!hasHydrated || theme !== "system" || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     function onChange(e: MediaQueryListEvent) {
       document.documentElement.classList.toggle("dark", e.matches);

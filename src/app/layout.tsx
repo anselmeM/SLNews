@@ -59,12 +59,16 @@ export default async function RootLayout({
               (function() {
                 try {
                   var stored = localStorage.getItem('slnews-app-storage');
+                  var theme = 'system';
                   if (stored) {
                     var parsed = JSON.parse(stored);
-                    var theme = parsed.state ? parsed.state.theme : 'system';
-                    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                      document.documentElement.classList.add('dark');
-                    }
+                    theme = (parsed && parsed.state && parsed.state.theme) ? parsed.state.theme : 'system';
+                  }
+                  var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
                   }
                 } catch (e) {}
               })();

@@ -103,13 +103,13 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-on-surface placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
+                className="w-full px-4 py-3 bg-surface-container border border-outline-variant/60 rounded-2xl text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
                 placeholder="Your name"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1" htmlFor="email">
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1" htmlFor="email">
                 Email Address
               </label>
               <input
@@ -118,13 +118,13 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-on-surface placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
+                className="w-full px-4 py-3 bg-surface-container border border-outline-variant/60 rounded-2xl text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
                 placeholder="you@example.com"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1" htmlFor="password">
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest px-1" htmlFor="password">
                 Password
               </label>
               <input
@@ -134,7 +134,7 @@ export default function RegisterPage() {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl text-on-surface placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
+                className="w-full px-4 py-3 bg-surface-container border border-outline-variant/60 rounded-2xl text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all font-semibold text-sm shadow-inner"
                 placeholder="At least 6 characters"
               />
             </div>

@@ -123,12 +123,12 @@ export default function EditorForm(props: EditorFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/60 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+      <div className="bg-surface-container-low px-6 py-4 border-b border-outline-variant/50 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-lg">edit_document</span>
-          <span className="font-bold text-xs uppercase tracking-wider text-gray-500">
+          <span className="font-bold text-xs uppercase tracking-wider text-on-surface-variant">
             {articleId ? "Editing Article" : "New Article"}
           </span>
         </div>
@@ -137,7 +137,7 @@ export default function EditorForm(props: EditorFormProps) {
             <button
               type="button"
               onClick={clearDraft}
-              className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline transition-colors cursor-pointer"
             >
               Clear draft
             </button>
@@ -148,7 +148,7 @@ export default function EditorForm(props: EditorFormProps) {
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               preview
                 ? "bg-primary text-white"
-                : "bg-white border border-gray-200 text-gray-500 hover:border-primary/30"
+                : "bg-surface-container border border-outline-variant text-on-surface-variant hover:border-primary/50"
             }`}
           >
             <span className="material-symbols-outlined text-sm">{preview ? "edit" : "visibility"}</span>
@@ -164,9 +164,9 @@ export default function EditorForm(props: EditorFormProps) {
       )}
 
       {recovered && (
-        <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2">
-          <span className="material-symbols-outlined text-amber-600 text-lg">restore</span>
-          <span className="text-xs font-semibold text-amber-800 flex-1">
+        <div className="mx-6 mt-4 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 rounded-2xl flex items-center gap-2">
+          <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg">restore</span>
+          <span className="text-xs font-semibold text-amber-800 dark:text-amber-200 flex-1">
             Recovered unsaved draft from earlier.
           </span>
         </div>
@@ -191,8 +191,8 @@ export default function EditorForm(props: EditorFormProps) {
                   setTitle(e.target.value);
                   setFieldErrors((p) => ({ ...p, title: "" }));
                 }}
-                className={`w-full text-2xl sm:text-3xl md:text-4xl font-black text-on-surface bg-transparent border-0 border-b-2 px-0 py-2 placeholder-gray-300 outline-none tracking-tight transition-colors ${
-                  fieldErrors.title ? "border-red-300" : "border-gray-100 focus:border-primary"
+                className={`w-full text-2xl sm:text-3xl md:text-4xl font-black text-on-surface bg-transparent border-0 border-b-2 px-0 py-2 placeholder:text-on-surface-variant/40 outline-none tracking-tight transition-colors ${
+                  fieldErrors.title ? "border-red-300" : "border-outline-variant/40 focus:border-primary"
                 }`}
                 placeholder="Article title"
                 type="text"
@@ -207,7 +207,7 @@ export default function EditorForm(props: EditorFormProps) {
               <input
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                className="w-full text-base md:text-lg font-medium text-gray-500 bg-transparent border-0 border-b border-gray-100 focus:border-primary focus:ring-0 px-0 py-2 placeholder-gray-300 outline-none tracking-tight"
+                className="w-full text-base md:text-lg font-medium text-on-surface-variant bg-transparent border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-2 placeholder:text-on-surface-variant/40 outline-none tracking-tight"
                 placeholder="Short subtitle or summary..."
                 type="text"
               />
@@ -234,7 +234,7 @@ export default function EditorForm(props: EditorFormProps) {
                   setContent(e.target.value);
                   setFieldErrors((p) => ({ ...p, content: "" }));
                 }}
-                className={`w-full bg-transparent border-0 focus:ring-0 p-0 font-body-lg text-base md:text-lg text-on-surface outline-none resize-y min-h-[300px] md:min-h-[420px] lg:min-h-[560px] leading-relaxed placeholder-gray-300 ${
+                className={`w-full bg-transparent border-0 focus:ring-0 p-0 font-body-lg text-base md:text-lg text-on-surface outline-none resize-y min-h-[300px] md:min-h-[420px] lg:min-h-[560px] leading-relaxed placeholder:text-on-surface-variant/40 ${
                   fieldErrors.content ? "border-l-2 border-l-red-300 pl-2" : ""
                 }`}
                 placeholder="Tell your story..."
@@ -255,12 +255,12 @@ export default function EditorForm(props: EditorFormProps) {
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t border-gray-100">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t border-outline-variant/40">
           <button
             type="button"
             onClick={() => handleSave(false)}
             disabled={loading}
-            className="px-6 py-3 rounded-full font-bold text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px]"
+            className="px-6 py-3 rounded-full font-bold text-sm text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high transition-colors border border-outline-variant/40 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-[44px]"
           >
             {loading ? "Saving..." : "Save Draft"}
           </button>

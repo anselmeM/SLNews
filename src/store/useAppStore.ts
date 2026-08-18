@@ -40,6 +40,8 @@ function applyTheme(theme: Theme) {
   const isDark =
     theme === "dark" ||
     (theme === "system" &&
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", isDark);
 }
