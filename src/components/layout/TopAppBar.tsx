@@ -7,6 +7,7 @@ import type { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import MobileDrawer from "./MobileDrawer";
+import NotificationBell from "@/components/NotificationBell";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -125,8 +126,10 @@ export default function TopAppBar({ session }: { session: Session | null }) {
         </form>
 
         <div className={`flex items-center transition-all duration-300 ${
-          scrolled ? "gap-3" : "gap-4"
+          scrolled ? "gap-2 sm:gap-3" : "gap-3 sm:gap-4"
         }`}>
+          <NotificationBell />
+
           <button
             onClick={handleDataSaverToggle}
             className={`p-2.5 rounded-full transition-all duration-200 cursor-pointer ${
