@@ -10,13 +10,24 @@ function urgencyColor(urgency: string | null) {
 }
 
 export type Announcement = {
-  id: string; title: string; body: string; category: string; icon: string; organization: string; location: string; dateLabel: string; urgency: string | null;
+  id: string;
+  title: string;
+  body: string;
+  category: string;
+  icon: string;
+  organization: string;
+  location: string;
+  dateLabel: string;
+  urgency: string | null;
 };
 
 export default function AnnouncementCard({ announcement }: { announcement: Announcement }) {
   const contactPhone = extractContactPhone(announcement.body);
   const waUrl = getWhatsAppUrl(contactPhone, `Hello, regarding "${announcement.title}" on SLNews:`);
   const telUrl = getTelUrl(contactPhone);
+  const isOfficial = /ministry|government|nra|bank of sierra leone|police|council|edsa|salwaco|eacc|nec|statistics|authority|commission|parliament/i.test(
+    announcement.organization
+  );
 
   return (
     <article className="bg-surface-container-lowest rounded-xl p-4 md:p-6 shadow-[0_4px_12px_rgba(27,28,28,0.08)] border border-outline/5 flex flex-col gap-3 relative overflow-hidden group hover:shadow-[0_8px_16px_rgba(27,28,28,0.12)] transition-shadow duration-300">
@@ -37,10 +48,20 @@ export default function AnnouncementCard({ announcement }: { announcement: Annou
             {announcement.title}
           </Link>
         </h2>
-        <p className="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
-          <span className="material-symbols-outlined text-[16px]">account_balance</span>
-          {announcement.organization}
-        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
+            <span className="material-symbols-outlined text-[16px]">account_balance</span>
+            {announcement.organization}
+          </p>
+          {isOfficial && (
+            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">
+              <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                verified
+              </span>
+              <span>Official Notice</span>
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant mt-1">
         <span className="material-symbols-outlined text-[16px]">location_on</span>
