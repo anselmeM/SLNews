@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 export async function GET(
   _req: Request,
@@ -26,6 +27,19 @@ export async function POST(
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const clientIp = getClientIp(req);
+  const rateLimit = checkRateLimit(`comment:${clientIp}:${session.user.id}`, {
+    maxRequests: 6,
+    windowMs: 60_000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many comments submitted. Please wait a moment before trying again." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } }
+    );
   }
 
   const { id } = await params;

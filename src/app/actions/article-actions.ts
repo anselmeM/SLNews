@@ -29,6 +29,20 @@ export async function upsertArticle(data: {
 
   const { id, title, content, summary, imageUrl, province, district, categoryName, submitForReview, breaking } = data;
 
+  const cleanTitle = (title || "").trim();
+  const cleanContent = (content || "").trim();
+  const cleanSummary = summary ? summary.trim() : undefined;
+
+  if (!cleanTitle || cleanTitle.length > 300) {
+    throw new Error("Title is required (maximum 300 characters)");
+  }
+  if (!cleanContent || cleanContent.length > 500_000) {
+    throw new Error("Article content is required (maximum 500,000 characters)");
+  }
+  if (cleanSummary && cleanSummary.length > 2000) {
+    throw new Error("Summary must be 2000 characters or fewer");
+  }
+
   const status = submitForReview ? "IN_REVIEW" : "DRAFT";
 
   const canSetBreaking = userRole === "EDITOR" || userRole === "ADMIN";
