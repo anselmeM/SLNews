@@ -10,9 +10,9 @@ const META: Record<string, { icon: string; displayName: string; description: str
 };
 
 function trendColor(t: string | null) {
-  if (t === "up") return "text-error";
-  if (t === "down") return "text-primary";
-  return "text-on-surface-variant";
+  if (t === "up") return "text-red-600 dark:text-red-400 bg-red-500/10";
+  if (t === "down") return "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10";
+  return "text-on-surface-variant bg-surface-container";
 }
 
 function trendIcon(t: string | null) {
@@ -24,7 +24,7 @@ function trendIcon(t: string | null) {
 function Sparkline({ trend }: { trend: string | null }) {
   const isUp = trend === "up";
   const isDown = trend === "down";
-  const color = isUp ? "var(--color-error, #ba1a1a)" : isDown ? "var(--color-primary, #006e1c)" : "var(--color-tertiary, #5f5e5b)";
+  const color = isUp ? "#dc2626" : isDown ? "#16a34a" : "#64748b";
   const points = isUp
     ? "0,22 8,19 16,21 24,15 32,17 40,11 48,14 56,6 64,8 72,2"
     : isDown
@@ -33,7 +33,7 @@ function Sparkline({ trend }: { trend: string | null }) {
 
   return (
     <svg
-      className="w-16 h-6 overflow-visible opacity-85 shrink-0"
+      className="w-16 h-6 overflow-visible opacity-90 shrink-0"
       viewBox="0 0 72 26"
       fill="none"
       aria-hidden="true"
@@ -51,35 +51,67 @@ function Sparkline({ trend }: { trend: string | null }) {
 }
 
 type Price = {
-  id: string; commodity: string; price: number; trend: string | null; trendPct: number | null; trendPeriod: string | null;
+  id: string;
+  commodity: string;
+  price: number;
+  trend: string | null;
+  trendPct: number | null;
+  trendPeriod: string | null;
 };
 
 export default function CommodityCard({ price }: { price: Price }) {
-  const meta = META[price.commodity] || { icon: "shopping_bag", displayName: price.commodity, description: "", category: "Other", categoryClass: "bg-surface-variant text-on-surface-variant" };
+  const meta = META[price.commodity] || {
+    icon: "shopping_bag",
+    displayName: price.commodity,
+    description: "Market staple",
+    category: "General",
+    categoryClass: "bg-surface-variant text-on-surface-variant",
+  };
 
   return (
-    <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 shadow-[0_4px_12px_rgba(27,28,28,0.08)] flex flex-col justify-between h-full hover:shadow-[0_8px_16px_rgba(27,28,28,0.12)] transition-shadow">
+    <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-5 sm:p-6 shadow-[0_4px_12px_rgba(27,28,28,0.08)] flex flex-col justify-between h-full hover:shadow-[0_8px_16px_rgba(27,28,28,0.12)] transition-all">
       <div>
-        <div className="flex justify-between items-start mb-4">
-          <div className={`px-3 py-1 rounded-full font-label-sm text-label-sm inline-block ${meta.categoryClass}`}>{meta.category}</div>
-          <span className="material-symbols-outlined text-outline">{meta.icon}</span>
+        <div className="flex justify-between items-start mb-3">
+          <span className={`px-2.5 py-0.5 rounded-full font-label-sm text-[11px] font-bold inline-block ${meta.categoryClass}`}>
+            {meta.category}
+          </span>
+          <span className="material-symbols-outlined text-outline text-xl">
+            {meta.icon}
+          </span>
         </div>
-        <h3 className="font-headline-sm text-headline-sm text-on-surface mb-1">{meta.displayName}</h3>
-        <p className="font-body-md text-body-md text-on-surface-variant mb-4">{meta.description}</p>
+        <h3 className="font-headline-sm text-base sm:text-lg font-bold text-on-surface mb-0.5">
+          {meta.displayName}
+        </h3>
+        <p className="font-body-md text-xs text-on-surface-variant mb-4">
+          {meta.description}
+        </p>
       </div>
+
       <div>
-        <div className="flex items-end justify-between gap-2 mb-2">
-          <div className="flex items-end gap-2">
-            <span className="font-display-lg-mobile text-display-lg-mobile text-on-surface font-black">Le {price.price}</span>
-            <span className="font-body-md text-body-md text-on-surface-variant pb-1">NLe</span>
+        <div className="flex items-end justify-between gap-2 mb-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-display-lg-mobile text-2xl sm:text-3xl text-on-surface font-black tracking-tight">
+              Le {price.price.toLocaleString()}
+            </span>
+            <span className="font-body-md text-xs text-on-surface-variant font-bold">
+              NLe
+            </span>
           </div>
           <Sparkline trend={price.trend} />
         </div>
+
         {price.trend && (
-          <div className={`flex items-center gap-2 ${trendColor(price.trend)}`}>
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{trendIcon(price.trend)}</span>
-            <span className="font-label-md text-label-md font-semibold">
-              {price.trend === "stable" ? "Stable (Past 7 Days)" : `${price.trend === "up" ? "+" : ""}${price.trendPct ?? 0}% ${price.trendPeriod || "Past 7 Days"}`}
+          <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold ${trendColor(price.trend)}`}>
+              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+                {trendIcon(price.trend)}
+              </span>
+              <span>
+                {price.trend === "stable" ? "Stable" : `${price.trend === "up" ? "+" : ""}${price.trendPct ?? 0}%`}
+              </span>
+            </span>
+            <span className="text-[11px] text-on-surface-variant font-medium">
+              {price.trendPeriod || "Past 7 Days"}
             </span>
           </div>
         )}
