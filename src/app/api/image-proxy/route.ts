@@ -16,20 +16,64 @@ const fallback = () =>
     headers: { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400" },
   });
 
+function isSafeUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return false;
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Block localhost, link-local, loopback, and metadata hostnames
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      hostname === "::1" ||
+      hostname === "metadata.google.internal" ||
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".internal")
+    ) {
+      return false;
+    }
+
+    // Block private IPv4 ranges (RFC 1918 & link-local)
+    if (
+      /^10\./.test(hostname) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^169\.254\./.test(hostname) ||
+      /^127\./.test(hostname)
+    ) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
 
-  if (!url) return fallback();
+  if (!url || !isSafeUrl(url)) return fallback();
 
   const width = Number(searchParams.get("w") || 800);
   const format = searchParams.get("f") || "webp";
   if (!ALLOWED_WIDTHS.has(width) || !ALLOWED_FORMATS.has(format)) return fallback();
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     const response = await fetch(url, {
       headers: { "User-Agent": "SLNews/1.0" },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) return fallback();
 
