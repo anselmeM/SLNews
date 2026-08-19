@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArticleBody } from "./_components/ArticleBody";
 import CommentSection from "./_components/CommentSection";
+import KeyTakeaways from "./_components/KeyTakeaways";
 import ShareSheet from "./_components/ShareSheet";
 import { StickyActions } from "./_components/StickyActions";
 import TextSizeSelector from "./_components/TextSizeSelector";
@@ -202,10 +203,13 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
 
       {/* Summary — editorial pull quote style */}
       {article.summary && (
-        <p className="text-lg sm:text-xl font-medium text-on-surface-variant leading-relaxed mb-8 pl-4 border-l-[3px] border-primary/30">
+        <p className="text-lg sm:text-xl font-medium text-on-surface-variant leading-relaxed mb-6 pl-4 border-l-[3px] border-primary/30">
           {article.summary}
         </p>
       )}
+
+      {/* Executive Key Takeaways Box */}
+      <KeyTakeaways summary={article.summary} content={article.content} />
 
       {/* Article body */}
       <ArticleBody content={article.content} />
