@@ -2,9 +2,11 @@
 
 import { m, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
-import { useBookmark } from "@/hooks/useBookmark";
-import { vibrate } from "@/lib/haptics";
+import TextSizeSelector from "./TextSizeSelector";
+import ListenButton from "@/components/ListenButton";
 import { useToast } from "@/components/Toast";
+import { useBookmark } from "@/hooks/useBookmark";
+import { vibrateLight } from "@/lib/haptics";
 import type { NewsArticle } from "@/lib/news-service";
 
 export function StickyActions({ article }: { article: NewsArticle }) {
@@ -14,7 +16,7 @@ export function StickyActions({ article }: { article: NewsArticle }) {
 
   useEffect(() => {
     function onScroll() {
-      setVisible(window.scrollY > 600);
+      setVisible(window.scrollY > 400);
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -37,47 +39,53 @@ export function StickyActions({ article }: { article: NewsArticle }) {
           initial={{ y: "100%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 px-4 py-3 flex items-center justify-between pb-[80px] md:pb-4"
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30 px-4 py-2.5 flex items-center justify-between pb-[80px] md:pb-3.5"
           style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-bold text-primary uppercase tracking-wide truncate">
+          <div className="flex items-center gap-2 min-w-0 mr-2">
+            <span className="text-[11px] font-black text-primary uppercase tracking-wide truncate bg-primary/10 px-2 py-0.5 rounded">
               {article.category}
             </span>
-            <span className="text-sm font-medium text-on-surface truncate hidden sm:inline">
+            <span className="text-xs sm:text-sm font-bold text-on-surface truncate hidden sm:inline">
               {article.title}
             </span>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <TextSizeSelector />
+            <ListenButton title={article.title} content={article.content} />
+
             <button
-              onClick={(e) => { handleBookmark(e); vibrate(15); }}
-              className="p-3 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer min-w-[44px] min-h-[44px]"
+              type="button"
+              onClick={(e) => {
+                handleBookmark(e);
+                vibrateLight();
+              }}
+              className="p-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
               aria-label={isSaved ? "Remove bookmark" : "Bookmark"}
             >
               <span
-                className="material-symbols-outlined text-xl"
-                style={isSaved ? { fontVariationSettings: "'FILL' 1", color: "var(--color-primary)" } : { color: "var(--color-on-surface-variant)" }}
+                className="material-symbols-outlined text-lg"
+                style={
+                  isSaved
+                    ? { fontVariationSettings: "'FILL' 1", color: "var(--color-primary)" }
+                    : { color: "var(--color-on-surface-variant)" }
+                }
               >
                 {isSaved ? "bookmark" : "bookmark_border"}
               </span>
             </button>
+
             <button
+              type="button"
               onClick={handleShare}
-              className="p-3 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer min-w-[44px] min-h-[44px]"
-              aria-label="Share"
+              className="p-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
+              aria-label="Share article"
             >
-              <span className="material-symbols-outlined text-xl text-on-surface-variant">share</span>
-            </button>
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({ title: article.title, url: `${window.location.origin}/article/${article.id}` });
-                }
-              }}
-              className="sm:hidden p-3 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
-              aria-label="More"
-            >
-              <span className="material-symbols-outlined text-xl text-on-surface-variant">more_horiz</span>
+              <span className="material-symbols-outlined text-lg text-on-surface-variant">
+                share
+              </span>
             </button>
           </div>
         </m.div>

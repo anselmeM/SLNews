@@ -3,15 +3,28 @@
 import { db } from "@/lib/db";
 import { searchArticles } from "@/lib/news-service";
 
-export async function instantSearch(query: string) {
-  if (!query || query.length < 2) return [];
+export type InstantSearchResult = {
+  id: string;
+  title: string;
+  category: string;
+  source: string;
+  publishedAt: string;
+  imageUrl?: string | null;
+};
 
-  const results = await searchArticles(query, 0, 5);
+export async function instantSearch(query: string): Promise<InstantSearchResult[]> {
+  const trimmed = query.trim();
+  if (!trimmed || trimmed.length < 2) return [];
+
+  const results = await searchArticles(trimmed, 0, 6);
 
   return results.map((r) => ({
     id: r.id,
     title: r.title,
     category: r.category,
+    source: r.source,
+    publishedAt: r.publishedAt,
+    imageUrl: r.imageUrl,
   }));
 }
 
