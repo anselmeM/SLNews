@@ -10,8 +10,13 @@ export async function getHomeFeed(skip = 0, take = 10): Promise<NewsArticle[]> {
   return fetchMixedNews(skip, take);
 }
 
-export async function getLocalNewsPage(skip = 0, take = 10): Promise<NewsArticle[]> {
-  return fetchLocalNews(undefined, undefined, skip, take);
+export async function getLocalNewsPage(
+  skip = 0,
+  take = 10,
+  province?: string,
+  district?: string
+): Promise<NewsArticle[]> {
+  return fetchLocalNews(province, district, skip, take);
 }
 
 export async function getWorldNewsPage(topic: string, skip = 0, take = 10): Promise<NewsArticle[]> {

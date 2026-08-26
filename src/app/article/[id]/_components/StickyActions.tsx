@@ -8,6 +8,10 @@ import { useToast } from "@/components/Toast";
 import { useBookmark } from "@/hooks/useBookmark";
 import { vibrateLight } from "@/lib/haptics";
 import type { NewsArticle } from "@/lib/news-service";
+import {
+  formatArticleWhatsAppDigest,
+  getWhatsAppShareUrl,
+} from "@/lib/whatsapp-formatter";
 
 export function StickyActions({ article }: { article: NewsArticle }) {
   const [visible, setVisible] = useState(false);
@@ -32,6 +36,23 @@ export function StickyActions({ article }: { article: NewsArticle }) {
     }
   }, [article, toast]);
 
+  const handleWhatsApp = useCallback(() => {
+    vibrateLight();
+    const digestText = formatArticleWhatsAppDigest(
+      {
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        content: article.content,
+        location: article.location,
+        category: article.category,
+      },
+      window.location.origin
+    );
+    const waUrl = getWhatsAppShareUrl(digestText);
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+  }, [article]);
+
   return (
     <AnimatePresence>
       {visible && (
@@ -55,6 +76,16 @@ export function StickyActions({ article }: { article: NewsArticle }) {
           <div className="flex items-center gap-1.5 shrink-0">
             <TextSizeSelector />
             <ListenButton title={article.title} content={article.content} />
+
+            <button
+              type="button"
+              onClick={handleWhatsApp}
+              className="p-2 rounded-full hover:bg-surface-container-low text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
+              aria-label="Share summary to WhatsApp"
+              title="Share summary to WhatsApp"
+            >
+              <span className="material-symbols-outlined text-lg">chat</span>
+            </button>
 
             <button
               type="button"

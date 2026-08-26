@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useBookmark } from "@/hooks/useBookmark";
-import { vibrate } from "@/lib/haptics";
-import { useToast } from "@/components/Toast";
 import BottomSheet from "@/components/BottomSheet";
+import { useToast } from "@/components/Toast";
+import { useBookmark } from "@/hooks/useBookmark";
+import { vibrate, vibrateLight, vibrateSuccess } from "@/lib/haptics";
 import type { NewsArticle } from "@/lib/news-service";
+import {
+  formatArticleWhatsAppDigest,
+  getWhatsAppShareUrl,
+} from "@/lib/whatsapp-formatter";
 
 export default function ShareSheet({ article }: { article: NewsArticle }) {
   const [open, setOpen] = useState(false);
@@ -35,16 +39,52 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
   };
 
   const handleWhatsApp = () => {
-    const url = `${window.location.origin}/article/${article.id}`;
-    const text = `${article.title} — ${url}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    vibrateLight();
+    const digestText = formatArticleWhatsAppDigest(
+      {
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        content: article.content,
+        location: article.location,
+        category: article.category,
+      },
+      window.location.origin
+    );
+    const waUrl = getWhatsAppShareUrl(digestText);
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+    setOpen(false);
+  };
+
+  const handleCopyWhatsAppDigest = async () => {
+    vibrateSuccess();
+    const digestText = formatArticleWhatsAppDigest(
+      {
+        id: article.id,
+        title: article.title,
+        summary: article.summary,
+        content: article.content,
+        location: article.location,
+        category: article.category,
+      },
+      window.location.origin
+    );
+    try {
+      await navigator.clipboard.writeText(digestText);
+      toast("WhatsApp formatted digest copied!", "success");
+    } catch {
+      toast("Could not copy digest", "error");
+    }
     setOpen(false);
   };
 
   return (
     <>
       <button
-        onClick={() => { setOpen(true); vibrate(); }}
+        onClick={() => {
+          setOpen(true);
+          vibrate();
+        }}
         className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant/30 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
       >
         <span className="material-symbols-outlined text-xl">share</span>
@@ -54,7 +94,11 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
       <BottomSheet open={open} onClose={() => setOpen(false)}>
         <div className="space-y-1">
           <button
-            onClick={() => { handleBookmark(); vibrate(15); setOpen(false); }}
+            onClick={() => {
+              handleBookmark();
+              vibrate(15);
+              setOpen(false);
+            }}
             className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
           >
             <span
@@ -67,19 +111,38 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
           </button>
 
           <button
+            onClick={handleWhatsApp}
+            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
+          >
+            <span className="material-symbols-outlined text-xl text-emerald-600 dark:text-emerald-400">
+              chat
+            </span>
+            <div className="text-left">
+              <div className="font-semibold text-emerald-700 dark:text-emerald-300">
+                Share to WhatsApp
+              </div>
+              <div className="text-[11px] text-on-surface-variant">
+                Rich summary with key takeaways & Sierra Leone coverage
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={handleCopyWhatsAppDigest}
+            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
+          >
+            <span className="material-symbols-outlined text-xl text-primary">
+              content_copy
+            </span>
+            Copy WhatsApp Summary
+          </button>
+
+          <button
             onClick={handleShare}
             className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
           >
             <span className="material-symbols-outlined text-xl text-primary">share</span>
-            Share
-          </button>
-
-          <button
-            onClick={handleWhatsApp}
-            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
-          >
-            <span className="material-symbols-outlined text-xl text-primary">chat</span>
-            WhatsApp
+            Share via System
           </button>
 
           <button
@@ -94,7 +157,9 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
             onClick={handleOpenBrowser}
             className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer font-medium text-sm"
           >
-            <span className="material-symbols-outlined text-xl text-primary">open_in_browser</span>
+            <span className="material-symbols-outlined text-xl text-primary">
+              open_in_browser
+            </span>
             Open in browser
           </button>
         </div>
