@@ -12,7 +12,7 @@ Follow the senior-dev git/GitHub model: branch + PR, conventional commits, CI ga
 ## Golden rules
 1. NEVER push to `master` directly — every change lands via a feature branch + PR.
 2. Conventional Commits, atomic, subject <= 72 chars, body explains WHY.
-3. CI is the gate (`lint`, `test`, `typecheck`, `build`). Local checks before push:
+3. CI is the gate (`lint`, `test`, `typecheck`, `build`, `e2e`). Local checks before push:
    `npm run test:run`, `npm run typecheck`, `npm run lint` (npm test is vitest WATCH
    mode — use the one-shot script).
 4. Never rewrite pushed history; if a force-push is unavoidable use `--force-with-lease`.
@@ -33,7 +33,6 @@ Follow the senior-dev git/GitHub model: branch + PR, conventional commits, CI ga
 - `src/app/actions/*` — auth, feed, article, market, push, search actions.
 - `src/lib/db.ts` — Prisma client.
 
-## Known CI debt
-- `e2e` job is red on master (5 tests: bottom-nav Local News aria-label, /local-news h1
-  renders "National News", no article links on /home, Comments heading). Pre-existing;
-  fix as a separate workstream — do not bundle into unrelated changes.
+## CI & Testing Health
+- All 5 CI jobs (`lint`, `test`, `typecheck`, `build`, `e2e`) are fully green on master.
+- Playwright E2E tests cover home feeds, navigation, search, article reading, market prices, and announcements.
