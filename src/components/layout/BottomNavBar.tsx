@@ -10,7 +10,7 @@ export default function BottomNavBar() {
     { name: "Home", href: "/home", icon: "home" },
     { name: "National News", href: "/local-news", icon: "map" },
     { name: "World", href: "/world", icon: "public" },
-    { name: "Saved", href: "/saved", icon: "bookmark" },
+    { name: "Shorts", href: "/reels", icon: "movie" },
   ];
 
   return (

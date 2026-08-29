@@ -15,8 +15,8 @@ test.describe("Home & Navigation", () => {
     await expect(page).toHaveURL("/local-news");
     await expect(page.locator("main h1")).toContainText("National News");
 
-    await page.locator('a[aria-label="Saved"]').click();
-    await expect(page).toHaveURL("/saved");
+    await page.locator('a[aria-label="Shorts"]').click();
+    await expect(page).toHaveURL("/reels");
   });
 
   test("hamburger drawer opens and shows links", async ({ page }) => {
