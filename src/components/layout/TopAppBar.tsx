@@ -14,6 +14,7 @@ import { useAppStore } from "@/store/useAppStore";
 const navLinks = [
   { name: "Home", href: "/home" },
   { name: "National News", href: "/local-news" },
+  { name: "Shorts", href: "/reels" },
   { name: "International", href: "/world" },
   { name: "Saved", href: "/saved" },
 ];
