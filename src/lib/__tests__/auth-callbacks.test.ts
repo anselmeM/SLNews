@@ -1,15 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { isOwnerOrAdminEmail, authCallbacks } from "../auth-callbacks";
 
-describe("Auth Callbacks & Owner Admin Role Grant", () => {
-  it("recognizes anselmemotcho@gmail.com as owner/admin", () => {
+describe("Strict Admin Role Security & Owner Whitelist", () => {
+  it("recognizes anselme.motcho@gmail.com and anselmemotcho@gmail.com as owner/admin", () => {
+    expect(isOwnerOrAdminEmail("anselme.motcho@gmail.com")).toBe(true);
     expect(isOwnerOrAdminEmail("anselmemotcho@gmail.com")).toBe(true);
+    expect(isOwnerOrAdminEmail("ANSELME.MOTCHO@GMAIL.COM")).toBe(true);
     expect(isOwnerOrAdminEmail("ANSELMEMOTCHO@GMAIL.COM")).toBe(true);
-    expect(isOwnerOrAdminEmail("  anselmemotcho@gmail.com  ")).toBe(true);
+    expect(isOwnerOrAdminEmail("  anselme.motcho@gmail.com  ")).toBe(true);
   });
 
-  it("does not grant admin to random reader emails", () => {
+  it("handles gmail dot insensitivity for owner", () => {
+    expect(isOwnerOrAdminEmail("a.n.s.e.l.m.e.motcho@gmail.com")).toBe(true);
+  });
+
+  it("strictly denies admin rights to all other reader and creator emails", () => {
     expect(isOwnerOrAdminEmail("reader@example.com")).toBe(false);
+    expect(isOwnerOrAdminEmail("admin@otherdomain.com")).toBe(false);
     expect(isOwnerOrAdminEmail("")).toBe(false);
     expect(isOwnerOrAdminEmail(null)).toBe(false);
     expect(isOwnerOrAdminEmail(undefined)).toBe(false);
@@ -19,13 +26,26 @@ describe("Auth Callbacks & Owner Admin Role Grant", () => {
     const token = await authCallbacks.callbacks.jwt({
       token: {},
       user: {
-        id: "user-123",
-        email: "anselmemotcho@gmail.com",
+        id: "user-owner",
+        email: "anselme.motcho@gmail.com",
         role: "USER" as unknown as undefined,
       },
       account: null,
     });
     expect((token as Record<string, unknown>).role).toBe("ADMIN");
+  });
+
+  it("restricts/downgrades non-owner trying to hold ADMIN in jwt callback", async () => {
+    const token = await authCallbacks.callbacks.jwt({
+      token: {},
+      user: {
+        id: "user-attacker",
+        email: "attacker@example.com",
+        role: "ADMIN" as unknown as undefined,
+      },
+      account: null,
+    });
+    expect((token as Record<string, unknown>).role).toBe("EDITOR");
   });
 
   it("preserves role for regular users in jwt callback", async () => {
@@ -45,19 +65,41 @@ describe("Auth Callbacks & Owner Admin Role Grant", () => {
     const params = {
       session: {
         user: {
-          id: "user-123",
-          email: "anselmemotcho@gmail.com",
+          id: "user-owner",
+          email: "anselme.motcho@gmail.com",
           role: "USER",
         },
         expires: new Date(Date.now() + 86400000).toISOString(),
       },
       token: {
-        id: "user-123",
+        id: "user-owner",
+        email: "anselme.motcho@gmail.com",
         role: "USER",
       },
     } as unknown as Parameters<typeof authCallbacks.callbacks.session>[0];
 
     const session = await authCallbacks.callbacks.session(params);
     expect(session.user.role).toBe("ADMIN");
+  });
+
+  it("blocks non-owner from receiving ADMIN role in session callback", async () => {
+    const params = {
+      session: {
+        user: {
+          id: "user-attacker",
+          email: "attacker@example.com",
+          role: "ADMIN",
+        },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      },
+      token: {
+        id: "user-attacker",
+        email: "attacker@example.com",
+        role: "ADMIN",
+      },
+    } as unknown as Parameters<typeof authCallbacks.callbacks.session>[0];
+
+    const session = await authCallbacks.callbacks.session(params);
+    expect(session.user.role).toBe("EDITOR");
   });
 });
