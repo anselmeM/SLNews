@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
 export interface ReelVideo {
@@ -15,6 +16,7 @@ export interface ReelVideo {
   publishedAt: string;
   authorId: string;
   commentsCount?: number;
+  status?: string;
 }
 
 // Curated high-quality Sierra Leone news video shorts & reels
@@ -35,6 +37,7 @@ const CURATED_SL_REELS: ReelVideo[] = [
     publishedAt: new Date().toISOString(),
     authorId: "ayv-news",
     commentsCount: 14,
+    status: "PUBLISHED",
   },
   {
     id: "reel-parliament-energy-bill",
@@ -51,6 +54,7 @@ const CURATED_SL_REELS: ReelVideo[] = [
     publishedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
     authorId: "parliament-watch",
     commentsCount: 22,
+    status: "PUBLISHED",
   },
   {
     id: "reel-kenema-cocoa-harvest",
@@ -67,6 +71,7 @@ const CURATED_SL_REELS: ReelVideo[] = [
     publishedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
     authorId: "switsalone",
     commentsCount: 9,
+    status: "PUBLISHED",
   },
   {
     id: "reel-leone-currency-update",
@@ -83,6 +88,7 @@ const CURATED_SL_REELS: ReelVideo[] = [
     publishedAt: new Date(Date.now() - 3600000 * 14).toISOString(),
     authorId: "sierraloaded",
     commentsCount: 31,
+    status: "PUBLISHED",
   },
   {
     id: "reel-leone-stars-qualifier",
@@ -99,19 +105,21 @@ const CURATED_SL_REELS: ReelVideo[] = [
     publishedAt: new Date(Date.now() - 3600000 * 22).toISOString(),
     authorId: "slbc-sports",
     commentsCount: 45,
+    status: "PUBLISHED",
   },
 ];
 
 export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> {
   try {
-    // Check if database has articles with video/reel references
     const articles = await db.article.findMany({
       where: {
         published: true,
         status: "PUBLISHED",
         OR: [
           { content: { contains: "youtube.com" } },
+          { content: { contains: "youtu.be" } },
           { content: { contains: "facebook.com" } },
+          { content: { contains: "fb.watch" } },
           { content: { contains: "instagram.com" } },
           { content: { contains: "tiktok.com" } },
         ],
@@ -146,11 +154,11 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
           publishedAt: a.publishedAt ? a.publishedAt.toISOString() : a.createdAt.toISOString(),
           authorId: a.authorId,
           commentsCount: a._count?.comments || 0,
+          status: a.status,
         });
       }
     }
 
-    // Blend with curated Sierra Leone news reels
     const allReels = [...dbReels, ...CURATED_SL_REELS];
     return allReels.slice(skip, skip + take);
   } catch {
@@ -190,8 +198,183 @@ export async function getReelById(id: string): Promise<ReelVideo | null> {
       publishedAt: a.publishedAt ? a.publishedAt.toISOString() : a.createdAt.toISOString(),
       authorId: a.authorId,
       commentsCount: a._count?.comments || 0,
+      status: a.status,
     };
   } catch {
     return null;
+  }
+}
+
+export async function submitCommunityReel(data: {
+  title: string;
+  summary?: string;
+  videoUrl: string;
+  category?: string;
+  location?: string;
+}): Promise<{ success: boolean; isLive: boolean; message: string; id?: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, isLive: false, message: "Please sign in to submit a video clip." };
+  }
+
+  const title = data.title.trim();
+  const videoUrl = data.videoUrl.trim();
+  if (!title || title.length < 5) {
+    return { success: false, isLive: false, message: "Please enter a descriptive headline (at least 5 characters)." };
+  }
+  if (!videoUrl.startsWith("http")) {
+    return { success: false, isLive: false, message: "Please enter a valid video link." };
+  }
+
+  const isPrivileged =
+    session.user.role === "ADMIN" ||
+    session.user.role === "EDITOR" ||
+    session.user.role === "WRITER";
+
+  const status = isPrivileged ? "PUBLISHED" : "IN_REVIEW";
+  const published = isPrivileged;
+  const categoryName = data.category || "National";
+
+  try {
+    const article = await db.article.create({
+      data: {
+        title,
+        summary: data.summary?.trim() || title,
+        content: `${data.summary || title}\n\nVideo Source: ${videoUrl}`,
+        imageUrl: "/globe.svg",
+        published,
+        status,
+        publishedAt: published ? new Date() : null,
+        district: data.location?.trim() || null,
+        province: data.location?.trim() || null,
+        author: { connect: { id: session.user.id } },
+        categories: {
+          connectOrCreate: {
+            where: { name: categoryName },
+            create: { name: categoryName },
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      isLive: published,
+      message: published
+        ? "Your video clip is now LIVE on SLNews Shorts!"
+        : "Video submitted for editorial review. Once approved, it will appear on Shorts.",
+      id: article.id,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      isLive: false,
+      message: err instanceof Error ? err.message : "Failed to submit video clip.",
+    };
+  }
+}
+
+export async function getPendingCommunityReels(): Promise<ReelVideo[]> {
+  const session = await auth();
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    return [];
+  }
+
+  try {
+    const articles = await db.article.findMany({
+      where: {
+        status: "IN_REVIEW",
+        OR: [
+          { content: { contains: "youtube.com" } },
+          { content: { contains: "youtu.be" } },
+          { content: { contains: "facebook.com" } },
+          { content: { contains: "fb.watch" } },
+          { content: { contains: "instagram.com" } },
+          { content: { contains: "tiktok.com" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: true,
+        categories: true,
+      },
+    });
+
+    return articles.map((a) => {
+      const videoMatch = a.content.match(
+        /https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|instagram\.com|facebook\.com|fb\.watch|tiktok\.com)\/[^\s<>"]+/i
+      );
+      return {
+        id: a.id,
+        title: a.title,
+        summary: a.summary || a.content,
+        videoUrl: videoMatch?.[0] || "",
+        thumbnailUrl: a.imageUrl || "/globe.svg",
+        source: a.author?.name || "Community Reporter",
+        sourceImage: a.author?.image || undefined,
+        category: a.categories?.[0]?.name || "National",
+        location: a.district || a.province || undefined,
+        publishedAt: a.createdAt.toISOString(),
+        authorId: a.authorId,
+        status: a.status,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function approveCommunityReel(articleId: string): Promise<{ success: boolean; message: string }> {
+  const session = await auth();
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  try {
+    await db.article.update({
+      where: { id: articleId },
+      data: {
+        status: "PUBLISHED",
+        published: true,
+        publishedAt: new Date(),
+      },
+    });
+    return { success: true, message: "Video approved and published to Shorts!" };
+  } catch {
+    return { success: false, message: "Failed to approve video." };
+  }
+}
+
+export async function rejectCommunityReel(articleId: string): Promise<{ success: boolean; message: string }> {
+  const session = await auth();
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  try {
+    await db.article.update({
+      where: { id: articleId },
+      data: { status: "REJECTED", published: false },
+    });
+    return { success: true, message: "Video rejected." };
+  } catch {
+    return { success: false, message: "Failed to reject video." };
+  }
+}
+
+export async function promoteUserToCreator(userId: string): Promise<{ success: boolean; message: string }> {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return { success: false, message: "Only admins can promote users to Verified Creators." };
+  }
+
+  try {
+    await db.user.update({
+      where: { id: userId },
+      data: { role: "WRITER" },
+    });
+    return { success: true, message: "User promoted to Verified Creator (WRITER)! Future submissions will publish instantly." };
+  } catch {
+    return { success: false, message: "Failed to promote user." };
   }
 }
