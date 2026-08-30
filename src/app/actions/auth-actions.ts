@@ -1,7 +1,8 @@
 "use server";
 
-import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
+import { headers } from "next/headers";
+import { isOwnerOrAdminEmail } from "@/lib/auth-callbacks";
 import { db } from "@/lib/db";
 import { getRateLimitStatus, loginRateKey, LOGIN_MAX_ATTEMPTS } from "@/lib/rate-limiter";
 
@@ -38,9 +39,10 @@ export async function registerUser(data: {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const role = isOwnerOrAdminEmail(email) ? "ADMIN" : "USER";
 
   await db.user.create({
-    data: { name, email, password: hashedPassword, role: "USER" },
+    data: { name, email, password: hashedPassword, role },
   });
 
   return { success: true };
