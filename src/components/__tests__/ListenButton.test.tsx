@@ -19,14 +19,10 @@ describe("ListenButton", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Object.defineProperty(window, "speechSynthesis", {
-      writable: true,
-      value: {
-        speak: mockSpeak,
-        cancel: mockCancel,
-      },
-    });
-
+    (window as unknown as Record<string, unknown>).speechSynthesis = {
+      speak: mockSpeak,
+      cancel: mockCancel,
+    };
     global.SpeechSynthesisUtterance = MockSpeechSynthesisUtterance as unknown as typeof SpeechSynthesisUtterance;
   });
 

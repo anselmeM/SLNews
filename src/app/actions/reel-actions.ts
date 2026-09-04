@@ -190,13 +190,19 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
     dbReels = [];
   }
 
-  // Merge scraped videos with community-submitted database reels
-  const allReels = [...scraperReels, ...dbReels];
-  if (allReels.length === 0) {
-    return CURATED_SL_REELS.slice(skip, skip + take);
+  // Deduplicate and combine scraped videos, community reels, and curated broadcaster reels
+  const seenUrls = new Set<string>();
+  const combined: ReelVideo[] = [];
+
+  for (const r of [...scraperReels, ...dbReels, ...CURATED_SL_REELS]) {
+    const key = r.videoUrl.trim();
+    if (!seenUrls.has(key)) {
+      seenUrls.add(key);
+      combined.push(r);
+    }
   }
 
-  return allReels.slice(0, take);
+  return combined.slice(skip, skip + take);
 }
 
 export async function getReelById(id: string): Promise<ReelVideo | null> {

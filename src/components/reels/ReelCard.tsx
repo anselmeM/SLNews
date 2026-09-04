@@ -102,6 +102,7 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
               src={reel.thumbnailUrl}
               alt={reel.title}
               fill
+              unoptimized
               sizes="(max-width: 640px) 100vw, 440px"
               className="object-cover brightness-75"
               priority={false}
