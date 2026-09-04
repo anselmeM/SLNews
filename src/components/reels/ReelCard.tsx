@@ -84,6 +84,7 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
                 title={reel.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
                 onLoad={() => setVideoLoaded(true)}
               />
