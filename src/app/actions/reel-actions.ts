@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { fetchScraperVideos, triggerScraperVideoSync, type ScraperVideo } from "@/lib/scraper-client";
 
 export interface ReelVideo {
   id: string;
@@ -109,7 +111,35 @@ const CURATED_SL_REELS: ReelVideo[] = [
   },
 ];
 
+function mapScraperVideoToReel(v: ScraperVideo): ReelVideo {
+  return {
+    id: `scraper-video-${v.videoId}`,
+    title: v.title,
+    summary: v.description || v.title,
+    videoUrl: v.url,
+    thumbnailUrl: v.thumbnailUrl || "/globe.svg",
+    source: v.channelTitle,
+    category: v.category?.[0] || "National",
+    publishedAt: v.publishedAt,
+    authorId: "scraper-system",
+    commentsCount: 0,
+    status: "PUBLISHED",
+  };
+}
+
 export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> {
+  // 1. Fetch scraped videos from Render Scraper API
+  let scraperReels: ReelVideo[] = [];
+  try {
+    const page = Math.floor(skip / take) + 1;
+    const scrapedVideos = await fetchScraperVideos(take, page);
+    scraperReels = scrapedVideos.map(mapScraperVideoToReel);
+  } catch {
+    scraperReels = [];
+  }
+
+  // 2. Fetch community-submitted / published video articles from Neon Postgres
+  let dbReels: ReelVideo[] = [];
   try {
     const articles = await db.article.findMany({
       where: {
@@ -134,8 +164,6 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
       take,
     });
 
-    const dbReels: ReelVideo[] = [];
-
     for (const a of articles) {
       const videoMatch = a.content.match(
         /https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|instagram\.com|facebook\.com|fb\.watch|tiktok\.com)\/[^\s<>"]+/i
@@ -158,17 +186,33 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
         });
       }
     }
-
-    const allReels = [...dbReels, ...CURATED_SL_REELS];
-    return allReels.slice(skip, skip + take);
   } catch {
+    dbReels = [];
+  }
+
+  // Merge scraped videos with community-submitted database reels
+  const allReels = [...scraperReels, ...dbReels];
+  if (allReels.length === 0) {
     return CURATED_SL_REELS.slice(skip, skip + take);
   }
+
+  return allReels.slice(0, take);
 }
 
 export async function getReelById(id: string): Promise<ReelVideo | null> {
   const curated = CURATED_SL_REELS.find((r) => r.id === id);
   if (curated) return curated;
+
+  if (id.startsWith("scraper-video-")) {
+    const videoId = id.replace("scraper-video-", "");
+    try {
+      const scraped = await fetchScraperVideos(50, 1);
+      const match = scraped.find((v) => v.videoId === videoId);
+      if (match) return mapScraperVideoToReel(match);
+    } catch {
+      // Fallback
+    }
+  }
 
   try {
     const a = await db.article.findUnique({
@@ -376,5 +420,26 @@ export async function promoteUserToCreator(userId: string): Promise<{ success: b
     return { success: true, message: "User promoted to Verified Creator (WRITER)! Future submissions will publish instantly." };
   } catch {
     return { success: false, message: "Failed to promote user." };
+  }
+}
+
+export async function triggerVideoSyncAction(): Promise<{ success: boolean; message: string }> {
+  const session = await auth();
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  try {
+    const res = await triggerScraperVideoSync();
+    revalidatePath("/reels");
+    return {
+      success: true,
+      message: `Video sync triggered: ${res.status || "OK"}`,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Failed to trigger video sync.",
+    };
   }
 }
