@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useSyncExternalStore } from "react";
 import { vibrate } from "@/lib/haptics";
+
+const subscribe = () => () => {};
+const getSnapshot = () => typeof window !== "undefined" && "speechSynthesis" in window;
+const getServerSnapshot = () => false;
 
 export default function ListenButton({ title, content }: { title: string; content: string }) {
   const [playing, setPlaying] = useState(false);
-  const [supported, setSupported] = useState(false);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  const isSupported = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
     return () => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -20,7 +23,7 @@ export default function ListenButton({ title, content }: { title: string; conten
 
   const toggle = useCallback(() => {
     vibrate();
-    if (!supported || typeof window === "undefined") return;
+    if (!isSupported || typeof window === "undefined") return;
 
     if (playing) {
       window.speechSynthesis.cancel();
@@ -38,9 +41,9 @@ export default function ListenButton({ title, content }: { title: string; conten
     synthRef.current = utterance;
     window.speechSynthesis.speak(utterance);
     setPlaying(true);
-  }, [playing, title, content, supported]);
+  }, [playing, title, content, isSupported]);
 
-  if (!supported) return null;
+  if (!isSupported) return null;
 
   return (
     <button
