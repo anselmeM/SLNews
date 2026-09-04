@@ -24,6 +24,19 @@ export type ScraperArticle = {
   createdAt?: string;
 };
 
+export type ScraperVideo = {
+  id: number;
+  videoId: string;
+  title: string;
+  url: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  channelId: string;
+  channelTitle: string;
+  publishedAt: string;
+  category: string[];
+};
+
 /** Raised when the scraper host cannot be reached at the network level. */
 export class ScraperUnreachableError extends Error {
   constructor() {
@@ -48,6 +61,14 @@ function normalizePayload(json: unknown): ScraperArticle[] {
   if (Array.isArray(json)) return json as ScraperArticle[];
   if (json && typeof json === "object" && Array.isArray((json as { data?: unknown }).data)) {
     return (json as { data: ScraperArticle[] }).data;
+  }
+  throw new Error("Unexpected scraper payload");
+}
+
+function normalizeVideoPayload(json: unknown): ScraperVideo[] {
+  if (Array.isArray(json)) return json as ScraperVideo[];
+  if (json && typeof json === "object" && Array.isArray((json as { data?: unknown }).data)) {
+    return (json as { data: ScraperVideo[] }).data;
   }
   throw new Error("Unexpected scraper payload");
 }
@@ -93,4 +114,60 @@ export async function fetchScraperNews(): Promise<ScraperArticle[]> {
   }
 
   throw lastError instanceof Error ? lastError : new Error("Scraper unreachable");
+}
+
+/**
+ * Fetch scraped YouTube news videos and Shorts from the scraper API.
+ */
+export async function fetchScraperVideos(limit = 20, page = 1): Promise<ScraperVideo[]> {
+  const key = apiKey();
+  const base = baseUrl();
+  const url = `${base}/api/videos?limit=${limit}&page=${page}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${key}` },
+    });
+  } catch (err) {
+    void err;
+    throw new ScraperUnreachableError();
+  }
+
+  if (!res.ok) {
+    throw new Error(`Scraper responded ${res.status}`);
+  }
+
+  return normalizeVideoPayload(await res.json());
+}
+
+/**
+ * Trigger an immediate ingestion cycle of all YouTube channel feeds.
+ */
+export async function triggerScraperVideoSync(): Promise<{ status: string; result?: unknown }> {
+  const key = apiKey();
+  const base = baseUrl();
+  const url = `${base}/api/videos/sync`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (err) {
+    void err;
+    throw new ScraperUnreachableError();
+  }
+
+  if (!res.ok) {
+    throw new Error(`Scraper responded ${res.status}`);
+  }
+
+  return (await res.json()) as { status: string; result?: unknown };
 }
