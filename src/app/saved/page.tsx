@@ -84,7 +84,7 @@ export default function SavedStoriesPage() {
             icon on any article to save it for later.
           </p>
           <Link
-            href="/home"
+            href="/"
             className="mt-2 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm"
           >
             Start Browsing

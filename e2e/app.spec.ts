@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("SLNews E2E", () => {
-  test("landing page loads", async ({ page }) => {
+  test("front page loads with live feed", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("main").getByRole("heading", { name: /Sierra Leone/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Start Reading" })).toBeVisible();
+    await expect(page.locator("main h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
   });
 
   test("login page loads with visible form", async ({ page }) => {

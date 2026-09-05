@@ -26,13 +26,13 @@ describe("ErrorFallback", () => {
     expect(reset).toHaveBeenCalledOnce();
   });
 
-  it("Go Home links to /home", () => {
+  it("Go Home links to /", () => {
     const reset = vi.fn();
     const error = new Error("test");
 
     render(<ErrorFallback error={error} reset={reset} />);
 
     const homeLink = screen.getByText("Go Home");
-    expect(homeLink).toHaveAttribute("href", "/home");
+    expect(homeLink).toHaveAttribute("href", "/");
   });
 });

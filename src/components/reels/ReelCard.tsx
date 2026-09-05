@@ -119,7 +119,7 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
         {/* Top Header Controls */}
         <div className="absolute top-4 left-4 right-4 z-30 flex items-center justify-between pointer-events-auto">
           <Link
-            href="/home"
+            href="/"
             className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-black/60 transition-colors"
             aria-label="Back to Home"
           >

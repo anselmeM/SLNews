@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function ErrorFallback({
@@ -36,12 +37,12 @@ export default function ErrorFallback({
         >
           Try Again
         </button>
-        <a
-          href="/home"
+        <Link
+          href="/"
           className="px-6 py-2.5 bg-surface-variant text-on-surface-variant rounded-full font-bold text-sm hover:bg-gray-200 transition-colors"
         >
           Go Home
-        </a>
+        </Link>
       </div>
     </div>
   );

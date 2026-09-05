@@ -104,6 +104,7 @@ export async function upsertArticle(data: {
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/");
   revalidatePath("/home");
   return { success: true, articleId: article.id };
 }
@@ -120,6 +121,7 @@ export async function deleteArticle(id: string) {
 
   await db.article.delete({ where: { id } });
   revalidatePath("/dashboard");
+  revalidatePath("/");
   revalidatePath("/home");
   return { success: true };
 }
