@@ -33,7 +33,7 @@ export default function WelcomeBanner() {
   if (isDismissed) return null;
 
   return (
-    <aside
+    <section
       aria-label="Welcome to SLNews"
       className="mb-6 rounded-2xl bg-gradient-to-r from-primary/10 via-surface-container-high to-primary/5 border border-primary/20 p-4 sm:p-5 shadow-xs relative transition-all"
     >
@@ -90,6 +90,6 @@ export default function WelcomeBanner() {
           <span className="material-symbols-outlined text-lg">close</span>
         </button>
       </div>
-    </aside>
+    </section>
   );
 }
