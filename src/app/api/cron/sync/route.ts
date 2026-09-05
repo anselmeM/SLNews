@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { syncFromScraper } from "@/app/actions/sync-scraper";
-import { syncWorldNews } from "@/app/actions/sync-news-api";
 import { sendPushNotifications } from "@/app/actions/push-actions";
+import { syncWorldNews } from "@/app/actions/sync-news-api";
+import { syncFromScraper } from "@/app/actions/sync-scraper";
 import { sendMorningBriefing } from "@/lib/briefing-service";
+import { syncMarketPrices } from "@/lib/market-sync-service";
 import { processPriceAlerts } from "@/lib/price-alert-service";
 
 export async function GET(request: Request) {
@@ -18,9 +19,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [sl, world, priceAlerts, briefing] = await Promise.allSettled([
+  const [sl, world, market, priceAlerts, briefing] = await Promise.allSettled([
     syncFromScraper(),
     syncWorldNews(),
+    syncMarketPrices(),
     processPriceAlerts(),
     sendMorningBriefing(),
   ]);
@@ -29,6 +31,8 @@ export async function GET(request: Request) {
     sl.status === "fulfilled" ? sl.value : { success: false, error: "rejected", count: 0 };
   const worldResult =
     world.status === "fulfilled" ? world.value : { success: false, error: "rejected", count: 0 };
+  const marketResult =
+    market.status === "fulfilled" ? market.value : { success: false, error: "rejected", count: 0 };
   const priceAlertResult =
     priceAlerts.status === "fulfilled"
       ? priceAlerts.value
@@ -39,7 +43,7 @@ export async function GET(request: Request) {
       : { sent: 0, error: "rejected" };
 
   const total = (slResult.count ?? 0) + (worldResult.count ?? 0);
-  const ok = slResult.success || worldResult.success;
+  const ok = slResult.success || worldResult.success || marketResult.success;
 
   let pushResult = { sent: 0 };
   if (total > 0) {
@@ -54,6 +58,7 @@ export async function GET(request: Request) {
     success: ok,
     sierraLeone: slResult,
     world: worldResult,
+    marketPrices: marketResult,
     priceAlerts: priceAlertResult,
     briefing: briefingResult,
     count: total,
