@@ -29,7 +29,7 @@ function digestArticleToNewsArticle(a: DigestArticle): NewsArticle {
 export default function HomeBriefingHero({ digest }: { digest: PersonalizedDigest }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const audioScript = generateDigestAudioScript(digest);
   const playQueue = useAudioPlayerStore((s) => s.playQueue);
@@ -70,10 +70,27 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
   return (
     <section className="bg-surface-container-lowest border border-outline-variant/60 rounded-3xl p-5 sm:p-7 shadow-sm mb-8 relative overflow-hidden transition-all">
       {/* Top Bar with Greeting & Badges */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-outline-variant/40">
-        <div>
+      <div
+        className={`flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
+          collapsed ? "" : "pb-5 border-b border-outline-variant/40"
+        }`}
+      >
+        <div
+          onClick={() => setCollapsed(!collapsed)}
+          className="cursor-pointer group select-none"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setCollapsed(!collapsed);
+            }
+          }}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Reveal Daily Briefing" : "Collapse Daily Briefing"}
+        >
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-wider group-hover:bg-primary/20 transition-colors">
               <span className="material-symbols-outlined text-sm">newspaper</span>
               Daily Briefing
             </span>
@@ -83,7 +100,7 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
             </span>
           </div>
 
-          <h1 suppressHydrationWarning className="text-2xl sm:text-3xl md:text-4xl font-black text-on-surface tracking-tight">
+          <h1 suppressHydrationWarning className="text-2xl sm:text-3xl md:text-4xl font-black text-on-surface group-hover:text-primary transition-colors tracking-tight">
             {digest.greeting}
           </h1>
           <p className="text-xs sm:text-sm font-medium text-on-surface-variant mt-0.5">
@@ -135,11 +152,12 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2.5 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer min-h-[42px] min-w-[42px] flex items-center justify-center"
-            aria-label={collapsed ? "Expand Briefing" : "Collapse Briefing"}
-            title={collapsed ? "Expand Briefing" : "Collapse Briefing"}
+            className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface hover:text-primary font-bold text-xs transition-all cursor-pointer min-h-[42px] border border-outline-variant/30 active:scale-95"
+            aria-label={collapsed ? "Open Daily Briefing" : "Close Daily Briefing"}
+            title={collapsed ? "Open Daily Briefing" : "Close Daily Briefing"}
           >
-            <span className="material-symbols-outlined text-xl">
+            <span>{collapsed ? "Open Briefing" : "Close"}</span>
+            <span className="material-symbols-outlined text-lg">
               {collapsed ? "expand_more" : "expand_less"}
             </span>
           </button>
