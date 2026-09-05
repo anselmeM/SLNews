@@ -32,7 +32,7 @@ export default function FollowButton({
     const result = await toggleFollow(authorId);
     if (!result.success) {
     if (result.error?.includes("signed in")) {
-      router.push(`/login?callbackUrl=${encodeURIComponent(callbackPath || `/author/${authorId}`)}`);
+      router.push(`/sign-in?redirect_url=${encodeURIComponent(callbackPath || `/author/${authorId}`)}`);
     } else {
         toast(result.error || "Failed to update follow", "error");
       }
