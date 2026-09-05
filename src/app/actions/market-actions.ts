@@ -1,8 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
+import { syncMarketPrices } from "@/lib/market-sync-service";
 import { checkDbRateLimit } from "@/lib/rate-limiter";
 
 export type PriceAlertItem = {
@@ -197,3 +199,26 @@ export async function reviewPriceReport(
     return { success: false, error: "Failed to review price report. Please try again." };
   }
 }
+
+export async function triggerMarketPriceSyncAction(): Promise<{ success: boolean; message: string; count?: number }> {
+  const session = await auth();
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+    return { success: false, message: "Unauthorized." };
+  }
+
+  const res = await syncMarketPrices();
+  if (res.success) {
+    revalidatePath("/market");
+    return {
+      success: true,
+      count: res.count,
+      message: `Market prices & timestamps updated (${res.count} commodities synced).`,
+    };
+  }
+
+  return {
+    success: false,
+    message: res.error || "Failed to update market prices.",
+  };
+}
+
