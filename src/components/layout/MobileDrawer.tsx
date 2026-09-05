@@ -1,11 +1,11 @@
 "use client";
 
+import { useClerk } from "@clerk/nextjs";
 import { m, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Session } from "next-auth";
-import { signOut } from "next-auth/react";
 import { useEffect } from "react";
+import type { AppSession } from "@/auth";
 import PushToggle from "@/components/PushToggle";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useAppStore } from "@/store/useAppStore";
@@ -13,7 +13,7 @@ import { useAppStore } from "@/store/useAppStore";
 interface Props {
   open: boolean;
   onClose: () => void;
-  session: Session | null;
+  session: AppSession | null;
 }
 
 const links = [
@@ -27,6 +27,7 @@ const links = [
 
 export default function MobileDrawer({ open, onClose, session }: Props) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const { promptInstall, isStandalone } = usePWAInstall();
   const dataSaver = useAppStore((s) => s.dataSaver);
   const setDataSaver = useAppStore((s) => s.setDataSaver);
@@ -154,7 +155,7 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
                 </>
               ) : (
                 <Link
-                  href="/login"
+                  href="/sign-in"
                   onClick={onClose}
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/15 transition-colors"
                 >

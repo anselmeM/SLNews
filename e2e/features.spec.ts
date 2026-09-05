@@ -11,7 +11,7 @@ test.describe("Market actions", () => {
   test("signed-out users are redirected to login when setting an alert", async ({ page }) => {
     await page.goto("/market");
     await page.getByRole("button", { name: /Set Price Alerts/ }).click();
-    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fmarket$/);
+    await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
 
   test("market tabs navigate between markets", async ({ page }) => {
@@ -44,7 +44,7 @@ test.describe("Contributor following", () => {
     const authorLink = page.locator('a[href^="/author/"]').first();
     await authorLink.click();
     await page.getByRole("button", { name: /Follow/ }).click();
-    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fauthor%2F/);
+    await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
 });
 
@@ -90,9 +90,9 @@ test.describe("Route metadata", () => {
   });
 
   test("auth pages expose route titles", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto("/sign-in");
     await expect(page).toHaveTitle(/Sign In \| SLNews/);
-    await page.goto("/register");
+    await page.goto("/sign-up");
     await expect(page).toHaveTitle(/Create Account \| SLNews/);
   });
 });

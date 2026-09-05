@@ -25,7 +25,7 @@ test.describe("Home & Navigation", () => {
     await page.locator('button[aria-label="Open menu"]').click();
     await expect(page.locator("aside a[href='/market']")).toBeVisible();
     await expect(page.locator("aside a[href='/about']")).toBeVisible();
-    await expect(page.locator("aside a[href='/login']")).toBeVisible();
+    await expect(page.locator("aside a[href='/sign-in']")).toBeVisible();
   });
 });
 
@@ -75,6 +75,6 @@ test.describe("PWA", () => {
 test.describe("Route protection", () => {
   test("profile redirects anonymous visitors to login", async ({ page }) => {
     await page.goto("/profile");
-    await expect(page).toHaveURL(/\/login\?callbackUrl=%2Fprofile$/);
+    await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
 });

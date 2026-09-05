@@ -1,7 +1,7 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import PriceAlertsSheet from "./PriceAlertsSheet";
 import PriceReportSheet from "./PriceReportSheet";
@@ -25,7 +25,7 @@ export default function MarketActions({
   commodities: string[];
   currentMarket: string;
 }) {
-  const { data: session } = useSession();
+  const { isSignedIn } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -35,26 +35,26 @@ export default function MarketActions({
 
   useEffect(() => {
     let cancelled = false;
-    if (!session?.user) return;
+    if (!isSignedIn) return;
     getMyPriceAlerts().then((data) => {
       if (!cancelled) setAlerts(data);
     });
     return () => {
       cancelled = true;
     };
-  }, [session?.user]);
+  }, [isSignedIn]);
 
   const reloadAlerts = useCallback(async () => {
-    if (!session?.user) return;
+    if (!isSignedIn) return;
     setAlerts(await getMyPriceAlerts());
-  }, [session?.user]);
+  }, [isSignedIn]);
 
   const requireAuth = useCallback(() => {
-    if (session?.user) return true;
+    if (isSignedIn) return true;
     toast("Sign in to use market actions", "info");
-    router.push(`/login?callbackUrl=${encodeURIComponent("/market")}`);
+    router.push(`/sign-in?redirect_url=${encodeURIComponent("/market")}`);
     return false;
-  }, [session?.user, router, toast]);
+  }, [isSignedIn, router, toast]);
 
   const openSheet = (kind: SheetKind) => {
     if (!kind) return setSheet(null);

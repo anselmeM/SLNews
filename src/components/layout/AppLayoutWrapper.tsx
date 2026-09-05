@@ -1,13 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import BottomNavBar from "./BottomNavBar";
 import MotionProvider from "./MotionProvider";
 import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
+import type { AppSession } from "@/auth";
 import AudioPlayerBar from "@/components/AudioPlayerBar";
 import BackToTop from "@/components/BackToTop";
 import InstallBanner from "@/components/InstallBanner";
@@ -22,7 +21,7 @@ export default function AppLayoutWrapper({
   session,
 }: {
   children: React.ReactNode;
-  session: Session | null;
+  session: AppSession | null;
 }) {
   const pathname = usePathname();
   const setSavedIds = useAppStore((s) => s.setSavedIds);
@@ -48,38 +47,38 @@ export default function AppLayoutWrapper({
     }
   }, [session?.user?.id, setSavedIds, setPreferences]);
 
-  const isAuthPage = pathname === "/login";
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up");
 
   if (isAuthPage) {
     return (
-      <SessionProvider session={session}>
-        <ToastProvider>
-          <ThemeSync />
-          {children}
-        </ToastProvider>
-      </SessionProvider>
+      <ToastProvider>
+        <ThemeSync />
+        {children}
+      </ToastProvider>
     );
   }
 
   return (
     <MotionProvider>
-    <SessionProvider session={session}>
-    <ToastProvider>
-      <ThemeSync />
-      <div className="pt-[80px] pb-[100px] md:pb-16 min-h-screen bg-surface">
-        <NetworkStatusBar />
-        <TopAppBar session={session} />
-        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          {children}
-        </main>
-        <BottomNavBar />
-        <AudioPlayerBar />
-        <BackToTop />
-        <InstallBanner />
-        <InstallModal />
-      </div>
-    </ToastProvider>
-    </SessionProvider>
+      <ToastProvider>
+        <ThemeSync />
+        <div className="pt-[80px] pb-[100px] md:pb-16 min-h-screen bg-surface">
+          <NetworkStatusBar />
+          <TopAppBar session={session} />
+          <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            {children}
+          </main>
+          <BottomNavBar />
+          <AudioPlayerBar />
+          <BackToTop />
+          <InstallBanner />
+          <InstallModal />
+        </div>
+      </ToastProvider>
     </MotionProvider>
   );
 }

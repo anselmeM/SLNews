@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { fetchTrendingNews } from "@/lib/news-service";
 import { LatestItem } from "@/components/LatestStoriesItem";
+import { fetchTrendingNews } from "@/lib/news-service";
 
 export default async function LatestStories() {
   let articles = [];

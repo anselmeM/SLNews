@@ -1,9 +1,9 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { updateProfile, loadPreferences } from "@/app/actions/user-actions";
 import { useToast } from "@/components/Toast";
@@ -11,21 +11,36 @@ import { SL_TOPICS } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function EditProfilePage() {
-  const { data: session, update } = useSession();
+  const { user } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const storeTopics = useAppStore((s) => s.preferredTopics);
   const setPreferences = useAppStore((s) => s.setPreferences);
 
-  const [name, setName] = useState(session?.user?.name || "");
+  const defaultName =
+    user?.fullName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    user?.username ||
+    "";
+  const initialEmail =
+    user?.primaryEmailAddress?.emailAddress ||
+    user?.emailAddresses?.[0]?.emailAddress ||
+    "";
+  const defaultImage = user?.imageUrl || "";
+
+  const [name, setName] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [storedBio, setStoredBio] = useState("");
-  const [imageUrl, setImageUrl] = useState(session?.user?.image || "");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(storeTopics);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(session?.user?.image || "");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentName = name !== null ? name : defaultName;
+  const currentImage = imageUrl !== null ? imageUrl : defaultImage;
+  const currentPreview = imagePreview !== null ? imagePreview : currentImage;
 
   useEffect(() => {
     loadPreferences().then((prefs) => {
@@ -72,19 +87,18 @@ export default function EditProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!currentName.trim()) return;
     setSaving(true);
     try {
       const result = await updateProfile({
-        name: name.trim(),
-        image: imageUrl || null,
+        name: currentName.trim(),
+        image: currentImage || null,
         bio: bio || null,
         preferredRegion: null,
         preferredTopics: selectedTopics,
       });
       if (result.success) {
         setPreferences(null, selectedTopics);
-        await update({ name: name.trim(), image: imageUrl || null });
         toast("Profile updated!", "success");
         router.push("/profile");
       } else {
@@ -97,8 +111,8 @@ export default function EditProfilePage() {
   };
 
   const hasChanges =
-    name.trim() !== (session?.user?.name || "") ||
-    imageUrl !== (session?.user?.image || "") ||
+    currentName.trim() !== defaultName ||
+    currentImage !== defaultImage ||
     bio !== storedBio ||
     JSON.stringify(selectedTopics) !== JSON.stringify(storeTopics);
 
@@ -125,18 +139,18 @@ export default function EditProfilePage() {
           </h2>
           <div className="flex items-center gap-6">
             <div className="w-20 h-20 rounded-full overflow-hidden bg-surface-container shrink-0 shadow-sm border border-outline-variant">
-              {imagePreview ? (
+              {currentPreview ? (
                 <Image
-                  src={imagePreview}
+                  src={currentPreview}
                   alt="Avatar preview"
                   width={80}
                   height={80}
                   className="object-cover w-full h-full"
-                  onError={() => setImagePreview(session?.user?.image || "")}
+                  onError={() => setImagePreview(defaultImage || "")}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-2xl font-bold">
-                  {(name || "U").charAt(0).toUpperCase()}
+                  {(currentName || "U").charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
@@ -156,7 +170,7 @@ export default function EditProfilePage() {
                 {uploading ? "Uploading..." : "Upload Image"}
               </button>
               <input
-                value={imageUrl}
+                value={currentImage}
                 onChange={(e) => { setImageUrl(e.target.value); setImagePreview(e.target.value); }}
                 className="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-outline-variant text-on-surface font-medium text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant/50"
                 placeholder="Or paste image URL..."
@@ -179,7 +193,7 @@ export default function EditProfilePage() {
               </label>
               <input
                 id="edit-name"
-                value={name}
+                value={currentName}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-surface-container border border-outline-variant text-on-surface font-medium text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant/50"
                 placeholder="Your name"
@@ -210,7 +224,7 @@ export default function EditProfilePage() {
               </label>
               <input
                 id="edit-email"
-                value={session?.user?.email || ""}
+                value={initialEmail}
                 className="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-outline-variant text-on-surface-variant/70 font-medium text-sm outline-none cursor-not-allowed"
                 type="email"
                 disabled
@@ -257,7 +271,7 @@ export default function EditProfilePage() {
           </Link>
           <button
             onClick={handleSave}
-            disabled={saving || !name.trim() || (!hasChanges && !bio)}
+            disabled={saving || !currentName.trim() || (!hasChanges && !bio)}
             className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {saving ? "Saving..." : "Save Changes"}

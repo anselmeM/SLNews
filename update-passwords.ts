@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { db as prisma } from './src/lib/db.js'
 import bcrypt from 'bcryptjs'
+import { db as prisma } from './src/lib/db.js'
 
 async function main() {
   const defaultPassword = await bcrypt.hash('password123', 10);

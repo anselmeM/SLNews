@@ -1,7 +1,7 @@
 "use client";
 
+import { useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import AppearanceSection from "./_components/AppearanceSection";
 import DataSaverSection from "./_components/DataSaverSection";
@@ -15,7 +15,8 @@ import { invalidate } from "@/lib/cache";
 import { useAppStore } from "@/store/useAppStore";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const { toast } = useToast();
   const { promptInstall, isStandalone } = usePWAInstall();
   const theme = useAppStore((s) => s.theme);
@@ -63,10 +64,22 @@ export default function ProfilePage() {
     toast("Cache cleared! Fresh content will load on next visit.", "success");
   };
 
+  const userRole = (user?.publicMetadata?.role as string) || "USER";
   const isCreator =
-    session?.user?.role === "WRITER" ||
-    session?.user?.role === "EDITOR" ||
-    session?.user?.role === "ADMIN";
+    userRole === "WRITER" ||
+    userRole === "EDITOR" ||
+    userRole === "ADMIN";
+
+  const userEmail =
+    user?.primaryEmailAddress?.emailAddress ||
+    user?.emailAddresses?.[0]?.emailAddress ||
+    null;
+
+  const userName =
+    user?.fullName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    user?.username ||
+    "SLNews User";
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -78,9 +91,9 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <section className="lg:col-span-4">
           <ProfileCard
-            name={session?.user?.name}
-            email={session?.user?.email}
-            image={session?.user?.image}
+            name={userName}
+            email={userEmail}
+            image={user?.imageUrl || null}
             bio={bio}
           />
         </section>

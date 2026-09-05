@@ -1,47 +1,84 @@
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import bcrypt from "bcryptjs"
-import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { authCallbacks } from "@/lib/auth-callbacks"
-import { db as prisma } from "@/lib/db"
-import { checkDbRateLimit, getClientIp, loginRateKey, resetRateLimit, LOGIN_MAX_ATTEMPTS } from "@/lib/rate-limiter"
+import { currentUser } from "@clerk/nextjs/server";
+import { isOwnerOrAdminEmail } from "@/lib/auth-callbacks";
+import { db } from "@/lib/db";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  trustHost: true,
-  session: { strategy: "jwt" },
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+export interface SessionUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role: "USER" | "WRITER" | "EDITOR" | "ADMIN";
+}
+
+export interface AppSession {
+  user: SessionUser;
+}
+
+/**
+ * Universal auth() bridge for SLNews.
+ * Retrieves authenticated Clerk user, ensures user record exists in Neon Postgres,
+ * strictly enforces the Owner ADMIN whitelist, and returns { user }.
+ */
+export async function auth(): Promise<AppSession | null> {
+  try {
+    const user = await currentUser();
+    if (!user) return null;
+
+    const email =
+      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ||
+      user.emailAddresses[0]?.emailAddress ||
+      null;
+
+    const name =
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.username ||
+      "SLNews User";
+    const image = user.imageUrl || null;
+
+    const isAdmin = isOwnerOrAdminEmail(email);
+
+    if (email) {
+      // Upsert user in Neon Postgres database
+      const dbUser = await db.user.upsert({
+        where: { email: email.toLowerCase() },
+        update: {
+          name,
+          image,
+          ...(isAdmin ? { role: "ADMIN" } : {}),
+        },
+        create: {
+          id: user.id,
+          email: email.toLowerCase(),
+          name,
+          image,
+          role: isAdmin ? "ADMIN" : "USER",
+        },
+      });
+
+      const safeRole =
+        dbUser.role === "ADMIN" && !isAdmin ? "EDITOR" : (dbUser.role as SessionUser["role"]);
+
+      return {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          image: dbUser.image,
+          role: isAdmin ? "ADMIN" : safeRole,
+        },
+      };
+    }
+
+    return {
+      user: {
+        id: user.id,
+        name,
+        image,
+        email: null,
+        role: "USER",
       },
-      async authorize(credentials, request) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const email = credentials.email as string;
-        const ip = request ? getClientIp(request) : "unknown";
-        const rateKey = loginRateKey(email, ip);
-
-        const rate = await checkDbRateLimit(rateKey, {
-          maxRequests: LOGIN_MAX_ATTEMPTS,
-          windowMs: 15 * 60 * 1000,
-        });
-        if (!rate.allowed) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email }
-        });
-        if (!user || !user.password) return null;
-        
-        const isValid = await bcrypt.compare(credentials.password as string, user.password);
-        if (isValid) {
-          await resetRateLimit(rateKey);
-          return { id: user.id, email: user.email, name: user.name, role: user.role };
-        }
-        return null;
-      }
-    })
-  ],
-  ...authCallbacks,
-})
+    };
+  } catch {
+    return null;
+  }
+}

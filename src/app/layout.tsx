@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Suspense } from "react";
@@ -49,72 +50,75 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
-      <head>
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var stored = localStorage.getItem('slnews-app-storage');
-                  var theme = 'system';
-                  if (stored) {
-                    var parsed = JSON.parse(stored);
-                    theme = (parsed && parsed.state && parsed.state.theme) ? parsed.state.theme : 'system';
-                  }
-                  var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                  if (isDark) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="SLNews" />
-        {process.env.NODE_ENV === "production" && (
+    <ClerkProvider>
+      <html lang="en" className="antialiased" suppressHydrationWarning>
+        <head>
           <Script
-            id="sw-register"
-            strategy="afterInteractive"
+            id="theme-init"
+            strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
               __html: `
-                if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js');
-                  });
-                }
+                (function() {
+                  try {
+                    var stored = localStorage.getItem('slnews-app-storage');
+                    var theme = 'system';
+                    if (stored) {
+                      var parsed = JSON.parse(stored);
+                      theme = (parsed && parsed.state && parsed.state.theme) ? parsed.state.theme : 'system';
+                    }
+                    var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                    } else {
+                      document.documentElement.classList.remove('dark');
+                    }
+                  } catch (e) {}
+                })();
               `,
             }}
           />
-        )}
-      </head>
-      <body className="bg-surface text-on-surface font-body-md min-h-screen" id="top">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-full focus:outline-none"
-        >
-          Skip to content
-        </a>
-        <Suspense fallback={null}>
-          <PageViewTracker />
-        </Suspense>
-        <AppLayoutWrapper session={session}>
-          {children}
-        </AppLayoutWrapper>
-      </body>
-    </html>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
+          />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta name="apple-mobile-web-app-title" content="SLNews" />
+          {process.env.NODE_ENV === "production" && (
+            <Script
+              id="sw-register"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                      navigator.serviceWorker.register('/sw.js');
+                    });
+                  }
+                `,
+              }}
+            />
+          )}
+        </head>
+        <body className="bg-surface text-on-surface font-body-md min-h-screen" id="top">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-full focus:outline-none"
+          >
+            Skip to content
+          </a>
+          <Suspense fallback={null}>
+            <PageViewTracker />
+          </Suspense>
+          <AppLayoutWrapper session={session}>
+            {children}
+          </AppLayoutWrapper>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
+

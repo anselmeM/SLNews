@@ -1,11 +1,11 @@
 "use client";
 
+import { useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Session } from "next-auth";
-import { signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import MobileDrawer from "./MobileDrawer";
+import type { AppSession } from "@/auth";
 import GlobalSearchModal from "@/components/GlobalSearchModal";
 import NotificationBell from "@/components/NotificationBell";
 import { vibrateLight } from "@/lib/haptics";
@@ -19,8 +19,9 @@ const navLinks = [
   { name: "Saved", href: "/saved" },
 ];
 
-export default function TopAppBar({ session }: { session: Session | null }) {
+export default function TopAppBar({ session }: { session: AppSession | null }) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const dataSaver = useAppStore((state) => state.dataSaver);
   const setDataSaver = useAppStore((state) => state.setDataSaver);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -215,7 +216,7 @@ export default function TopAppBar({ session }: { session: Session | null }) {
                       type="button"
                       onClick={() => {
                         setUserMenuOpen(false);
-                        signOut({ callbackUrl: "/login" });
+                        signOut({ redirectUrl: "/home" });
                       }}
                       className="flex items-center gap-2 w-full px-4 py-2 text-sm text-error hover:bg-surface-container transition-colors"
                     >
@@ -229,13 +230,13 @@ export default function TopAppBar({ session }: { session: Session | null }) {
           ) : (
             <div className="flex items-center gap-2">
               <Link
-                href="/login"
+                href="/sign-in"
                 className="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-semibold text-on-surface hover:text-primary hover:bg-surface-container-low transition-colors"
               >
                 Log In
               </Link>
               <Link
-                href="/register"
+                href="/sign-up"
                 className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary hover:bg-primary/95 text-white transition-colors shadow-xs"
               >
                 Sign Up

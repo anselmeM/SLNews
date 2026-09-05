@@ -1,7 +1,7 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { submitCommunityReel } from "@/app/actions/reel-actions";
 import { useToast } from "@/components/Toast";
@@ -39,7 +39,7 @@ const CATEGORIES = [
 ];
 
 export default function SubmitReelModal() {
-  const { data: session } = useSession();
+  const { isSignedIn, user } = useUser();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
@@ -52,9 +52,9 @@ export default function SubmitReelModal() {
   const parsed = videoUrl.trim() ? parseVideoUrl(videoUrl) : null;
 
   const isPrivileged =
-    session?.user?.role === "ADMIN" ||
-    session?.user?.role === "EDITOR" ||
-    session?.user?.role === "WRITER";
+    user?.publicMetadata?.role === "ADMIN" ||
+    user?.publicMetadata?.role === "EDITOR" ||
+    user?.publicMetadata?.role === "WRITER";
 
   const handleOpen = () => {
     vibrateLight();
@@ -67,7 +67,7 @@ export default function SubmitReelModal() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session) {
+    if (!isSignedIn) {
       toast("Please sign in to submit a video clip.", "error");
       return;
     }
@@ -151,7 +151,7 @@ export default function SubmitReelModal() {
               </button>
             </div>
 
-            {!session ? (
+            {!isSignedIn ? (
               <div className="py-8 text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
                   <span className="material-symbols-outlined text-3xl">lock</span>
@@ -164,14 +164,14 @@ export default function SubmitReelModal() {
                 </div>
                 <div className="flex items-center justify-center gap-3 pt-2">
                   <Link
-                    href="/login"
+                    href="/sign-in"
                     onClick={handleClose}
                     className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary/95 transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/register"
+                    href="/sign-up"
                     onClick={handleClose}
                     className="px-5 py-2.5 rounded-full bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-colors"
                   >

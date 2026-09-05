@@ -1,5 +1,3 @@
-import type { NextAuthConfig } from "next-auth";
-
 /**
  * Strict Owner / Admin Whitelist
  * ONLY these email addresses and the process.env.ADMIN_EMAIL can ever hold the ADMIN role.
@@ -36,37 +34,3 @@ export function isOwnerOrAdminEmail(email?: string | null): boolean {
   }
   return false;
 }
-
-export const authCallbacks = {
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        const isAdmin = isOwnerOrAdminEmail(user.email);
-        // Strict guard: if a non-owner somehow has ADMIN in DB, downgrade to EDITOR
-        const safeRole = user.role === "ADMIN" && !isAdmin ? "EDITOR" : user.role;
-        (token as Record<string, unknown>).role = isAdmin ? "ADMIN" : safeRole;
-        (token as Record<string, unknown>).id = user.id;
-        (token as Record<string, unknown>).email = user.email;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = ((token as Record<string, unknown>).id as string) ?? "";
-        const email = session.user.email || ((token as Record<string, unknown>).email as string);
-        const isAdmin = isOwnerOrAdminEmail(email);
-        const tokenRole = (token as Record<string, unknown>).role as
-          | "USER"
-          | "WRITER"
-          | "EDITOR"
-          | "ADMIN"
-          | undefined;
-
-        // Strict guard: ONLY owner email whitelist can hold ADMIN role
-        const safeRole = tokenRole === "ADMIN" && !isAdmin ? "EDITOR" : tokenRole;
-        session.user.role = isAdmin ? "ADMIN" : safeRole;
-      }
-      return session;
-    },
-  },
-} satisfies Partial<NextAuthConfig>;

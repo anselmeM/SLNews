@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import ArticleImage from "@/components/ArticleImage";
-import { useAppStore } from "@/store/useAppStore";
 import type { NewsArticle } from "@/lib/news-service";
+import { useAppStore } from "@/store/useAppStore";
 
 export function LatestItem({ article }: { article: NewsArticle }) {
   const dataSaver = useAppStore((s) => s.dataSaver);
