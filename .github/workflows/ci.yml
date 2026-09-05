@@ -10,8 +10,8 @@ env:
   # sslmode=disable: the local postgres service does not support TLS, and db.ts
   # enables client-side SSL for production builds unless the URL carries sslmode.
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/slnews_test?sslmode=disable"
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_d29ydGh5LXBlbmd1aW4tNjY2MS5jbGVyay5hY2NvdW50cy5kZXYk"
-  CLERK_SECRET_KEY: "sk_test_y2VWNydxnrXCQT3Ri9NeRM0jitCaN1LhKItGpjZJgs"
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_b3B0aW1hbC1zaGVwaGVyZC01OTE5LmNsZXJrLmFjY291bnRzLmRldiQ"
+  CLERK_SECRET_KEY: "sk_test_k5EUvd2RoRVHMBJPVRsUQogYDEJdSpAPSxb2xqK19h"
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: "/sign-in"
   NEXT_PUBLIC_CLERK_SIGN_UP_URL: "/sign-up"
   NEXTAUTH_SECRET: "ci-test-secret-not-for-production"
