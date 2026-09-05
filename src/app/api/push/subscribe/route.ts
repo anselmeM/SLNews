@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { checkDbRateLimit, getClientIp } from "@/lib/rate-limiter";
@@ -5,10 +6,13 @@ import { checkDbRateLimit, getClientIp } from "@/lib/rate-limiter";
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const rateLimit = await checkDbRateLimit(`push-sub:${ip}`, { maxRequests: 5, windowMs: 60_000 });
+    const rateLimit = await checkDbRateLimit(`push-sub:${ip}`, { maxRequests: 10, windowMs: 60_000 });
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
+
+    const session = await auth();
+    const userId = session?.userId ?? null;
 
     const body = await request.json();
     const { endpoint, keys } = body;
@@ -19,11 +23,18 @@ export async function POST(request: Request) {
 
     await db.pushSubscription.upsert({
       where: { endpoint },
-      update: { keys },
-      create: { endpoint, keys },
+      update: {
+        keys,
+        ...(userId ? { userId } : {}),
+      },
+      create: {
+        endpoint,
+        keys,
+        userId,
+      },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, userId });
   } catch (error) {
     console.error("Push subscribe error:", error);
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });

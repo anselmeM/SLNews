@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { broadcastBreakingArticle } from "@/lib/breaking-push-service";
 import { db } from "@/lib/db";
 
 export async function upsertArticle(data: {
@@ -107,6 +108,18 @@ export async function upsertArticle(data: {
   revalidatePath("/");
   revalidatePath("/home");
   return { success: true, articleId: article.id };
+}
+
+export async function sendBreakingAlertAction(articleId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const userRole = session.user.role;
+  if (userRole !== "EDITOR" && userRole !== "ADMIN") {
+    throw new Error("Forbidden");
+  }
+
+  return await broadcastBreakingArticle(articleId);
 }
 
 export async function deleteArticle(id: string) {
