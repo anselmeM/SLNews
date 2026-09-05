@@ -8,9 +8,12 @@ test.describe("Market actions", () => {
     await expect(page.getByRole("link", { name: /Set Alert/ })).toBeVisible();
   });
 
-  test("signed-out users are redirected to login when setting an alert", async ({ page }) => {
+  test("signed-out users are prompted to sign in when setting an alert", async ({ page }) => {
     await page.goto("/market");
     await page.getByRole("button", { name: /Set Price Alerts/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Get Real-Time Price Alerts/ })).toBeVisible();
+    await page.getByRole("link", { name: /Sign In/ }).click();
     await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
 
