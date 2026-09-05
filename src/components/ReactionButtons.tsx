@@ -1,10 +1,10 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { vibrate } from "@/lib/haptics";
 import { toggleReaction, getReactions } from "@/app/actions/reaction-actions";
+import { vibrate } from "@/lib/haptics";
 
 const EMOJIS = [
   { emoji: "🔥", label: "Fire" },
@@ -15,7 +15,7 @@ const EMOJIS = [
 ];
 
 export default function ReactionButtons({ articleId }: { articleId: string }) {
-  const { data: session } = useSession();
+  const { isSignedIn } = useUser();
   const router = useRouter();
   const [reactions, setReactions] = useState<Record<string, { count: number; reacted: boolean }>>({});
 
@@ -29,8 +29,8 @@ export default function ReactionButtons({ articleId }: { articleId: string }) {
   }, [articleId]);
 
   const handleReact = async (emoji: string) => {
-    if (!session?.user) {
-      router.push("/login");
+    if (!isSignedIn) {
+      router.push("/sign-in");
       return;
     }
 

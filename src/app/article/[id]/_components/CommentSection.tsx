@@ -1,7 +1,7 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { ShimmerBar } from "@/components/Shimmer";
 import { formatShortDate } from "@/lib/format-date";
@@ -63,7 +63,7 @@ function CommentSkeleton() {
 }
 
 export default function CommentSection({ articleId }: { articleId: string }) {
-  const { data: session } = useSession();
+  const { isSignedIn, user } = useUser();
   const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
@@ -154,10 +154,10 @@ export default function CommentSection({ articleId }: { articleId: string }) {
               </div>
             )}
 
-            {session?.user ? (
+            {isSignedIn && user ? (
               <div className="border-t border-gray-100 pt-5">
                 <div className="flex gap-3">
-                  <UserAvatar user={{ id: session.user.id!, name: session.user.name ?? null, image: session.user.image ?? null }} />
+                  <UserAvatar user={{ id: user.id, name: user.fullName || user.firstName || "User", image: user.imageUrl || null }} />
                   <div className="flex-1 min-w-0">
                     <textarea
                       value={text}
@@ -188,7 +188,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
             ) : (
               <div className="border-t border-gray-100 pt-5 text-center">
                 <p className="text-sm text-on-surface-variant mb-3">
-                  <Link href="/login" className="text-primary font-semibold hover:underline">Sign in</Link> to leave a comment.
+                  <Link href="/sign-in" className="text-primary font-semibold hover:underline">Sign in</Link> to leave a comment.
                 </p>
               </div>
             )}

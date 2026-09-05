@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { submitCommunityReel } from "@/app/actions/reel-actions";
 
-// Mock next-auth
+// Mock auth
 vi.mock("@/auth", () => ({
   auth: vi.fn().mockResolvedValue({
     user: {

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useAppStore } from "@/store/useAppStore";
 import ArticleImage from "@/components/ArticleImage";
+import { useAppStore } from "@/store/useAppStore";
 
 export default function RecentlyViewed() {
   const recentlyViewed = useAppStore((s) => s.recentlyViewed);
