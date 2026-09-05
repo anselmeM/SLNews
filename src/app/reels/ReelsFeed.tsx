@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { ReelVideo } from "@/app/actions/reel-actions";
 import ReelCard from "@/components/reels/ReelCard";
@@ -9,6 +10,7 @@ interface ReelsFeedProps {
 }
 
 export default function ReelsFeed({ initialReels }: ReelsFeedProps) {
+  const { isSignedIn } = useUser();
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +72,7 @@ export default function ReelsFeed({ initialReels }: ReelsFeedProps) {
           key={reel.id}
           reel={reel}
           isActive={activeIndex === index}
+          isLocked={!isSignedIn && index >= 2}
           onNext={index < initialReels.length - 1 ? handleNext : undefined}
           onPrev={index > 0 ? handlePrev : undefined}
         />

@@ -9,9 +9,11 @@ import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions"
 import type { AppSession } from "@/auth";
 import AudioPlayerBar from "@/components/AudioPlayerBar";
 import BackToTop from "@/components/BackToTop";
+import AuthGateModal from "@/components/gates/AuthGateModal";
 import InstallBanner from "@/components/InstallBanner";
 import InstallModal from "@/components/InstallModal";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
+import PostReadInstallSheet from "@/components/pwa/PostReadInstallSheet";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
 import { useAppStore } from "@/store/useAppStore";
@@ -77,6 +79,8 @@ export default function AppLayoutWrapper({
           <BackToTop />
           <InstallBanner />
           <InstallModal />
+          <AuthGateModal />
+          <PostReadInstallSheet />
         </div>
       </ToastProvider>
     </MotionProvider>

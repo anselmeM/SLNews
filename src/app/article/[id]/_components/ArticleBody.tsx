@@ -1,5 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
+import InArticleInstallCard from "@/components/pwa/InArticleInstallCard";
 import { useAppStore } from "@/store/useAppStore";
 
 function cleanContent(content: string): string[] {
@@ -29,22 +31,25 @@ export function ArticleBody({ content }: { content: string }) {
     <div className={`${fontClass} text-on-surface space-y-5 transition-all duration-200`}>
       {paragraphs.map((p, i) => {
         const isFirst = i === 0;
+        const showInstallCard = i === 2 || (paragraphs.length <= 2 && i === paragraphs.length - 1);
         return (
-          <p
-            key={i}
-            className={
-              isFirst
-                ? "text-lg leading-relaxed font-medium text-on-surface"
-                : ""
-            }
-          >
-            {isFirst && (
-              <span className="float-left text-[52px] leading-[0.85] font-black text-primary mr-2 mt-1">
-                {p.charAt(0)}
-              </span>
-            )}
-            {isFirst ? p.slice(1) : p}
-          </p>
+          <Fragment key={i}>
+            <p
+              className={
+                isFirst
+                  ? "text-lg leading-relaxed font-medium text-on-surface"
+                  : ""
+              }
+            >
+              {isFirst && (
+                <span className="float-left text-[52px] leading-[0.85] font-black text-primary mr-2 mt-1">
+                  {p.charAt(0)}
+                </span>
+              )}
+              {isFirst ? p.slice(1) : p}
+            </p>
+            {showInstallCard && <InArticleInstallCard />}
+          </Fragment>
         );
       })}
     </div>
