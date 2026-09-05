@@ -105,3 +105,13 @@ vi.mock("framer-motion", async () => {
     useTransform: () => 1,
   };
 });
+
+vi.mock("@clerk/nextjs", () => ({
+  useUser: () => ({ isSignedIn: false, user: null, isLoaded: true }),
+  useAuth: () => ({ isSignedIn: false, userId: null, isLoaded: true }),
+  useClerk: () => ({ signOut: vi.fn(), openSignIn: vi.fn(), openSignUp: vi.fn() }),
+  ClerkProvider: ({ children }: { children?: React.ReactNode }) => children,
+  SignIn: () => null,
+  SignUp: () => null,
+  UserButton: () => null,
+}));

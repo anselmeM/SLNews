@@ -1,22 +1,28 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import ReelGateOverlay from "./ReelGateOverlay";
 import type { ReelVideo } from "@/app/actions/reel-actions";
 import { useToast } from "@/components/Toast";
 import { vibrateLight, vibrateSuccess } from "@/lib/haptics";
 import { parseVideoUrl } from "@/lib/video-embed";
 import { formatArticleWhatsAppDigest, getWhatsAppShareUrl } from "@/lib/whatsapp-formatter";
+import { useAuthGateStore } from "@/store/useAuthGateStore";
 
 interface ReelCardProps {
   reel: ReelVideo;
   isActive: boolean;
+  isLocked?: boolean;
   onNext?: () => void;
   onPrev?: () => void;
 }
 
-export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardProps) {
+export default function ReelCard({ reel, isActive, isLocked = false, onNext, onPrev }: ReelCardProps) {
+  const { isSignedIn } = useUser();
+  const openGate = useAuthGateStore((s) => s.openGate);
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -28,6 +34,10 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
 
   const handleLike = () => {
     vibrateLight();
+    if (!isSignedIn) {
+      openGate("reel_like");
+      return;
+    }
     if (liked) {
       setLiked(false);
       setLikeCount((c) => Math.max(0, c - 1));
@@ -40,6 +50,10 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
 
   const handleBookmark = () => {
     vibrateLight();
+    if (!isSignedIn) {
+      openGate("bookmark");
+      return;
+    }
     setSaved(!saved);
     toast(saved ? "Removed from saved" : "Saved to your bookmarks", "success");
   };
@@ -66,7 +80,20 @@ export default function ReelCard({ reel, isActive, onNext, onPrev }: ReelCardPro
       {/* 9:16 Video Container (Centered on desktop, full-width on mobile) */}
       <div className="relative w-full max-w-[440px] h-full bg-slate-950 flex items-center justify-center overflow-hidden shadow-2xl">
         {/* Background / Video Layer */}
-        {isActive ? (
+        {isLocked ? (
+          <div className="w-full h-full relative">
+            <Image
+              src={reel.thumbnailUrl}
+              alt={reel.title}
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 100vw, 440px"
+              className="object-cover blur-xs brightness-50"
+              priority={false}
+            />
+            <ReelGateOverlay />
+          </div>
+        ) : isActive ? (
           <div className="w-full h-full relative flex items-center justify-center bg-black">
             {parsed.provider === "direct" ? (
               <video

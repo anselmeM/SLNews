@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import PriceAlertsSheet from "./PriceAlertsSheet";
 import PriceReportSheet from "./PriceReportSheet";
@@ -13,6 +12,7 @@ import {
 } from "@/app/actions/market-actions";
 import { useToast } from "@/components/Toast";
 import { vibrate } from "@/lib/haptics";
+import { useAuthGateStore } from "@/store/useAuthGateStore";
 
 type SheetKind = "alerts" | "report" | null;
 
@@ -26,7 +26,7 @@ export default function MarketActions({
   currentMarket: string;
 }) {
   const { isSignedIn } = useAuth();
-  const router = useRouter();
+  const openGate = useAuthGateStore((s) => s.openGate);
   const { toast } = useToast();
 
   const [sheet, setSheet] = useState<SheetKind>(null);
@@ -51,10 +51,9 @@ export default function MarketActions({
 
   const requireAuth = useCallback(() => {
     if (isSignedIn) return true;
-    toast("Sign in to use market actions", "info");
-    router.push(`/sign-in?redirect_url=${encodeURIComponent("/market")}`);
+    openGate("market_alert");
     return false;
-  }, [isSignedIn, router, toast]);
+  }, [isSignedIn, openGate]);
 
   const openSheet = (kind: SheetKind) => {
     if (!kind) return setSheet(null);

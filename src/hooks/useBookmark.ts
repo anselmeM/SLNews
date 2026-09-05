@@ -1,8 +1,10 @@
+import { useUser } from "@clerk/nextjs";
 import { useCallback } from "react";
 import { toggleSavedArticle } from "@/app/actions/user-actions";
 import { vibrateLight } from "@/lib/haptics";
 import type { NewsArticle } from "@/lib/news-service";
 import { useAppStore } from "@/store/useAppStore";
+import { useAuthGateStore } from "@/store/useAuthGateStore";
 
 async function cacheArticleImage(imageUrl: string | null | undefined) {
   if (!imageUrl || typeof window === "undefined" || !("caches" in window)) return;
@@ -21,6 +23,8 @@ async function cacheArticleImage(imageUrl: string | null | undefined) {
 }
 
 export function useBookmark(article: NewsArticle) {
+  const { isSignedIn } = useUser();
+  const openGate = useAuthGateStore((s) => s.openGate);
   const isSaved = useAppStore((s) => s.isSaved(article.id));
   const toggleSave = useAppStore((s) => s.toggleSave);
 
@@ -31,6 +35,12 @@ export function useBookmark(article: NewsArticle) {
         e.stopPropagation();
       }
       vibrateLight();
+
+      if (!isSignedIn) {
+        openGate("bookmark");
+        return;
+      }
+
       const willSave = !isSaved;
       toggleSave(article);
       toggleSavedArticle(article.id);
@@ -39,8 +49,8 @@ export function useBookmark(article: NewsArticle) {
         cacheArticleImage(article.imageUrl);
       }
     },
-    [article, isSaved, toggleSave]
+    [article, isSaved, isSignedIn, openGate, toggleSave]
   );
 
   return { isSaved, handleBookmark };
-}
+}
