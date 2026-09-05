@@ -1,8 +1,14 @@
 import { SignUp } from "@clerk/nextjs";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create Account | SLNews",
+  description: "Create an SLNews account",
+};
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative">
+    <main className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 relative">
       <div className="w-full max-w-[480px] flex flex-col items-center justify-center">
         <SignUp
           appearance={{
@@ -20,6 +26,6 @@ export default function SignUpPage() {
           }}
         />
       </div>
-    </div>
+    </main>
   );
 }

@@ -90,9 +90,9 @@ test.describe("Route metadata", () => {
   });
 
   test("auth pages expose route titles", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto("/sign-in");
     await expect(page).toHaveTitle(/Sign In \| SLNews/);
-    await page.goto("/register");
+    await page.goto("/sign-up");
     await expect(page).toHaveTitle(/Create Account \| SLNews/);
   });
 });
