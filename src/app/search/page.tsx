@@ -193,7 +193,7 @@ export default async function SearchPage(props: {
           <p className="text-sm text-gray-500 font-medium max-w-xs leading-relaxed">
             We couldn&rsquo;t find any articles matching your search. Try using different keywords or checking your spelling.
           </p>
-          <Link href="/home" className="mt-4 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm">
+          <Link href="/" className="mt-4 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm">
             Return Home
           </Link>
         </div>

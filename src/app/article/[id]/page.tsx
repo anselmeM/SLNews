@@ -149,9 +149,9 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 py-3 text-xs font-medium text-on-surface-variant/70">
-        <Link className="hover:text-primary transition-colors" href="/home">Home</Link>
+        <Link className="hover:text-primary transition-colors" href="/">Home</Link>
         <span className="material-symbols-outlined text-xs">chevron_right</span>
-        <Link className="hover:text-primary transition-colors" href="/home">{article.category}</Link>
+        <Link className="hover:text-primary transition-colors" href="/">{article.category}</Link>
       </nav>
 
       {/* Category + headline */}

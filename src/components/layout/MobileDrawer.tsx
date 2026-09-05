@@ -17,7 +17,7 @@ interface Props {
 }
 
 const links = [
-  { name: "Home", href: "/home", icon: "home" },
+  { name: "Home", href: "/", icon: "home" },
   { name: "Shorts & Reels", href: "/reels", icon: "movie" },
   { name: "Announcements", href: "/announcements", icon: "campaign" },
   { name: "Market", href: "/market", icon: "trending_up" },
@@ -42,8 +42,8 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
   }, [open]);
 
   const isActive = (href: string) =>
-    href === "/home"
-      ? pathname === "/home" || pathname === "/"
+    href === "/"
+      ? pathname === "/" || pathname === "/home"
       : pathname.startsWith(href);
 
   return (
@@ -65,7 +65,7 @@ export default function MobileDrawer({ open, onClose, session }: Props) {
             transition={{ type: "spring", damping: 28, stiffness: 260 }}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant/30">
-              <Link href="/home" className="flex items-center" onClick={onClose}>
+              <Link href="/" className="flex items-center" onClick={onClose}>
                 <h1 className="text-xl font-black text-primary tracking-tight">SL News</h1>
               </Link>
               <button

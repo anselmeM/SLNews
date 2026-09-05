@@ -21,7 +21,7 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <Link
-          href="/home"
+          href="/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold shadow-md hover:bg-primary/90 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">home</span>

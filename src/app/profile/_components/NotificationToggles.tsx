@@ -38,7 +38,7 @@ export default function NotificationToggles({ toggles }: { toggles: ToggleItem[]
         addNotification({
           title: "Test In-App Notification",
           body: "This is a preview test notification sent to your in-app inbox.",
-          url: "/home",
+          url: "/",
           category: "system",
           icon: "campaign",
         });

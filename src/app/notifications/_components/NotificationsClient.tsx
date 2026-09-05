@@ -238,7 +238,7 @@ export default function NotificationsClient() {
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link
-                href="/home"
+                href="/"
                 className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-xs"
               >
                 Browse Latest Stories

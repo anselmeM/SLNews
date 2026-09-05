@@ -141,6 +141,56 @@ export default function AboutPage() {
         </section>
 
       </div>
+
+      {/* Platform Features */}
+      <section className="mt-12 pt-8 border-t border-outline-variant/30">
+        <h2 className="text-2xl font-bold text-center text-on-surface mb-2">Platform Features</h2>
+        <p className="text-sm text-on-surface-variant text-center mb-8 max-w-xl mx-auto">
+          Designed specifically for Sierra Leone&apos;s mobile ecosystem: high speed, ultra-low bandwidth consumption, and offline capability.
+        </p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { icon: "newspaper", title: "National News", desc: "Stories aggregated and verified from leading Sierra Leone publications in one clean feed." },
+            { icon: "trending_up", title: "Live Market Prices", desc: "Rice, fuel, cement, and palm oil prices updated across Freetown, Bo, Makeni, and Kenema." },
+            { icon: "campaign", title: "Community Notices", desc: "Government announcements, civic alerts, and community notices accessible to everyone." },
+            { icon: "search", title: "Instant Search", desc: "Find any article or community notice instantly with category and date filters." },
+            { icon: "download", title: "No App Store Needed", desc: "Install directly from your mobile browser as a lightweight Progressive Web App." },
+            { icon: "cloud_off", title: "Works Offline", desc: "Saved bookmarks and market data cached locally for reading without internet." },
+          ].map((f) => (
+            <div key={f.title} className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/30 shadow-xs flex gap-3.5 items-start">
+              <span className="material-symbols-outlined text-2xl text-primary bg-primary/10 p-2 rounded-lg shrink-0">{f.icon}</span>
+              <div>
+                <h3 className="font-bold text-on-surface text-sm mb-1">{f.title}</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">{f.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PWA Install Guide */}
+      <section className="mt-12 mb-8 bg-primary rounded-2xl p-8 text-center text-on-primary shadow-sm">
+        <span className="material-symbols-outlined text-4xl mb-2 block">install_mobile</span>
+        <h2 className="text-2xl font-black mb-2">Install SLNews on Any Phone</h2>
+        <p className="text-primary-container text-sm max-w-md mx-auto mb-6">
+          Free, instant, and takes almost zero storage. No Google Play or Apple App Store account needed.
+        </p>
+        <div className="grid md:grid-cols-3 gap-4 text-left max-w-xl mx-auto">
+          {[
+            { num: "1", title: "Tap Install / Share", desc: 'Look for "Install App" in your browser menu or bottom banner.' },
+            { num: "2", title: "Confirm", desc: 'Tap "Add to Home screen" to save SLNews directly to your phone.' },
+            { num: "3", title: "Launch Anytime", desc: "Open SLNews like any native app. Reads articles even when data runs out." },
+          ].map((s) => (
+            <div key={s.num} className="flex md:flex-col items-center md:text-center gap-3 bg-white/10 p-4 rounded-xl">
+              <span className="bg-white text-primary font-black rounded-full w-8 h-8 flex items-center justify-center shrink-0 text-sm">{s.num}</span>
+              <div>
+                <p className="font-bold text-sm mb-0.5 text-white">{s.title}</p>
+                <p className="text-white/80 text-xs">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

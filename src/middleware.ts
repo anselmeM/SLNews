@@ -13,8 +13,8 @@ const clerkHandler = hasClerkKeys
         await auth.protect();
       }
 
-      if (req.nextUrl.pathname === "/" && req.cookies.has("slnews_visited")) {
-        return NextResponse.redirect(new URL("/home", req.url));
+      if (req.nextUrl.pathname === "/home") {
+        return NextResponse.redirect(new URL("/", req.url));
       }
 
       return NextResponse.next();
@@ -30,8 +30,8 @@ export default async function middleware(req: NextRequest, evt: NextFetchEvent) 
     }
   }
 
-  if (req.nextUrl.pathname === "/" && req.cookies.has("slnews_visited")) {
-    return NextResponse.redirect(new URL("/home", req.url));
+  if (req.nextUrl.pathname === "/home") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();

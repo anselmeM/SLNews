@@ -12,7 +12,7 @@ import { vibrateLight } from "@/lib/haptics";
 import { useAppStore } from "@/store/useAppStore";
 
 const navLinks = [
-  { name: "Home", href: "/home" },
+  { name: "Home", href: "/" },
   { name: "National News", href: "/local-news" },
   { name: "Shorts", href: "/reels" },
   { name: "International", href: "/world" },
@@ -63,8 +63,8 @@ export default function TopAppBar({ session }: { session: AppSession | null }) {
   };
 
   const isActive = (href: string) =>
-    href === "/home"
-      ? pathname === "/home" || pathname === "/"
+    href === "/"
+      ? pathname === "/" || pathname === "/home"
       : pathname.startsWith(href);
 
   return (
@@ -96,7 +96,7 @@ export default function TopAppBar({ session }: { session: AppSession | null }) {
             <span className="material-symbols-outlined">search</span>
           </button>
 
-          <Link href="/home" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <span className={`font-black text-primary tracking-tight transition-all duration-300 ${
               scrolled ? "text-lg" : "text-xl"
             }`}>
@@ -216,7 +216,7 @@ export default function TopAppBar({ session }: { session: AppSession | null }) {
                       type="button"
                       onClick={() => {
                         setUserMenuOpen(false);
-                        signOut({ redirectUrl: "/home" });
+                        signOut({ redirectUrl: "/" });
                       }}
                       className="flex items-center gap-2 w-full px-4 py-2 text-sm text-error hover:bg-surface-container transition-colors"
                     >
