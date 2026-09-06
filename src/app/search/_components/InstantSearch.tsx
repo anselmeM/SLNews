@@ -18,20 +18,40 @@ export default function InstantSearch() {
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeQueryRef = useRef<string>("");
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < 2) { setSuggestions([]); return; }
+    activeQueryRef.current = q;
     setLoading(true);
-    const results = await instantSearch(q);
-    setSuggestions(results);
-    setLoading(false);
+    try {
+      const results = await instantSearch(q);
+      if (activeQueryRef.current === q) {
+        setSuggestions(results);
+      }
+    } catch {
+      if (activeQueryRef.current === q) {
+        setSuggestions([]);
+      }
+    } finally {
+      if (activeQueryRef.current === q) {
+        setLoading(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (input.length < 2) return;
+    if (input.length < 2) {
+      activeQueryRef.current = "";
+      return;
+    }
     debounceRef.current = setTimeout(() => fetchSuggestions(input), 250);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (blurRef.current) clearTimeout(blurRef.current);
+    };
   }, [input, fetchSuggestions]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,6 +59,16 @@ export default function InstantSearch() {
     if (input.trim()) {
       router.push(`/search?q=${encodeURIComponent(input.trim())}`);
     }
+  };
+
+  const handleBlur = () => {
+    if (blurRef.current) clearTimeout(blurRef.current);
+    blurRef.current = setTimeout(() => setFocused(false), 200);
+  };
+
+  const handleFocus = () => {
+    if (blurRef.current) clearTimeout(blurRef.current);
+    setFocused(true);
   };
 
   return (
@@ -52,8 +82,8 @@ export default function InstantSearch() {
             setInput(nextInput);
             if (nextInput.length < 2) setSuggestions([]);
           }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder="Search articles..."
           className="w-full bg-surface-container-lowest dark:bg-surface-container border border-outline-variant/30 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
           autoComplete="off"

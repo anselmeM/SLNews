@@ -46,10 +46,12 @@ export default function InstallBanner() {
     }
 
     // Capture Chromium beforeinstallprompt
+    let promptTimer: ReturnType<typeof setTimeout> | null = null;
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as unknown as Parameters<typeof setDeferredPrompt>[0]);
-      setTimeout(() => setVisible(true), 2500);
+      if (promptTimer) clearTimeout(promptTimer);
+      promptTimer = setTimeout(() => setVisible(true), 2500);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
@@ -61,6 +63,7 @@ export default function InstallBanner() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
+      if (promptTimer) clearTimeout(promptTimer);
       clearTimeout(timer);
     };
   }, [setDeferredPrompt, setIsStandalone, setIsIOS, setIsAndroid]);

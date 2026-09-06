@@ -166,6 +166,9 @@ export const useAppStore = create<AppState>()(
         if (state) {
           applyTheme(state.theme);
           applyDataSaver(state.dataSaver);
+          if (state.savedArticles && state.savedArticles.length > 0) {
+            state.savedArticleIds = new Set(state.savedArticles.map((a) => a.id));
+          }
         }
       },
     }
