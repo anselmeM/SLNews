@@ -24,7 +24,7 @@ test.describe("Home & Navigation", () => {
     await page.goto("/home");
     await page.locator('button[aria-label="Open menu"]').click();
     await expect(page.locator("aside a[href='/market']")).toBeVisible();
-    await expect(page.locator("aside a[href='/about']")).toBeVisible();
+    await expect(page.locator("aside a[href='/profile']")).toBeVisible();
     await expect(page.locator("aside a[href='/sign-in']")).toBeVisible();
   });
 });

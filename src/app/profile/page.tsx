@@ -197,6 +197,27 @@ export default function ProfilePage() {
             </div>
           </section>
 
+          <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  info
+                </span>
+                About SLNews
+              </h3>
+              <p className="text-sm text-on-surface-variant mt-1">
+                Learn more about our mission, editorial standards, and the Sierra Leone news platform.
+              </p>
+            </div>
+            <Link
+              href="/about"
+              className="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-sm transition-colors border border-outline-variant flex items-center gap-2 cursor-pointer min-h-[44px]"
+            >
+              <span>Read About Us</span>
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </section>
+
           <section className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-sm">
             <h3 className="text-lg font-bold text-on-surface flex items-center gap-2 mb-3">
               <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>cached</span>
