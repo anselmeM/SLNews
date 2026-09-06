@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { auth } from "@/auth";
+import { AdSenseScript } from "@/components/AdSense";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import PageViewTracker from "@/components/PageViewTracker";
 
@@ -87,6 +88,7 @@ export default async function RootLayout({
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
           <meta name="apple-mobile-web-app-title" content="SLNews" />
+          <AdSenseScript />
           {process.env.NODE_ENV === "production" && (
             <Script
               id="sw-register"
