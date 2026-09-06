@@ -17,22 +17,30 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
   const [phase, setPhase] = useState<"idle" | "pulling" | "ready" | "refreshing">("idle");
   const [message, setMessage] = useState("");
   const startY = useRef(0);
+  const startMouseY = useRef(0);
+  const pullDistRef = useRef(0);
+  const phaseRef = useRef<"idle" | "pulling" | "ready" | "refreshing">("idle");
   const containerRef = useRef<HTMLDivElement>(null);
   const refreshingRef = useRef(false);
-  // Must survive effect re-runs (the effect re-attaches listeners on every
-  // pullDist change) or mouseup would always see `pulling === false`.
   const pullingRef = useRef(false);
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+
+  const updateDistAndPhase = useCallback((dist: number, nextPhase: "idle" | "pulling" | "ready" | "refreshing") => {
+    pullDistRef.current = dist;
+    phaseRef.current = nextPhase;
+    setPullDist(dist);
+    setPhase(nextPhase);
+  }, []);
 
   const reset = useCallback(() => {
-    setPullDist(0);
-    setPhase("idle");
-  }, []);
+    updateDistAndPhase(0, "idle");
+  }, [updateDistAndPhase]);
 
   const doRefresh = useCallback(async () => {
     if (refreshingRef.current) return;
     refreshingRef.current = true;
-    setPhase("refreshing");
-    setPullDist(56);
+    updateDistAndPhase(56, "refreshing");
     vibrate(20);
     try {
       const result = await onRefresh();
@@ -47,68 +55,82 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
       setMessage("Couldn't refresh. Try again.");
     } finally {
       refreshingRef.current = false;
-      setTimeout(() => {
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+      resetTimeoutRef.current = setTimeout(() => {
         reset();
       }, 1200);
     }
-  }, [onRefresh, reset]);
+  }, [onRefresh, reset, updateDistAndPhase]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (refreshingRef.current) return;
-    if (window.scrollY > 2 || containerRef.current?.scrollTop && containerRef.current.scrollTop > 2) return;
+    if (window.scrollY > 2 || (containerRef.current?.scrollTop && containerRef.current.scrollTop > 2)) return;
     startY.current = e.touches[0]!.clientY;
-    setPhase("pulling");
-  }, []);
+    updateDistAndPhase(0, "pulling");
+  }, [updateDistAndPhase]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (phase === "idle" || refreshingRef.current) return;
+    if (phaseRef.current === "idle" || refreshingRef.current) return;
     const dist = e.touches[0]!.clientY - startY.current;
     if (dist < 0) return;
     const damped = Math.min(dist * 0.45, MAX_PULL);
-    setPullDist(damped);
-    setPhase(damped >= PULL_THRESHOLD ? "ready" : "pulling");
-  }, [phase]);
+    const nextPhase = damped >= PULL_THRESHOLD ? "ready" : "pulling";
+    pullDistRef.current = damped;
+    phaseRef.current = nextPhase;
+    
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    rafIdRef.current = requestAnimationFrame(() => {
+      setPullDist(damped);
+      setPhase(nextPhase);
+    });
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (phase === "ready") {
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    if (phaseRef.current === "ready") {
       doRefresh();
-    } else if (phase === "pulling") {
+    } else if (phaseRef.current === "pulling") {
       reset();
     }
-  }, [phase, doRefresh, reset]);
+  }, [doRefresh, reset]);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    let startMouseY = 0;
-
     const onMouseDown = (e: MouseEvent) => {
       if (refreshingRef.current) return;
       if (window.scrollY > 2) return;
-      startMouseY = e.clientY;
+      startMouseY.current = e.clientY;
     };
 
     const onMouseMove = (e: MouseEvent) => {
       if (refreshingRef.current) return;
-      if (startMouseY === 0) return;
-      const dist = e.clientY - startMouseY;
+      if (startMouseY.current === 0) return;
+      const dist = e.clientY - startMouseY.current;
       if (dist > 20 && !pullingRef.current) {
         pullingRef.current = true;
-        setPhase("pulling");
+        updateDistAndPhase(0, "pulling");
       }
       if (pullingRef.current) {
         const damped = Math.min(dist * 0.45, MAX_PULL);
-        setPullDist(damped);
-        setPhase(damped >= PULL_THRESHOLD ? "ready" : "pulling");
+        const nextPhase = damped >= PULL_THRESHOLD ? "ready" : "pulling";
+        pullDistRef.current = damped;
+        phaseRef.current = nextPhase;
+
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = requestAnimationFrame(() => {
+          setPullDist(damped);
+          setPhase(nextPhase);
+        });
       }
     };
 
     const onMouseUp = () => {
-      startMouseY = 0;
+      startMouseY.current = 0;
       if (pullingRef.current) {
         pullingRef.current = false;
-        if (pullDist >= PULL_THRESHOLD) {
+        if (pullDistRef.current >= PULL_THRESHOLD) {
           doRefresh();
         } else {
           reset();
@@ -124,8 +146,10 @@ export default function PullToRefresh({ onRefresh, children }: Props) {
       el.removeEventListener("mousedown", onMouseDown);
       el.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
-  }, [pullDist, doRefresh, reset]);
+  }, [doRefresh, reset, updateDistAndPhase]);
 
   const indicatorIcon =
     phase === "refreshing" ? "sync"
