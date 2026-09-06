@@ -22,7 +22,6 @@ const links = [
   { name: "Announcements", href: "/announcements", icon: "campaign" },
   { name: "Market", href: "/market", icon: "trending_up" },
   { name: "Profile", href: "/profile", icon: "person" },
-  { name: "About", href: "/about", icon: "info" },
 ];
 
 export default function MobileDrawer({ open, onClose, session }: Props) {
