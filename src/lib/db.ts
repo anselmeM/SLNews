@@ -6,17 +6,25 @@ const connectionString = `${process.env.DATABASE_URL}`;
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const pool = new Pool({
-  connectionString,
-  max: isProduction ? 20 : 5,
-  idleTimeoutMillis: 60_000,
-  connectionTimeoutMillis: 15_000,
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 10_000,
-  ...(isProduction && !connectionString.includes("sslmode")
-    ? { ssl: { rejectUnauthorized: false } }
-    : {}),
-});
+declare global {
+  // allow global `var` declarations
+  var prisma: PrismaClient | undefined;
+  var pgPool: Pool | undefined;
+}
+
+const pool =
+  global.pgPool ||
+  new Pool({
+    connectionString,
+    max: isProduction ? 20 : 5,
+    idleTimeoutMillis: 60_000,
+    connectionTimeoutMillis: 15_000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10_000,
+    ...(isProduction && !connectionString.includes("sslmode")
+      ? { ssl: { rejectUnauthorized: false } }
+      : {}),
+  });
 
 pool.on("error", (err) => {
   console.error("pg pool unexpected error:", err.message);
@@ -40,12 +48,6 @@ export async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T
 
 const adapter = new PrismaPg(pool);
 
-declare global {
-  // allow global `var` declarations
-   
-  var prisma: PrismaClient | undefined;
-}
-
 export const db =
   global.prisma ||
   new PrismaClient({
@@ -53,4 +55,7 @@ export const db =
     log: isProduction ? ["error"] : ["query", "error", "warn"],
   });
 
-if (process.env.NODE_ENV !== "production") global.prisma = db;
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = db;
+  global.pgPool = pool;
+}

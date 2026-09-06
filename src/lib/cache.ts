@@ -1,5 +1,6 @@
 type CacheEntry<T> = { data: T; expiresAt: number };
 
+const MAX_ENTRIES = 500;
 const store = new Map<string, CacheEntry<unknown>>();
 
 function prune() {
@@ -7,6 +8,15 @@ function prune() {
   for (const [key, entry] of store) {
     if (now > entry.expiresAt) store.delete(key);
   }
+}
+
+function setEntry<T>(key: string, data: T, ttlSeconds: number) {
+  // If at capacity, evict the oldest key (FIFO)
+  if (store.size >= MAX_ENTRIES) {
+    const oldestKey = store.keys().next().value;
+    if (oldestKey) store.delete(oldestKey);
+  }
+  store.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1000 });
 }
 
 export function cachedFetch<T>(
@@ -20,7 +30,7 @@ export function cachedFetch<T>(
 
   return fetcher()
     .then((data) => {
-      store.set(key, { data, expiresAt: Date.now() + ttlSeconds * 1000 });
+      setEntry(key, data, ttlSeconds);
       return data;
     })
     .catch((err) => {

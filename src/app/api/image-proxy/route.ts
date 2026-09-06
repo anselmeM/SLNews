@@ -69,11 +69,15 @@ export async function GET(request: Request) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const response = await fetch(url, {
-      headers: { "User-Agent": "SLNews/1.0" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        headers: { "User-Agent": "SLNews/1.0" },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) return fallback();
 

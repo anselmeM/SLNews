@@ -74,15 +74,27 @@ export default function GlobalSearchModal({
       return () => clearTimeout(timer);
     }
 
-    const timer = setTimeout(() => {
-      startTransition(async () => {
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
         const data = await instantSearch(trimmed);
-        setResults(data);
-        setSelectedIndex(0);
-      });
+        if (active) {
+          startTransition(() => {
+            setResults(data);
+            setSelectedIndex(0);
+          });
+        }
+      } catch {
+        if (active) {
+          setResults([]);
+        }
+      }
     }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   const saveRecentSearch = (term: string) => {
