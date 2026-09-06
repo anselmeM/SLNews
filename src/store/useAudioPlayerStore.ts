@@ -26,10 +26,51 @@ interface AudioPlayerState {
   getCurrentArticle: () => NewsArticle | null;
 }
 
+const activeUtterances = new Set<SpeechSynthesisUtterance>();
+let currentPlaybackSessionId = 0;
+
 function stopSpeech() {
+  currentPlaybackSessionId++;
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
+    activeUtterances.clear();
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
   }
+}
+
+function chunkText(text: string, maxLength = 180): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+  const chunks: string[] = [];
+  let currentChunk = "";
+
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+    if ((currentChunk + " " + trimmed).trim().length <= maxLength) {
+      currentChunk = currentChunk ? `${currentChunk} ${trimmed}` : trimmed;
+    } else {
+      if (currentChunk) chunks.push(currentChunk);
+      if (trimmed.length > maxLength) {
+        const words = trimmed.split(" ");
+        let subChunk = "";
+        for (const word of words) {
+          if ((subChunk + " " + word).trim().length <= maxLength) {
+            subChunk = subChunk ? `${subChunk} ${word}` : word;
+          } else {
+            if (subChunk) chunks.push(subChunk);
+            subChunk = word;
+          }
+        }
+        if (subChunk) currentChunk = subChunk;
+        else currentChunk = "";
+      } else {
+        currentChunk = trimmed;
+      }
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk);
+  return chunks.length > 0 ? chunks : [text];
 }
 
 function speakArticle(
@@ -41,20 +82,58 @@ function speakArticle(
   stopSpeech();
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
+  const sessionId = ++currentPlaybackSessionId;
   const contentClean = (article.content || article.summary || "").replace(/\n+/g, ". ");
   const text = `${article.title}. ${contentClean}`;
+  const chunks = chunkText(text);
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = rate;
-  utterance.pitch = 1;
-  utterance.onend = () => {
-    onEnd();
-  };
-  utterance.onerror = () => {
-    onError();
-  };
+  let chunkIndex = 0;
 
-  window.speechSynthesis.speak(utterance);
+  function speakNext() {
+    if (sessionId !== currentPlaybackSessionId) return;
+    if (chunkIndex >= chunks.length) {
+      onEnd();
+      return;
+    }
+
+    const chunk = chunks[chunkIndex++];
+    if (!chunk) {
+      onEnd();
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(chunk);
+    utterance.rate = rate;
+    utterance.pitch = 1;
+
+    activeUtterances.add(utterance);
+
+    utterance.onend = () => {
+      activeUtterances.delete(utterance);
+      if (sessionId === currentPlaybackSessionId) {
+        speakNext();
+      }
+    };
+
+    utterance.onerror = (e) => {
+      activeUtterances.delete(utterance);
+      if (e.error !== "interrupted" && e.error !== "canceled") {
+        if (sessionId === currentPlaybackSessionId) {
+          onError();
+        }
+      }
+    };
+
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      activeUtterances.delete(utterance);
+      if (sessionId === currentPlaybackSessionId) {
+        onError();
+      }
+    }
+  }
+
+  speakNext();
 }
 
 export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({

@@ -7,41 +7,94 @@ const subscribe = () => () => {};
 const getSnapshot = () => typeof window !== "undefined" && "speechSynthesis" in window;
 const getServerSnapshot = () => false;
 
+const activeUtterances = new Set<SpeechSynthesisUtterance>();
+
 export default function ListenButton({ title, content }: { title: string; content: string }) {
   const [playing, setPlaying] = useState(false);
-  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const sessionIdRef = useRef(0);
 
   const isSupported = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
+  const stopAudio = useCallback(() => {
+    sessionIdRef.current++;
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      activeUtterances.clear();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+    setPlaying(false);
+  }, []);
+
   useEffect(() => {
     return () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+      stopAudio();
     };
-  }, []);
+  }, [stopAudio]);
 
   const toggle = useCallback(() => {
     vibrate();
-    if (!isSupported || typeof window === "undefined") return;
+    if (!isSupported || typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     if (playing) {
-      window.speechSynthesis.cancel();
-      setPlaying(false);
+      stopAudio();
       return;
     }
 
+    const sessionId = ++sessionIdRef.current;
     const text = `${title}. ${content.replace(/\n+/g, ". ")}`;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-    utterance.onend = () => setPlaying(false);
-    utterance.onerror = () => setPlaying(false);
+    
+    // Chunk long text to prevent Chromium 15s freeze & GC drops
+    const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+    let chunkIndex = 0;
 
-    synthRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
+    function speakNext() {
+      if (sessionId !== sessionIdRef.current) return;
+      if (chunkIndex >= sentences.length) {
+        setPlaying(false);
+        return;
+      }
+
+      const rawChunk = sentences[chunkIndex++];
+      const chunk = rawChunk ? rawChunk.trim() : "";
+      if (!chunk) {
+        speakNext();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+
+      activeUtterances.add(utterance);
+
+      utterance.onend = () => {
+        activeUtterances.delete(utterance);
+        if (sessionId === sessionIdRef.current) {
+          speakNext();
+        }
+      };
+
+      utterance.onerror = (e) => {
+        activeUtterances.delete(utterance);
+        if (e.error !== "interrupted" && e.error !== "canceled") {
+          if (sessionId === sessionIdRef.current) {
+            setPlaying(false);
+          }
+        }
+      };
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        activeUtterances.delete(utterance);
+        setPlaying(false);
+      }
+    }
+
     setPlaying(true);
-  }, [playing, title, content, isSupported]);
+    speakNext();
+  }, [playing, title, content, isSupported, stopAudio]);
 
   if (!isSupported) return null;
 
