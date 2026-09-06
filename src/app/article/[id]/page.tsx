@@ -10,6 +10,7 @@ import { StickyActions } from "./_components/StickyActions";
 import TextSizeSelector from "./_components/TextSizeSelector";
 import { getFollowState } from "@/app/actions/follow-actions";
 import { auth } from "@/auth";
+import { AdSlot } from "@/components/AdSense";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleImage from "@/components/ArticleImage";
 import DataSaverGuard from "@/components/DataSaverGuard";
@@ -212,7 +213,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
       <KeyTakeaways summary={article.summary} content={article.content} />
 
       {/* Article body */}
-      <ArticleBody content={article.content} />
+      <ArticleBody content={article.content} category={article.category} />
 
       {/* Tags & reactions */}
       <div className="mt-8 pt-6 border-t border-outline-variant/20">
@@ -223,6 +224,15 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
           )}
         </div>
         <ReactionButtons articleId={article.id} />
+      </div>
+
+      {/* Post-article Sponsor / AdSlot */}
+      <div className="my-8">
+        <AdSlot
+          slotId="article_bottom"
+          format="horizontal"
+          category={article.category}
+        />
       </div>
 
       {/* Related Stories */}

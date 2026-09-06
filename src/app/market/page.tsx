@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import MarketActions from "./_components/MarketActions";
+import { AdSlot } from "@/components/AdSense";
 import CommodityCard from "@/components/CommodityCard";
 import FxConverterWidget from "@/components/FxConverterWidget";
 import FxRatesTable from "@/components/FxRatesTable";
@@ -97,6 +98,13 @@ export default async function MarketPricesPage(props: { searchParams: Promise<{ 
           </div>
         )}
       </section>
+
+      {/* Market FX / Remittance Sponsor */}
+      <AdSlot
+        slotId="market_fx_sponsor"
+        format="horizontal"
+        className="mb-10"
+      />
 
       {/* Foreign Exchange Rates & Currency Converter */}
       <section className="space-y-8 mb-12">
