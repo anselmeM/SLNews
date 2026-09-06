@@ -10,6 +10,7 @@ import {
   togglePriceAlert,
   type PriceAlertItem,
 } from "@/app/actions/market-actions";
+import PushNotificationPrompt from "@/components/notifications/PushNotificationPrompt";
 import { useToast } from "@/components/Toast";
 import { vibrate } from "@/lib/haptics";
 import { useAuthGateStore } from "@/store/useAuthGateStore";
@@ -32,6 +33,7 @@ export default function MarketActions({
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [alerts, setAlerts] = useState<PriceAlertItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,6 +63,14 @@ export default function MarketActions({
     setSheet(kind);
   };
 
+  const checkPushPermission = () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission !== "granted") {
+        setShowPushPrompt(true);
+      }
+    }
+  };
+
   const handleToggleAlert = async (commodity: string, market: string) => {
     setBusy(true);
     const result = await togglePriceAlert(commodity, market);
@@ -71,6 +81,9 @@ export default function MarketActions({
     }
     vibrate();
     toast(result.active ? "Price alert set" : "Price alert removed", result.active ? "success" : "info");
+    if (result.active) {
+      checkPushPermission();
+    }
     reloadAlerts();
   };
 
@@ -88,6 +101,9 @@ export default function MarketActions({
     }
     vibrate();
     toast(result.active ? "Price alert set" : "Price alert removed", result.active ? "success" : "info");
+    if (result.active) {
+      checkPushPermission();
+    }
     reloadAlerts();
   };
 
@@ -163,6 +179,13 @@ export default function MarketActions({
         defaultMarket={currentMarket}
         busy={busy}
         onSubmitReport={handleSubmitReport}
+      />
+
+      <PushNotificationPrompt
+        isOpen={showPushPrompt}
+        onClose={() => setShowPushPrompt(false)}
+        title="Enable Price Alert Notifications"
+        description="Get instant lockscreen alerts the moment commodity prices or Leone exchange rates change in your selected markets."
       />
     </>
   );

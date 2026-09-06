@@ -71,13 +71,16 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {
     const data = event.data.json();
+    const targetUrl = data.url || (data.data && data.data.url) || "/";
     const promise = self.registration.showNotification(data.title || "SLNews", {
       body: data.body || "",
       icon: data.icon || "/icon-192x192.png",
-      badge: "/icon-192x192.png",
-      data: { url: data.url || "/home" },
+      badge: data.badge || "/icon-192x192.png",
+      data: { url: targetUrl, ...data.data },
       vibrate: [200, 100, 200],
-      tag: "slnews-breaking",
+      tag: data.tag || "slnews-general",
+      renotify: true,
+      actions: data.actions || [{ action: "open", title: "Read Story" }],
     });
     event.waitUntil(promise);
   } catch {}
@@ -85,14 +88,16 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/home";
+  const url = event.notification.data?.url || "/";
   event.waitUntil(
-    self.clients.matchAll({ type: "window" }).then((clients) => {
-      const existing = clients.find((c) => c.url.includes(url) && "focus" in c);
-      if (existing) {
-        existing.focus();
-      } else if (self.clients.openWindow) {
-        self.clients.openWindow(url);
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url === url && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
       }
     })
   );
