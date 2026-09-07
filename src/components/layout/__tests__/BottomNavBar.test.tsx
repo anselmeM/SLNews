@@ -2,8 +2,9 @@ import { render, screen, act, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import BottomNavBar from "@/components/layout/BottomNavBar";
 
+let mockPathname = "/";
 vi.mock("next/navigation", () => ({
-  usePathname: vi.fn(() => "/"),
+  usePathname: () => mockPathname,
 }));
 
 vi.mock("@/lib/haptics", () => ({
@@ -14,12 +15,8 @@ describe("BottomNavBar Component", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    mockPathname = "/";
     Object.defineProperty(window, "scrollY", { value: 0, writable: true });
-    Object.defineProperty(window, "innerHeight", { value: 800, writable: true });
-    Object.defineProperty(document.documentElement, "scrollHeight", {
-      value: 2000,
-      writable: true,
-    });
   });
 
   afterEach(() => {
@@ -45,17 +42,38 @@ describe("BottomNavBar Component", () => {
     render(<BottomNavBar />);
     const nav = screen.getByRole("navigation");
 
-    // Scroll to 300px
+    // Scroll down past the 60px threshold
+    act(() => {
+      window.scrollY = 200;
+      fireEvent.scroll(window);
+    });
+
+    expect(nav.className).toContain("translate-y-36");
+    expect(nav.className).toContain("opacity-0");
+  });
+
+  it("reappears immediately when scrolling up", () => {
+    render(<BottomNavBar />);
+    const nav = screen.getByRole("navigation");
+
+    // Scroll down to hide
     act(() => {
       window.scrollY = 300;
       fireEvent.scroll(window);
     });
+    expect(nav.className).toContain("translate-y-36");
 
-    expect(nav.className).toContain("translate-y-28");
-    expect(nav.className).toContain("opacity-0");
+    // Scroll up by 20px (diff < -8)
+    act(() => {
+      window.scrollY = 280;
+      fireEvent.scroll(window);
+    });
+
+    expect(nav.className).toContain("translate-y-0");
+    expect(nav.className).toContain("opacity-100");
   });
 
-  it("reappears after scrolling stops (350ms idle delay)", () => {
+  it("reappears after scrolling stops (1200ms idle delay)", () => {
     render(<BottomNavBar />);
     const nav = screen.getByRole("navigation");
 
@@ -64,36 +82,23 @@ describe("BottomNavBar Component", () => {
       fireEvent.scroll(window);
     });
 
-    expect(nav.className).toContain("translate-y-28");
+    expect(nav.className).toContain("translate-y-36");
 
     // Fast-forward past idle debounce
     act(() => {
-      vi.advanceTimersByTime(350);
+      vi.advanceTimersByTime(1200);
     });
 
     expect(nav.className).toContain("translate-y-0");
     expect(nav.className).toContain("opacity-100");
   });
 
-  it("always remains visible when near top of the page", () => {
+  it("always remains visible when near top of the page (< 60px)", () => {
     render(<BottomNavBar />);
     const nav = screen.getByRole("navigation");
 
     act(() => {
       window.scrollY = 40; // < 60px
-      fireEvent.scroll(window);
-    });
-
-    expect(nav.className).toContain("translate-y-0");
-    expect(nav.className).toContain("opacity-100");
-  });
-
-  it("always remains visible when near the bottom of the page", () => {
-    render(<BottomNavBar />);
-    const nav = screen.getByRole("navigation");
-
-    act(() => {
-      window.scrollY = 1200; // innerHeight(800) + scrollY(1200) = 2000 >= scrollHeight(2000) - 60
       fireEvent.scroll(window);
     });
 

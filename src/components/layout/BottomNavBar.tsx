@@ -15,40 +15,53 @@ const NAV_ITEMS = [
 export default function BottomNavBar() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(true);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  const lastScrollY = useRef(0);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Reset visibility synchronously when route changes (official React pattern)
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setVisible(true);
+  }
+
   useEffect(() => {
+    lastScrollY.current = typeof window !== "undefined" ? window.scrollY : 0;
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
+      const diff = currentScrollY - lastScrollY.current;
 
       // Always show when near the very top of the page (< 60px)
       if (currentScrollY < 60) {
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
+        lastScrollY.current = Math.max(0, currentScrollY);
         return;
       }
 
-      // Always show when reached the bottom of the page
-      if (windowHeight + currentScrollY >= documentHeight - 60) {
+      // If scrolling UP significantly, show immediately
+      if (diff < -8) {
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
+        lastScrollY.current = Math.max(0, currentScrollY);
         return;
       }
 
-      // User is actively scrolling: immediately hide the navbar to maximize view area
-      setVisible(false);
+      // If scrolling DOWN, hide immediately
+      if (diff > 4) {
+        setVisible(false);
+      }
 
-      // Reset existing idle timer
+      lastScrollY.current = Math.max(0, currentScrollY);
+
+      // Reappear smoothly after the user stops scrolling (1200ms idle delay)
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
-
-      // Reappear smoothly after the user stops scrolling (350ms idle delay)
       scrollTimeoutRef.current = setTimeout(() => {
         setVisible(true);
-      }, 350);
+      }, 1200);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -60,9 +73,16 @@ export default function BottomNavBar() {
 
   return (
     <nav
-      className={`md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-[320px] z-[100] flex justify-around items-center py-3 bg-surface/85 dark:bg-surface/85 backdrop-blur-2xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.12)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 ease-out select-none ${
-        visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-28 opacity-0 scale-95 pointer-events-none"
+      className={`md:hidden fixed bottom-6 left-4 right-4 mx-auto max-w-[320px] z-[100] flex justify-around items-center py-3 bg-surface/85 dark:bg-surface/85 backdrop-blur-2xl border border-outline-variant/30 shadow-[0_16px_36px_rgba(0,0,0,0.12)] rounded-full px-[env(safe-area-inset-left,8px)] pb-[env(safe-area-inset-bottom,12px)] select-none ${
+        visible
+          ? "translate-y-0 opacity-100 scale-100 pointer-events-auto"
+          : "translate-y-36 opacity-0 scale-95 pointer-events-none"
       }`}
+      style={{
+        transition:
+          "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, scale 0.3s ease",
+        willChange: "transform, opacity",
+      }}
       aria-label="Bottom Navigation"
     >
       {NAV_ITEMS.map((item) => {
