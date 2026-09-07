@@ -1,9 +1,10 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import { m, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ReelGateOverlay from "./ReelGateOverlay";
 import type { ReelVideo } from "@/app/actions/reel-actions";
 import { useToast } from "@/components/Toast";
@@ -29,8 +30,33 @@ export default function ReelCard({ reel, isActive, isLocked = false, onNext, onP
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(18);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [showHeartAnim, setShowHeartAnim] = useState(false);
+  const lastTapRef = useRef(0);
 
   const parsed = parseVideoUrl(reel.videoUrl);
+
+  const triggerHeartBurst = () => {
+    vibrateSuccess();
+    setShowHeartAnim(true);
+    setTimeout(() => setShowHeartAnim(false), 800);
+  };
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      triggerHeartBurst();
+      if (!liked) {
+        if (!isSignedIn) {
+          openGate("reel_like");
+        } else {
+          setLiked(true);
+          setLikeCount((c) => c + 1);
+          toast("Added to your liked reels", "success");
+        }
+      }
+    }
+    lastTapRef.current = now;
+  };
 
   const handleLike = () => {
     vibrateLight();
@@ -42,6 +68,7 @@ export default function ReelCard({ reel, isActive, isLocked = false, onNext, onP
       setLiked(false);
       setLikeCount((c) => Math.max(0, c - 1));
     } else {
+      triggerHeartBurst();
       setLiked(true);
       setLikeCount((c) => c + 1);
       toast("Added to your liked reels", "success");
@@ -78,7 +105,29 @@ export default function ReelCard({ reel, isActive, isLocked = false, onNext, onP
   return (
     <div className="relative w-full h-[100dvh] snap-start snap-always flex items-center justify-center bg-black overflow-hidden select-none">
       {/* 9:16 Video Container (Centered on desktop, full-width on mobile) */}
-      <div className="relative w-full max-w-[440px] h-full bg-slate-950 flex items-center justify-center overflow-hidden shadow-2xl">
+      <div
+        onClick={handleDoubleTap}
+        className="relative w-full max-w-[440px] h-full bg-slate-950 flex items-center justify-center overflow-hidden shadow-2xl cursor-pointer"
+      >
+        {/* Animated Heart Burst on Double Tap */}
+        <AnimatePresence>
+          {showHeartAnim && (
+            <m.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.4, 1, 0], opacity: [0, 1, 1, 0] }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="absolute pointer-events-none z-40 flex items-center justify-center text-red-500 drop-shadow-[0_10px_20px_rgba(239,68,68,0.5)]"
+            >
+              <span
+                className="material-symbols-outlined text-8xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                favorite
+              </span>
+            </m.div>
+          )}
+        </AnimatePresence>
+
         {/* Background / Video Layer */}
         {isLocked ? (
           <div className="w-full h-full relative">

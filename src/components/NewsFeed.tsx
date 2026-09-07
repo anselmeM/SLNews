@@ -51,7 +51,7 @@ export default function NewsFeed({
             {/* Insert native ad every 5 articles */}
             {(idx + 1) % 5 === 0 && (
               <div className="mt-4 mb-2">
-                <NativeAdCard index={Math.floor((idx + 1) / 5) - 1} />
+                <NativeAdCard />
               </div>
             )}
           </div>

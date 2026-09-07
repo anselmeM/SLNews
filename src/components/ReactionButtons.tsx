@@ -61,9 +61,9 @@ export default function ReactionButtons({ articleId }: { articleId: string }) {
           <button
             key={emoji}
             onClick={() => handleReact(emoji)}
-            className={`inline-flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full text-sm font-semibold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full text-sm font-semibold transition-all scale-100 active:scale-90 cursor-pointer select-none ${
               active
-                ? "bg-primary/10 text-primary border border-primary/20"
+                ? "bg-primary/10 text-primary border border-primary/20 shadow-xs"
                 : "bg-surface-container text-on-surface-variant border border-outline-variant/30 hover:border-primary/30"
             }`}
             aria-label={label}

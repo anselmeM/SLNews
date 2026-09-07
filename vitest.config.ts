@@ -9,7 +9,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     exclude: ["e2e/**", "node_modules/**"],
-    pool: "forks",
+    pool: "threads",
     fileParallelism: false,
     coverage: {
       provider: "v8",

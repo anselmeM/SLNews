@@ -126,7 +126,8 @@
 }
 
 html {
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -134,16 +135,31 @@ body {
   color: var(--color-on-surface);
   font-family: var(--font-body-md);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Eliminate 300ms tap delays & prevent accidental callouts */
 a, button, [role="button"], input, select, textarea {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent accidental text selection / callout magnifiers on interactive UI controls */
+nav, button, [role="button"], .material-symbols-outlined, .no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 article a {
   -webkit-touch-callout: none;
+}
+
+/* Native-like momentum scrolling for overflow areas */
+.overflow-y-auto, .overflow-x-auto, .overflow-auto {
+  -webkit-overflow-scrolling: touch;
 }
 
 * {
@@ -152,16 +168,18 @@ article a {
   transition-timing-function: ease;
 }
 
-
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 16px);
 }
 
 @keyframes blob {

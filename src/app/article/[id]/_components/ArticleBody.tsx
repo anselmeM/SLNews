@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { AdSlot } from "@/components/AdSense";
 import InArticleInstallCard from "@/components/pwa/InArticleInstallCard";
 import { useAppStore } from "@/store/useAppStore";
 
@@ -18,7 +19,13 @@ const FONT_CLASSES: Record<string, string> = {
   xlarge: "text-[23px] leading-[1.85]",
 };
 
-export function ArticleBody({ content }: { content: string }) {
+export function ArticleBody({
+  content,
+  category,
+}: {
+  content: string;
+  category?: string;
+}) {
   const fontSize = useAppStore((state) => state.fontSize);
   const fontClass = FONT_CLASSES[fontSize] || FONT_CLASSES.normal;
   const paragraphs = cleanContent(content);
@@ -27,11 +34,16 @@ export function ArticleBody({ content }: { content: string }) {
     return <p className="text-on-surface-variant italic">No content available.</p>;
   }
 
+  // Determine optimal placement for in-article sponsor/ad unit (typically after 4th paragraph)
+  const adPlacementIndex = paragraphs.length >= 5 ? 4 : -1;
+
   return (
     <div className={`${fontClass} text-on-surface space-y-5 transition-all duration-200`}>
       {paragraphs.map((p, i) => {
         const isFirst = i === 0;
         const showInstallCard = i === 2 || (paragraphs.length <= 2 && i === paragraphs.length - 1);
+        const showMidAd = i === adPlacementIndex;
+
         return (
           <Fragment key={i}>
             <p
@@ -49,9 +61,17 @@ export function ArticleBody({ content }: { content: string }) {
               {isFirst ? p.slice(1) : p}
             </p>
             {showInstallCard && <InArticleInstallCard />}
+            {showMidAd && (
+              <AdSlot
+                slotId="article_mid"
+                format="rectangle"
+                category={category}
+              />
+            )}
           </Fragment>
         );
       })}
     </div>
   );
 }
+

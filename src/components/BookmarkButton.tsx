@@ -13,7 +13,7 @@ export default function BookmarkButton({
 }) {
   const { isSaved, handleBookmark } = useBookmark(article);
 
-  const base = "absolute z-10 rounded-full transition-colors cursor-pointer";
+  const base = "absolute z-10 rounded-full transition-all scale-100 active:scale-85 select-none cursor-pointer";
   const iconSize = variant === "featured" ? "text-[20px]" : "text-[18px]";
 
   const classes = variant === "featured"

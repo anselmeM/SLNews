@@ -12,6 +12,7 @@ import BackToTop from "@/components/BackToTop";
 import AuthGateModal from "@/components/gates/AuthGateModal";
 import InstallBanner from "@/components/InstallBanner";
 import InstallModal from "@/components/InstallModal";
+import EdgeSwipeBack from "@/components/navigation/EdgeSwipeBack";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
 import PostReadInstallSheet from "@/components/pwa/PostReadInstallSheet";
 import ThemeSync from "@/components/ThemeSync";
@@ -75,6 +76,7 @@ export default function AppLayoutWrapper({
             {children}
           </main>
           <BottomNavBar />
+          <EdgeSwipeBack />
           <AudioPlayerBar />
           <BackToTop />
           <InstallBanner />
