@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArticleBody } from "./_components/ArticleBody";
+import ArticleHeroImage from "./_components/ArticleHeroImage";
 import CommentSection from "./_components/CommentSection";
 import ContextualArticleHeader from "./_components/ContextualArticleHeader";
 import KeyTakeaways from "./_components/KeyTakeaways";
@@ -13,8 +14,6 @@ import { getFollowState } from "@/app/actions/follow-actions";
 import { auth } from "@/auth";
 import { AdSlot } from "@/components/AdSense";
 import ArticleCard from "@/components/ArticleCard";
-import ArticleImage from "@/components/ArticleImage";
-import DataSaverGuard from "@/components/DataSaverGuard";
 import FollowButton from "@/components/FollowButton";
 import ListenButton from "@/components/ListenButton";
 import ReactionButtons from "@/components/ReactionButtons";
@@ -131,24 +130,12 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
       <ContextualArticleHeader article={article} />
       <ReadingProgress />
 
-      {/* Hero Image — full-width, edge-to-edge */}
-      <figure className="relative w-full aspect-[16/9] md:aspect-[2/1] md:rounded-2xl overflow-hidden bg-surface-container -mx-4 sm:-mx-6 lg:mx-0">
-        <DataSaverGuard className="absolute inset-0">
-          <ArticleImage
-            src={article.imageUrl}
-            alt={article.title}
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 720px"
-            className="object-cover"
-          />
-        </DataSaverGuard>
-        {article.location && (
-          <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wide">
-            {article.location}
-          </span>
-        )}
-      </figure>
+      {/* Hero Image — interactive with fullscreen pinch/zoom lightbox */}
+      <ArticleHeroImage
+        imageUrl={article.imageUrl}
+        title={article.title}
+        location={article.location}
+      />
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 py-3 text-xs font-medium text-on-surface-variant/70">
