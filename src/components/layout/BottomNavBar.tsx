@@ -15,43 +15,48 @@ const NAV_ITEMS = [
 export default function BottomNavBar() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  const scrollDelta = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      const diff = currentScrollY - lastScrollY.current;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-      // When near the top, always show bottom navigation
+      // Always show when near the very top of the page (< 60px)
       if (currentScrollY < 60) {
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
-        lastScrollY.current = currentScrollY;
-        scrollDelta.current = 0;
         return;
       }
 
-      // Track accumulated scroll in one direction
-      if ((diff > 0 && scrollDelta.current < 0) || (diff < 0 && scrollDelta.current > 0)) {
-        scrollDelta.current = 0;
-      }
-      scrollDelta.current += diff;
-
-      // Scrolling down significantly -> hide bar
-      if (scrollDelta.current > 40 && visible) {
-        setVisible(false);
-      }
-      // Scrolling up significantly -> show bar
-      else if (scrollDelta.current < -20 && !visible) {
+      // Always show when reached the bottom of the page
+      if (windowHeight + currentScrollY >= documentHeight - 60) {
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
+        return;
       }
 
-      lastScrollY.current = currentScrollY;
+      // User is actively scrolling: immediately hide the navbar to maximize view area
+      setVisible(false);
+
+      // Reset existing idle timer
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // Reappear smoothly after the user stops scrolling (350ms idle delay)
+      scrollTimeoutRef.current = setTimeout(() => {
+        setVisible(true);
+      }, 350);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [visible]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <nav
@@ -82,6 +87,7 @@ export default function BottomNavBar() {
           >
             <span
               className="material-symbols-outlined text-[26px] transition-transform duration-200"
+              aria-hidden="true"
               style={
                 isActive
                   ? { fontVariationSettings: "'FILL' 1, 'wght' 500" }
@@ -90,6 +96,7 @@ export default function BottomNavBar() {
             >
               {item.icon}
             </span>
+            <span className="sr-only">{item.name}</span>
             {isActive && (
               <span className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             )}
