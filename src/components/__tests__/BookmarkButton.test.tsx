@@ -26,7 +26,10 @@ const mockArticle: NewsArticle = {
 
 describe("BookmarkButton", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.mocked(useBookmark).mockReturnValue({
+      isSaved: false,
+      handleBookmark: vi.fn(),
+    });
   });
 
   it("renders bookmark_border icon when not saved", () => {
