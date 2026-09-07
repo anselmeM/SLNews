@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArticleBody } from "./_components/ArticleBody";
 import CommentSection from "./_components/CommentSection";
+import ContextualArticleHeader from "./_components/ContextualArticleHeader";
 import KeyTakeaways from "./_components/KeyTakeaways";
 import ShareSheet from "./_components/ShareSheet";
 import { StickyActions } from "./_components/StickyActions";
@@ -127,6 +128,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+      <ContextualArticleHeader article={article} />
       <ReadingProgress />
 
       {/* Hero Image — full-width, edge-to-edge */}
