@@ -28,12 +28,17 @@ export default function BottomNavBar() {
   useEffect(() => {
     lastScrollY.current = typeof window !== "undefined" ? window.scrollY : 0;
 
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+    const handleScroll = (e?: Event) => {
+      const target = e?.target;
+      let currentScrollY = window.scrollY || document.documentElement?.scrollTop || 0;
+      if (target instanceof HTMLElement && target !== document.body && target !== document.documentElement) {
+        currentScrollY = target.scrollTop;
+      }
+
       const diff = currentScrollY - lastScrollY.current;
 
-      // Always show when near the very top of the page (< 60px)
-      if (currentScrollY < 60) {
+      // At the absolute top of the page (<= 15px), keep visible
+      if (currentScrollY <= 15) {
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
         lastScrollY.current = Math.max(0, currentScrollY);
@@ -41,14 +46,14 @@ export default function BottomNavBar() {
       }
 
       // If scrolling UP significantly, show immediately
-      if (diff < -8) {
+      if (diff < -6) {
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         setVisible(true);
         lastScrollY.current = Math.max(0, currentScrollY);
         return;
       }
 
-      // If scrolling DOWN, hide immediately
+      // If scrolling DOWN, hide immediately (no dead zone)
       if (diff > 4) {
         setVisible(false);
       }
@@ -64,9 +69,9 @@ export default function BottomNavBar() {
       }, 1200);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll, { capture: true });
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, []);

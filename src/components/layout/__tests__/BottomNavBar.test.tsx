@@ -93,12 +93,12 @@ describe("BottomNavBar Component", () => {
     expect(nav.className).toContain("opacity-100");
   });
 
-  it("always remains visible when near top of the page (< 60px)", () => {
+  it("always remains visible when near top of the page (<= 15px)", () => {
     render(<BottomNavBar />);
     const nav = screen.getByRole("navigation");
 
     act(() => {
-      window.scrollY = 40; // < 60px
+      window.scrollY = 10; // <= 15px
       fireEvent.scroll(window);
     });
 
