@@ -16,9 +16,9 @@ const pool =
   global.pgPool ||
   new Pool({
     connectionString,
-    max: isProduction ? 20 : 5,
-    idleTimeoutMillis: 60_000,
-    connectionTimeoutMillis: 15_000,
+    max: Number(process.env.PG_POOL_MAX) || (isProduction ? 5 : 5),
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
     keepAlive: true,
     keepAliveInitialDelayMillis: 10_000,
     ...(isProduction && !connectionString.includes("sslmode")
