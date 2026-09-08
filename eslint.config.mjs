@@ -18,10 +18,10 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
     "next-env.d.ts",
     "scripts/**",
     "prisma/**",
-    "check-users.ts",
   ]),
 ]);
 

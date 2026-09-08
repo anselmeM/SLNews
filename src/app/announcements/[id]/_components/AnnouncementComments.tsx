@@ -1,6 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -35,9 +36,11 @@ function UserAvatar({ user, size = 10 }: { user: CommentUser; size?: number }) {
       className={`w-${size} h-${size} rounded-full bg-surface-variant overflow-hidden shrink-0 flex items-center justify-center`}
     >
       {user.image ? (
-        <img
+        <Image
           src={user.image.startsWith("/") ? user.image : `/api/image-proxy?url=${encodeURIComponent(user.image)}`}
           alt={user.name || "User"}
+          width={40}
+          height={40}
           className="w-full h-full object-cover"
         />
       ) : (

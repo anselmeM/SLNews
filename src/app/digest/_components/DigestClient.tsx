@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import ArticleImage from "@/components/ArticleImage";
 import ListenButton from "@/components/ListenButton";
 import { useToast } from "@/components/Toast";
 import type { PersonalizedDigest, DigestArticle } from "@/lib/digest-generator";
@@ -174,7 +175,7 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
             <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
               {digest.leadStory.imageUrl && (
                 <div className="md:col-span-5 aspect-video md:aspect-auto bg-surface-container overflow-hidden">
-                  <img
+                  <ArticleImage
                     src={digest.leadStory.imageUrl}
                     alt={digest.leadStory.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -286,7 +287,7 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
               >
                 {art.imageUrl && (
                   <div className="w-24 h-24 rounded-xl bg-surface-container overflow-hidden shrink-0">
-                    <img
+                    <ArticleImage
                       src={art.imageUrl}
                       alt={art.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"

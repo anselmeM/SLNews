@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import DataSaverGuard from "@/components/DataSaverGuard";
 import { db } from "@/lib/db";
@@ -25,13 +26,15 @@ export default async function AuthorBioCard({ authorId }: { authorId: string }) 
           <div className="w-14 h-14 rounded-full bg-surface-variant overflow-hidden shrink-0">
             <DataSaverGuard className="w-full h-full rounded-full" iconSize="text-lg">
               {author.image ? (
-                <img
+                <Image
                   src={
                     author.image.startsWith("/")
                       ? author.image
                       : `/api/image-proxy?url=${encodeURIComponent(author.image)}`
                   }
                   alt={author.name || "Author"}
+                  width={56}
+                  height={56}
                   className="w-full h-full object-cover"
                 />
               ) : (

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 type EditorPreviewProps = {
   title: string;
   summary: string;
@@ -18,8 +20,8 @@ export default function EditorPreview({
   return (
     <div className="space-y-6">
       {imageUrl && (
-        <div className="w-full aspect-video bg-gray-100 rounded-2xl overflow-hidden">
-          <img src={imageUrl} alt={title || "Article preview"} className="w-full h-full object-cover" />
+        <div className="relative w-full aspect-video bg-gray-100 rounded-2xl overflow-hidden">
+          <Image src={imageUrl} alt={title || "Article preview"} fill className="object-cover" unoptimized />
         </div>
       )}
       <div className="space-y-2">
