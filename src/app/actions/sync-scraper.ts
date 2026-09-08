@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { normalizeCategory } from "@/lib/category-constants";
 import { db } from "@/lib/db";
 import { fetchScraperNews, ScraperUnreachableError, type ScraperArticle } from "@/lib/scraper-client";
 
@@ -26,24 +27,10 @@ async function getBotUser() {
   return botUser;
 }
 
-// The scraper's category names don't always match the app's categories
-// ("Local" was merged into "National", and the scraper uses "Politics & Law"
-// / "Economy & Business" instead of "Politics"/"Economy"). Normalize them so
-// every article lands in a category that actually shows in the feeds.
-const CATEGORY_ALIASES: Record<string, string> = {
-  Local: "National",
-  District: "National",
-  Provincial: "National",
-  Opinion: "National",
-  "In Focus": "National",
-  "Politics & Law": "Politics",
-  "Economy & Business": "Economy",
-};
-
 async function resolveCategories(names: string[]) {
   const resolved = await Promise.all(
-    [...new Set(names.map(n => n.trim()).filter(Boolean))].map(async (raw) => {
-      const name = CATEGORY_ALIASES[raw] ?? raw;
+    [...new Set(names.map((n) => n.trim()).filter(Boolean))].map(async (raw) => {
+      const name = normalizeCategory(raw);
       const cat = await db.category.upsert({
         where: { name },
         update: {},
