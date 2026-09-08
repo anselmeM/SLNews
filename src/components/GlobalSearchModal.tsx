@@ -4,20 +4,40 @@ import { AnimatePresence, m } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, useSyncExternalStore } from "react";
 import { instantSearch, type InstantSearchResult } from "@/app/actions/search-actions";
 import { vibrateLight } from "@/lib/haptics";
 
 const TRENDING_TOPICS = ["National", "Politics", "Economy", "Bo Market", "Freetown", "Fuel"];
+const SEARCH_STORAGE_KEY = "slnews-recent-searches";
+const EMPTY_SEARCHES: string[] = [];
 
-function getInitialRecentSearches(): string[] {
-  if (typeof window === "undefined") return [];
+let cachedRaw: string | null = null;
+let cachedParsed: string[] = EMPTY_SEARCHES;
+
+function subscribeSearches(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("slnews:recent-searches", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("slnews:recent-searches", callback);
+  };
+}
+
+function getSearchesSnapshot(): string[] {
   try {
-    const saved = localStorage.getItem("slnews-recent-searches");
-    return saved ? JSON.parse(saved).slice(0, 5) : [];
+    const raw = localStorage.getItem(SEARCH_STORAGE_KEY);
+    if (raw === cachedRaw) return cachedParsed;
+    cachedRaw = raw;
+    cachedParsed = raw ? JSON.parse(raw).slice(0, 5) : EMPTY_SEARCHES;
+    return cachedParsed;
   } catch {
-    return [];
+    return EMPTY_SEARCHES;
   }
+}
+
+function getServerSearchesSnapshot(): string[] {
+  return EMPTY_SEARCHES;
 }
 
 export default function GlobalSearchModal({
@@ -31,7 +51,7 @@ export default function GlobalSearchModal({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<InstantSearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [recentSearches, setRecentSearches] = useState<string[]>(getInitialRecentSearches);
+  const recentSearches = useSyncExternalStore(subscribeSearches, getSearchesSnapshot, getServerSearchesSnapshot);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,9 +121,9 @@ export default function GlobalSearchModal({
     const trimmed = term.trim();
     if (!trimmed) return;
     const updated = [trimmed, ...recentSearches.filter((s) => s.toLowerCase() !== trimmed.toLowerCase())].slice(0, 5);
-    setRecentSearches(updated);
     try {
-      localStorage.setItem("slnews-recent-searches", JSON.stringify(updated));
+      localStorage.setItem(SEARCH_STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event("slnews:recent-searches"));
     } catch {
       // Ignore
     }
@@ -145,9 +165,9 @@ export default function GlobalSearchModal({
   };
 
   const clearRecentSearches = () => {
-    setRecentSearches([]);
     try {
-      localStorage.removeItem("slnews-recent-searches");
+      localStorage.removeItem(SEARCH_STORAGE_KEY);
+      window.dispatchEvent(new Event("slnews:recent-searches"));
     } catch {
       // Ignore
     }

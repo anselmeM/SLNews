@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useState } from "react";
 
 type EditorImageUploaderProps = {
@@ -79,8 +80,8 @@ export default function EditorImageUploader({
       </div>
       {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
       {imageUrl && (
-        <div className="w-full aspect-video bg-gray-100 rounded-2xl overflow-hidden">
-          <img src={imageUrl} alt="Featured preview" className="w-full h-full object-cover" />
+        <div className="relative w-full aspect-video bg-gray-100 rounded-2xl overflow-hidden">
+          <Image src={imageUrl} alt="Featured preview" fill className="object-cover" unoptimized />
         </div>
       )}
     </div>

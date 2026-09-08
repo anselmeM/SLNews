@@ -49,6 +49,7 @@ export default function ArticleImage({
 
   if (src.startsWith("data:")) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={alt}
