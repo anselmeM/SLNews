@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { invalidate } from "@/lib/cache";
 import { normalizeCategory } from "@/lib/category-constants";
 import { db } from "@/lib/db";
 import { fetchScraperNews, ScraperUnreachableError, type ScraperArticle } from "@/lib/scraper-client";
@@ -27,21 +28,6 @@ async function getBotUser() {
   return botUser;
 }
 
-async function resolveCategories(names: string[]) {
-  const resolved = await Promise.all(
-    [...new Set(names.map((n) => n.trim()).filter(Boolean))].map(async (raw) => {
-      const name = normalizeCategory(raw);
-      const cat = await db.category.upsert({
-        where: { name },
-        update: {},
-        create: { name },
-      });
-      return { id: cat.id };
-    })
-  );
-  return resolved;
-}
-
 export async function syncFromScraper() {
   try {
     const botUser = await getBotUser();
@@ -59,16 +45,65 @@ export async function syncFromScraper() {
       };
     }
 
+    const validArticles = articles.filter(
+      (a) => a.title?.trim() && a.link?.trim()
+    );
+
+    if (validArticles.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    // 1. Batch-resolve and cache all unique categories in memory
+    const rawCategorySet = new Set<string>();
+    rawCategorySet.add("National");
+
+    for (const a of validArticles) {
+      const catList =
+        Array.isArray(a.category) && a.category.length > 0
+          ? a.category
+          : ["National"];
+      for (const c of catList) {
+        if (c?.trim()) {
+          rawCategorySet.add(normalizeCategory(c.trim()));
+        }
+      }
+    }
+
+    const categoryMap = new Map<string, string>();
+    await Promise.all(
+      [...rawCategorySet].map(async (name) => {
+        const cat = await db.category.upsert({
+          where: { name },
+          update: {},
+          create: { name },
+        });
+        categoryMap.set(name, cat.id);
+      })
+    );
+
+    // 2. Batch-check existing articles by title in a single query
+    const titles = validArticles.map((a) => a.title!.trim());
+    const existingArticles = await db.article.findMany({
+      where: { title: { in: titles } },
+      include: { categories: true },
+    });
+
+    const existingByTitle = new Map<string, (typeof existingArticles)[0]>();
+    for (const item of existingArticles) {
+      existingByTitle.set(item.title, item);
+    }
+
     let totalCount = 0;
 
-    for (const a of articles) {
-      const title = a.title?.trim();
-      const link = a.link?.trim();
-      if (!title || !link) continue;
+    for (const a of validArticles) {
+      const title = a.title!.trim();
+      const link = a.link!.trim();
 
-      const byline = [a.author, a.source].filter(Boolean).join(" for ") || "SLNews";
+      const byline =
+        [a.author, a.source].filter(Boolean).join(" for ") || "SLNews";
       const paragraphs = Array.isArray(a.paragraphs) ? a.paragraphs : [];
-      const body = paragraphs.join("\n\n").trim() || "Read full article on source.";
+      const body =
+        paragraphs.join("\n\n").trim() || "Read full article on source.";
       const content = `${body}\n\nSource: ${byline} — ${link}`;
       const summary = paragraphs[0]?.slice(0, 280) || title;
 
@@ -78,26 +113,36 @@ export async function syncFromScraper() {
           ? new Date(a.createdAt)
           : new Date();
 
-      const categoryNames = (Array.isArray(a.category) && a.category.length > 0)
-        ? a.category
-        : ["National"];
-      const categories = await resolveCategories(categoryNames);
+      const rawCategoryList =
+        Array.isArray(a.category) && a.category.length > 0
+          ? a.category
+          : ["National"];
 
-      const existing = await db.article.findFirst({
-        where: { title },
-        include: { categories: true },
-      });
+      const resolvedCategoryIds = [
+        ...new Set(
+          rawCategoryList.map((c) =>
+            categoryMap.get(normalizeCategory(c.trim()))
+          )
+        ),
+      ].filter((id): id is string => Boolean(id));
+
+      const existing = existingByTitle.get(title);
 
       if (existing) {
-        const existingNames = existing.categories.map((c: { name: string }) => c.name);
-        const missingNames = categoryNames.filter(n => !existingNames.includes(n));
-        const needsImage = (!existing.imageUrl || existing.imageUrl === "/globe.svg") && a.imageUrl?.trim();
+        const missingIds = resolvedCategoryIds.filter(
+          (id) =>
+            !existing.categories.some((c: { id: string }) => c.id === id)
+        );
+        const needsImage =
+          (!existing.imageUrl || existing.imageUrl === "/globe.svg") &&
+          a.imageUrl?.trim();
         const needsSummary = !existing.summary && summary !== title;
 
         const updateData: Record<string, unknown> = {};
-        if (missingNames.length > 0) {
-          const missing = await resolveCategories(missingNames);
-          updateData.categories = { connect: missing.map(c => ({ id: c.id })) };
+        if (missingIds.length > 0) {
+          updateData.categories = {
+            connect: missingIds.map((id) => ({ id })),
+          };
         }
         if (needsImage) updateData.imageUrl = a.imageUrl!.trim();
         if (needsSummary) updateData.summary = summary;
@@ -124,10 +169,20 @@ export async function syncFromScraper() {
           district: null,
           publishedAt,
           authorId: botUser.id,
-          categories: { connect: categories },
+          categories: {
+            connect: resolvedCategoryIds.map((id) => ({ id })),
+          },
         },
       });
       totalCount++;
+    }
+
+    // Invalidate stale feed caches if articles were ingested/updated
+    if (totalCount > 0) {
+      invalidate("home:");
+      invalidate("slnews:");
+      invalidate("trending:");
+      invalidate("local:");
     }
 
     return { success: true, count: totalCount };

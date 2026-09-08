@@ -102,6 +102,8 @@ model Article {
   reactions     ArticleReaction[]
 
   @@index([published, status])
+  @@index([published, status, publishedAt])
+  @@index([breaking, published, status])
   @@index([publishedAt])
   @@index([updatedAt])
   @@index([province])
