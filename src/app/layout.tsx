@@ -6,6 +6,7 @@ import "./globals.css";
 import { auth } from "@/auth";
 import { AdSenseScript } from "@/components/AdSense";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
+import MetaPixel from "@/components/MetaPixel";
 import PageViewTracker from "@/components/PageViewTracker";
 
 export const viewport: Viewport = {
@@ -114,6 +115,7 @@ export default async function RootLayout({
           </a>
           <Suspense fallback={null}>
             <PageViewTracker />
+            <MetaPixel />
           </Suspense>
           <AppLayoutWrapper session={session}>
             {children}

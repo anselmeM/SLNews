@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { trackCustomMetaEvent } from "@/lib/meta-pixel";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -44,6 +45,7 @@ export const usePWAStore = create<PWAState>((set, get) => ({
       try {
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
+        trackCustomMetaEvent("AppInstallPrompt", { outcome: choice.outcome });
         if (choice.outcome === "accepted") {
           set({ isInstalled: true, deferredPrompt: null });
           if (typeof localStorage !== "undefined") {
@@ -52,11 +54,13 @@ export const usePWAStore = create<PWAState>((set, get) => ({
         }
         return choice;
       } catch {
+        trackCustomMetaEvent("AppInstallPrompt", { outcome: "modal_opened" });
         set({ isModalOpen: true });
         return { outcome: "modal_opened" as const };
       }
     }
     // No native prompt available (e.g. iOS Safari, desktop without trigger)
+    trackCustomMetaEvent("AppInstallPrompt", { outcome: "modal_opened" });
     set({ isModalOpen: true });
     return { outcome: "modal_opened" as const };
   },

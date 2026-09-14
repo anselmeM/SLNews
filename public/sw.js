@@ -8,12 +8,13 @@
 // The cache name is bumped whenever the caching strategy changes so old caches
 // are purged on activate.
 
-const CACHE = "slnews-v3";
+const CACHE = "slnews-v4";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) =>
       cache.addAll([
+        "/offline",
         "/manifest.json",
         "/icon-192x192.png",
         "/icon-512x512.png",
@@ -38,8 +39,17 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET") return;
-  // Documents always come from the network — never serve a stale cached page.
-  if (request.mode === "navigate") return;
+
+  // Documents come from the network first; when offline, fallback to /offline page.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        const cache = await caches.open(CACHE);
+        return (await cache.match(request)) || (await cache.match("/offline"));
+      })
+    );
+    return;
+  }
   // API responses (auth, feeds, image proxy, ...) always come from the network.
   if (url.pathname.startsWith("/api/")) return;
 

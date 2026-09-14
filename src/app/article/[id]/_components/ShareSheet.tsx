@@ -5,6 +5,7 @@ import BottomSheet from "@/components/BottomSheet";
 import { useToast } from "@/components/Toast";
 import { useBookmark } from "@/hooks/useBookmark";
 import { vibrate, vibrateLight, vibrateSuccess } from "@/lib/haptics";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 import type { NewsArticle } from "@/lib/news-service";
 import {
   formatArticleWhatsAppDigest,
@@ -17,6 +18,12 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
   const { toast } = useToast();
 
   const handleShare = async () => {
+    trackMetaEvent("Share", {
+      content_type: "article",
+      method: "system",
+      content_name: article.title,
+      content_ids: [article.id],
+    });
     const url = `${window.location.origin}/article/${article.id}`;
     if (navigator.share) {
       await navigator.share({ title: article.title, url });
@@ -40,6 +47,12 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
 
   const handleWhatsApp = () => {
     vibrateLight();
+    trackMetaEvent("Share", {
+      content_type: "article",
+      method: "whatsapp",
+      content_name: article.title,
+      content_ids: [article.id],
+    });
     const digestText = formatArticleWhatsAppDigest(
       {
         id: article.id,
