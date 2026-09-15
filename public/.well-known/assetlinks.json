@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.slnews.app",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:D6:0F:4C:CC:E6:40:E7:A8:1E:5E:D5:7F:4E:9F:8B:7C:1E:0A:9E:B5:42:3C:9B:4D:2A:7E:8F:1C:3B"
+      ]
+    }
+  }
+]
