@@ -1,5 +1,5 @@
 import type { Article, User, Category, Prisma } from "@prisma/client";
-import { cachedFetch } from "./cache";
+import { cachedFetch, staleWhileRevalidate } from "./cache";
 import { db } from "./db";
 
 export type NewsArticle = {
@@ -57,7 +57,7 @@ export const SL_FEED_CATEGORIES = ["National", "Politics", "Economy", "Education
 const WORLD_FEED_CATEGORIES = ["International", "Africa", "Business", "Sports", "Tech", "Health", "Culture"];
 
 export async function fetchSLNews(region?: string, topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`slnews:${region}:${topic}:${skip}:${take}`, async () => {
+  return staleWhileRevalidate(`slnews:${region}:${topic}:${skip}:${take}`, async () => {
     const categoryNames = topic ? [topic] : SL_FEED_CATEGORIES;
     const where: Prisma.ArticleWhereInput = { published: true, status: "PUBLISHED", categories: { some: { name: { in: categoryNames } } } };
     if (region) where.province = region;
@@ -103,9 +103,11 @@ async function fetchMixedFeedPage(skip: number, take: number): Promise<ArticleWi
   return mixed;
 }
 
-// First page of the home feed (cached — shared by SSR and the client feed).
+// First page of the home feed (stale-while-revalidate — shared by SSR and the
+// client feed; keeps serving the cached page while it refreshes in the
+// background so the reader never waits on Neon).
 export async function fetchMixedHomeFeed(take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`home:${take}`, async () => {
+  return staleWhileRevalidate(`home:${take}`, async () => {
     return (await fetchMixedFeedPage(0, take)).map(mapPrismaArticle);
   }, TTL.feed);
 }
@@ -116,14 +118,14 @@ export async function fetchMixedNews(skip = 0, take = DEFAULT_PAGE_SIZE): Promis
 }
 
 export async function fetchTrendingNews(skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`trending:${skip}:${take}`, async () => {
+  return staleWhileRevalidate(`trending:${skip}:${take}`, async () => {
     const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED" }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
     return articles.map(mapPrismaArticle);
   }, 60);
 }
 
 export async function fetchLocalNews(province?: string, district?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`local:${province}:${district}:${skip}:${take}`, async () => {
+  return staleWhileRevalidate(`local:${province}:${district}:${skip}:${take}`, async () => {
     const where: Record<string, unknown> = {
       published: true,
       status: "PUBLISHED",
@@ -137,7 +139,7 @@ export async function fetchLocalNews(province?: string, district?: string, skip 
 }
 
 export async function fetchWorldNews(topic?: string, skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`world:${topic}:${skip}:${take}`, async () => {
+  return staleWhileRevalidate(`world:${topic}:${skip}:${take}`, async () => {
     const categoryName = (topic && topic !== "World") ? topic : "International";
     const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: categoryName } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
     return articles.map(mapPrismaArticle);
@@ -145,7 +147,7 @@ export async function fetchWorldNews(topic?: string, skip = 0, take = DEFAULT_PA
 }
 
 export async function fetchNationalNews(category = "National", skip = 0, take = DEFAULT_PAGE_SIZE): Promise<NewsArticle[]> {
-  return cachedFetch(`national:${category}:${skip}:${take}`, async () => {
+  return staleWhileRevalidate(`national:${category}:${skip}:${take}`, async () => {
     const articles = await db.article.findMany({ where: { published: true, status: "PUBLISHED", categories: { some: { name: category } } }, orderBy: { publishedAt: "desc" }, include: { author: true, categories: true }, skip, take });
     return articles.map(mapPrismaArticle);
   }, TTL.feed);
