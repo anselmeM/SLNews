@@ -2,6 +2,8 @@
 
 A phased, month-by-month execution plan to prepare, package, test, and publicly launch **SLNews** in Sierra Leone in **January 2027**, supported by Google Play distribution and Facebook Ads.
 
+> **Status (reconciled 2026-09-15):** Milestone 1 is reconciled against the code shipped on `master` (PR #54). Checked items are implemented and verified; the four unchecked items (ArticleRead, feed-card WhatsApp share, news-route SWR, health warm-up ping) remain open work.
+
 ---
 
 ## Executive Summary & Market Strategy
@@ -33,31 +35,31 @@ A phased, month-by-month execution plan to prepare, package, test, and publicly 
 **Focus:** Prepare the codebase for high-volume, low-bandwidth mobile traffic and accurate ad tracking.
 
 #### 1. Meta (Facebook) Tracking Infrastructure
-- [ ] Add Meta Pixel component in `src/app/layout.tsx` gated by `NEXT_PUBLIC_FACEBOOK_PIXEL_ID`.
+- [x] Add Meta Pixel component in `src/app/layout.tsx` gated by `NEXT_PUBLIC_FACEBOOK_PIXEL_ID`.
 - [ ] Implement tracking for essential funnel events:
-  - `PageView`: Tracks every screen navigation.
-  - `ViewContent`: Fired when a full article is opened.
+  - [x] `PageView`: Tracks every screen navigation.
+  - [x] `ViewContent`: Fired when a full article is opened.
   - `ArticleRead`: Fired after a user scrolls past 60% or reads for >30 seconds.
-  - `InstallPromptClicked`: Fired when the PWA install button or modal is triggered.
-  - `ShareWhatsApp`: Fired when an article is shared to WhatsApp.
+  - [x] `InstallPromptClicked`: Fired when the PWA install button or modal is triggered (shipped as the custom event `AppInstallPrompt` in `src/hooks/usePWAInstall.ts`).
+  - [x] `ShareWhatsApp`: Fired when an article is shared to WhatsApp (shipped as the standard `Share` event with `method: "whatsapp"` in `src/components/ArticleActions.tsx`).
 
 #### 2. WhatsApp 1-Tap Virality Engine
 - [ ] Add an explicit green WhatsApp sharing button in `src/components/ArticleActions.tsx` and article feed items.
-- [ ] Pre-format share messages to maximize click-throughs in WhatsApp chats:
+- [x] Pre-format share messages to maximize click-throughs in WhatsApp chats:
   `👉 [Headline] - Read the full story on SLNews: https://[domain]/article/[id]?utm_source=whatsapp`
 
 #### 3. Low-Bandwidth & Offline Resilience
-- [ ] Create a dedicated `/offline` page displaying cached articles and a friendly network status badge.
-- [ ] Update `public/sw.js` navigation handling to gracefully serve the `/offline` fallback instead of a browser network error when connection drops.
-- [ ] Verify image compression (ensure Sharp serves compressed WebP/AVIF images to reduce user data consumption on Africell and Orange SL).
+- [x] Create a dedicated `/offline` page displaying cached articles and a friendly network status badge.
+- [x] Update `public/sw.js` navigation handling to gracefully serve the `/offline` fallback instead of a browser network error when connection drops.
+- [x] Verify image compression (ensure Sharp serves compressed WebP/AVIF images to reduce user data consumption on Africell and Orange SL). *(Sharp is installed and Next.js serves WebP by default; explicit AVIF is not enabled in `next.config.ts`.)*
 
 #### 4. Neon DB Cold-Start Prevention
 - [ ] Configure `stale-while-revalidate` caching on top news routes to load instant cached content at the edge.
 - [ ] Set up an automated ping service (e.g., BetterStack, UptimeRobot, or GitHub Actions cron) pinging `/api/health` every 5 minutes during West African hours (06:00 – 23:00 GMT) to keep Neon Postgres warm.
 
 #### 5. Upstream Scraper Health
-- [ ] Verify scheduled syncs with `SLNewsAPIScapper` pinned to `/api/news`.
-- [ ] Confirm automated error logging and alerting if upstream feeds fail.
+- [x] Verify scheduled syncs with `SLNewsAPIScapper` pinned to `/api/news`.
+- [x] Confirm automated error logging and alerting if upstream feeds fail. *(Sentry is wired via `withSentryConfig` and `src/instrumentation.ts`; sync failures are logged and returned as structured errors.)*
 
 ---
 
