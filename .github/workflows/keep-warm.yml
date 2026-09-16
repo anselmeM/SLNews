@@ -2,21 +2,23 @@ name: Keep-warm ping
 
 # Pings the production health endpoint every 5 minutes during West African
 # hours (06:00-23:00 GMT) so the Neon Postgres compute never cold-starts for
-# the first reader of the day. Overridable via the PRODUCTION_URL repo variable.
+# the first reader of the day.
+#
+# The schedule is skipped until the `PRODUCTION_URL` repository variable is set
+# (Settings -> Secrets and variables -> Actions -> Variables), so it never fails
+# against a placeholder host. Use workflow_dispatch to run it manually.
 on:
   schedule:
     - cron: "*/5 6-23 * * *"
   workflow_dispatch:
 
-env:
-  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://slnews.sl' }}
-
 jobs:
   ping:
+    if: ${{ vars.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Ping /api/health
         run: |
-          curl -fsS --max-time 20 --retry 2 "$PRODUCTION_URL/api/health" \
+          curl -fsS --max-time 20 --retry 2 "${{ vars.PRODUCTION_URL }}/api/health" \
             && echo "Warm-up ping OK" \
             || (echo "Warm-up ping failed" >&2 && exit 1)
