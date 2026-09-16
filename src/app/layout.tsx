@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { auth } from "@/auth";
 import { AdSenseScript } from "@/components/AdSense";
+import CampaignAttributionTracker from "@/components/CampaignAttributionTracker";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import MetaPixel from "@/components/MetaPixel";
 import PageViewTracker from "@/components/PageViewTracker";
@@ -116,6 +117,7 @@ export default async function RootLayout({
           <Suspense fallback={null}>
             <PageViewTracker />
             <MetaPixel />
+            <CampaignAttributionTracker />
           </Suspense>
           <AppLayoutWrapper session={session}>
             {children}
