@@ -27,6 +27,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Fail the gate on high/critical advisories in production dependencies
+      # (dev-only advisories are reported by `npm audit` but do not ship).
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run lint
 
   test:
