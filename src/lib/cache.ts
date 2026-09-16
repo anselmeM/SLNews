@@ -39,6 +39,43 @@ export function cachedFetch<T>(
     });
 }
 
+/**
+ * Stale-while-revalidate read: returns the cached value immediately — even once
+ * it has passed its TTL — and refreshes it in the background, so top news
+ * routes keep serving instant cached content instead of blocking the reader on
+ * a database round-trip. The very first call for a key has nothing to serve, so
+ * it awaits the fetcher.
+ */
+export function staleWhileRevalidate<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlSeconds: number
+): Promise<T> {
+  const entry = store.get(key) as CacheEntry<T> | undefined;
+
+  if (entry && Date.now() < entry.expiresAt) {
+    prune();
+    return Promise.resolve(entry.data);
+  }
+
+  if (entry) {
+    prune();
+    // Serve the stale value now and revalidate in the background.
+    void fetcher()
+      .then((data) => setEntry(key, data, ttlSeconds))
+      .catch(() => {
+        // Keep serving the stale value if the background refresh fails.
+      });
+    return Promise.resolve(entry.data);
+  }
+
+  prune();
+  return fetcher().then((data) => {
+    setEntry(key, data, ttlSeconds);
+    return data;
+  });
+}
+
 export function invalidate(pattern?: string) {
   if (!pattern) { store.clear(); return; }
   for (const key of store.keys()) {

@@ -4,6 +4,7 @@ import { m } from "framer-motion";
 import Link from "next/link";
 import ArticleImage from "./ArticleImage";
 import BookmarkButton from "./BookmarkButton";
+import WhatsAppShareButton from "./WhatsAppShareButton";
 import { formatArticleDate } from "@/lib/format-date";
 import type { NewsArticle } from "@/lib/news-service";
 import { calculateReadingTime } from "@/lib/reading-time";
@@ -48,7 +49,7 @@ export default function ArticleCard({ article }: { article: NewsArticle }) {
           <h3 className="font-headline-sm text-base sm:text-lg leading-snug font-bold mb-1.5 group-hover:text-primary transition-colors duration-200 text-on-surface pr-8 line-clamp-2">
             {article.title}
           </h3>
-          <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-xs">
+          <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-xs pr-28">
             <span className="truncate max-w-[120px] sm:max-w-[160px] md:max-w-[200px] font-medium">{article.source || "News"}</span>
             <span>•</span>
             <span>
@@ -60,6 +61,7 @@ export default function ArticleCard({ article }: { article: NewsArticle }) {
         </div>
       </Link>
       
+      <WhatsAppShareButton article={article} />
       <BookmarkButton article={article} variant="card" />
     </m.article>
   );
