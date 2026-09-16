@@ -14,6 +14,7 @@ import { getFollowState } from "@/app/actions/follow-actions";
 import { auth } from "@/auth";
 import { AdSlot } from "@/components/AdSense";
 import ArticleCard from "@/components/ArticleCard";
+import ArticleReadTracker from "@/components/ArticleReadTracker";
 import FollowButton from "@/components/FollowButton";
 import ListenButton from "@/components/ListenButton";
 import ReactionButtons from "@/components/ReactionButtons";
@@ -234,6 +235,7 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
 
       <CommentSection articleId={article.id} />
       <TrackArticleView article={article} />
+      <ArticleReadTracker article={article} />
 
       {/* Sticky bottom bar for quick actions */}
       <StickyActions article={article} />
