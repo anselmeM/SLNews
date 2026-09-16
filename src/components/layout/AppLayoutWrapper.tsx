@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import BottomNavBar from "./BottomNavBar";
@@ -7,17 +8,23 @@ import MotionProvider from "./MotionProvider";
 import TopAppBar from "./TopAppBar";
 import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
 import type { AppSession } from "@/auth";
-import AudioPlayerBar from "@/components/AudioPlayerBar";
-import BackToTop from "@/components/BackToTop";
-import AuthGateModal from "@/components/gates/AuthGateModal";
-import InstallBanner from "@/components/InstallBanner";
-import InstallModal from "@/components/InstallModal";
 import EdgeSwipeBack from "@/components/navigation/EdgeSwipeBack";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
-import PostReadInstallSheet from "@/components/pwa/PostReadInstallSheet";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
 import { useAppStore } from "@/store/useAppStore";
+
+// Non-critical widgets that sit below the fold or stay hidden until interaction.
+// Loading them client-side keeps them out of the first-load bundle so the shell
+// becomes interactive sooner.
+const AudioPlayerBar = dynamic(() => import("@/components/AudioPlayerBar"), { ssr: false });
+const BackToTop = dynamic(() => import("@/components/BackToTop"), { ssr: false });
+const AuthGateModal = dynamic(() => import("@/components/gates/AuthGateModal"), { ssr: false });
+const InstallBanner = dynamic(() => import("@/components/InstallBanner"), { ssr: false });
+const InstallModal = dynamic(() => import("@/components/InstallModal"), { ssr: false });
+const PostReadInstallSheet = dynamic(() => import("@/components/pwa/PostReadInstallSheet"), {
+  ssr: false,
+});
 
 export default function AppLayoutWrapper({
   children,
