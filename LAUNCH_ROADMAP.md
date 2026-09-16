@@ -36,15 +36,15 @@ A phased, month-by-month execution plan to prepare, package, test, and publicly 
 
 #### 1. Meta (Facebook) Tracking Infrastructure
 - [x] Add Meta Pixel component in `src/app/layout.tsx` gated by `NEXT_PUBLIC_FACEBOOK_PIXEL_ID`.
-- [ ] Implement tracking for essential funnel events:
+- [x] Implement tracking for essential funnel events:
   - [x] `PageView`: Tracks every screen navigation.
   - [x] `ViewContent`: Fired when a full article is opened.
-  - `ArticleRead`: Fired after a user scrolls past 60% or reads for >30 seconds.
+  - [x] `ArticleRead`: Fired after a user scrolls past 60% or reads for >30 seconds.
   - [x] `InstallPromptClicked`: Fired when the PWA install button or modal is triggered (shipped as the custom event `AppInstallPrompt` in `src/hooks/usePWAInstall.ts`).
   - [x] `ShareWhatsApp`: Fired when an article is shared to WhatsApp (shipped as the standard `Share` event with `method: "whatsapp"` in `src/components/ArticleActions.tsx`).
 
 #### 2. WhatsApp 1-Tap Virality Engine
-- [ ] Add an explicit green WhatsApp sharing button in `src/components/ArticleActions.tsx` and article feed items.
+- [x] Add an explicit green WhatsApp sharing button in `src/components/ArticleActions.tsx` and article feed items.
 - [x] Pre-format share messages to maximize click-throughs in WhatsApp chats:
   `👉 [Headline] - Read the full story on SLNews: https://[domain]/article/[id]?utm_source=whatsapp`
 
@@ -54,8 +54,8 @@ A phased, month-by-month execution plan to prepare, package, test, and publicly 
 - [x] Verify image compression (ensure Sharp serves compressed WebP/AVIF images to reduce user data consumption on Africell and Orange SL). *(Sharp is installed and Next.js serves WebP by default; explicit AVIF is not enabled in `next.config.ts`.)*
 
 #### 4. Neon DB Cold-Start Prevention
-- [ ] Configure `stale-while-revalidate` caching on top news routes to load instant cached content at the edge.
-- [ ] Set up an automated ping service (e.g., BetterStack, UptimeRobot, or GitHub Actions cron) pinging `/api/health` every 5 minutes during West African hours (06:00 – 23:00 GMT) to keep Neon Postgres warm.
+- [x] Configure `stale-while-revalidate` caching on top news routes to load instant cached content at the edge.
+- [x] Set up an automated ping service (e.g., BetterStack, UptimeRobot, or GitHub Actions cron) pinging `/api/health` every 5 minutes during West African hours (06:00 – 23:00 GMT) to keep Neon Postgres warm.
 
 #### 5. Upstream Scraper Health
 - [x] Verify scheduled syncs with `SLNewsAPIScapper` pinned to `/api/news`.
