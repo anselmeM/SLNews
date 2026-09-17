@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { buildPersonalizedDigest, type PersonalizedDigest } from "@/lib/digest-generator";
-import { fetchMixedHomeFeed } from "@/lib/news-service";
+import { fetchMixedHomeFeed, HOME_FEED_SIZE } from "@/lib/news-service";
 
 export async function getPersonalizedDigest(): Promise<PersonalizedDigest> {
   const session = await auth();
@@ -25,7 +25,8 @@ export async function getPersonalizedDigest(): Promise<PersonalizedDigest> {
 
   let articles: Awaited<ReturnType<typeof fetchMixedHomeFeed>> = [];
   try {
-    articles = await fetchMixedHomeFeed(30);
+    // Same size as the home feed so both share one coalesced query.
+    articles = await fetchMixedHomeFeed(HOME_FEED_SIZE);
   } catch {
     articles = [];
   }

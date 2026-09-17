@@ -1,15 +1,15 @@
 name: Keep-warm ping
 
-# Pings the production health endpoint every 5 minutes during West African
-# hours (06:00-23:00 GMT) so the Neon Postgres compute never cold-starts for
-# the first reader of the day.
+# Pings the production health endpoint every 5 minutes, around the clock, so the
+# serverless function and the Neon Postgres compute never cold-start (a cold
+# first request to `/` was measured at ~6s TTFB).
 #
 # The schedule is skipped until the `PRODUCTION_URL` repository variable is set
-# (Settings -> Secrets and variables -> Actions -> Variables), so it never fails
-# against a placeholder host. Use workflow_dispatch to run it manually.
+# (Settings -> Secrets and variables -> Actions -> Variables). Use
+# workflow_dispatch to run it manually.
 on:
   schedule:
-    - cron: "*/5 6-23 * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:

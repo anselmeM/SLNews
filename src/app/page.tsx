@@ -10,7 +10,7 @@ import LatestStories from "@/components/LatestStories";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { ShimmerFeed } from "@/components/Shimmer";
 import WelcomeBanner from "@/components/WelcomeBanner";
-import { fetchMixedHomeFeed, type NewsArticle } from "@/lib/news-service";
+import { fetchMixedHomeFeed, HOME_FEED_SIZE, type NewsArticle } from "@/lib/news-service";
 import { siteUrl } from "@/lib/site-url";
 
 const organizationJsonLd = {
@@ -61,7 +61,9 @@ function BriefingHeroSkeleton() {
 async function HomeContent() {
   let fallbackArticles: NewsArticle[] = [];
   try {
-    fallbackArticles = await fetchMixedHomeFeed(PAGE_SIZE + 1);
+    // Read the same feed the digest uses (one shared, coalesced query) and trim
+    // to the first page.
+    fallbackArticles = (await fetchMixedHomeFeed(HOME_FEED_SIZE)).slice(0, PAGE_SIZE + 1);
   } catch {
     fallbackArticles = [];
   }
