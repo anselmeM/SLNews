@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { isOwnerOrAdminEmail } from "@/lib/auth-callbacks";
 import { db } from "@/lib/db";
+import { reportError } from "@/lib/error-reporting";
 
 export interface SessionUser {
   id: string;
@@ -78,7 +79,11 @@ export async function auth(): Promise<AppSession | null> {
         role: "USER",
       },
     };
-  } catch {
+  } catch (err) {
+    // Never swallow silently. If the Clerk session lookup (e.g. a secret-key or
+    // instance mismatch) or the Neon upsert fails, a signed-in user silently
+    // appears signed out — the most confusing auth failure to debug.
+    reportError(err, { where: "auth()" });
     return null;
   }
 }

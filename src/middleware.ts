@@ -10,7 +10,11 @@ const hasClerkKeys = Boolean(
 const clerkHandler = hasClerkKeys
   ? clerkMiddleware(async (auth, req) => {
       if (isProtectedRoute(req)) {
-        await auth.protect();
+        // Without an explicit URL, protect() has no sign-in page configured and
+        // returns a bare 404 for signed-out users instead of sending them to log
+        // in (see Clerk: "protect() in middleware redirects to signInUrl if signed
+        // out" — it 404s when that URL is unset).
+        await auth.protect({ unauthenticatedUrl: new URL("/sign-in", req.url).toString() });
       }
 
       if (req.nextUrl.pathname === "/home") {
