@@ -37,6 +37,27 @@ export const metadata: Metadata = {
 
 const PAGE_SIZE = 10;
 
+// The briefing digest awaits auth() and the database. Keep it behind Suspense so
+// the page shell (nav + first feed paint) streams immediately instead of
+// blocking every render on the digest query.
+async function BriefingHeroSection() {
+  const digest = await getPersonalizedDigest();
+  return <HomeBriefingHero digest={digest} />;
+}
+
+function BriefingHeroSkeleton() {
+  return (
+    <section
+      aria-hidden
+      className="bg-surface-container-lowest border border-outline-variant/60 rounded-3xl p-5 sm:p-7 shadow-sm mb-8"
+    >
+      <div className="h-4 w-32 rounded-full bg-surface-container-high animate-pulse mb-3" />
+      <div className="h-8 w-52 rounded-lg bg-surface-container-high animate-pulse mb-2" />
+      <div className="h-3 w-24 rounded-full bg-surface-container-high animate-pulse" />
+    </section>
+  );
+}
+
 async function HomeContent() {
   let fallbackArticles: NewsArticle[] = [];
   try {
@@ -50,16 +71,16 @@ async function HomeContent() {
   return <HomeFeed fallbackArticles={fallbackArticles} />;
 }
 
-export default async function FrontPage() {
-  const digest = await getPersonalizedDigest();
-
+export default function FrontPage() {
   return (
     <div className="max-w-3xl mx-auto w-full pt-2">
       {/* Welcome & First-time visitor banner */}
       <WelcomeBanner />
 
       {/* Personalized Executive Briefing Hero Card */}
-      <HomeBriefingHero digest={digest} />
+      <Suspense fallback={<BriefingHeroSkeleton />}>
+        <BriefingHeroSection />
+      </Suspense>
 
       <Suspense fallback={null}>
         <LatestStories />
