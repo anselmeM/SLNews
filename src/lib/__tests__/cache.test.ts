@@ -19,6 +19,21 @@ describe("cache helpers", () => {
       await expect(cachedFetch("cf1", fetcher, 30)).resolves.toBe("value");
       expect(fetcher).toHaveBeenCalledTimes(1);
     });
+
+    it("coalesces concurrent calls for the same key into one fetch", async () => {
+      let resolveFetch!: (value: string) => void;
+      const fetcher = vi.fn(
+        () => new Promise<string>((resolve) => { resolveFetch = resolve; })
+      );
+
+      const first = cachedFetch("cf-coalesce", fetcher, 30);
+      const second = cachedFetch("cf-coalesce", fetcher, 30);
+      expect(fetcher).toHaveBeenCalledTimes(1);
+
+      resolveFetch("shared");
+      await expect(Promise.all([first, second])).resolves.toEqual(["shared", "shared"]);
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("staleWhileRevalidate", () => {
@@ -26,6 +41,22 @@ describe("cache helpers", () => {
       const fetcher = vi.fn().mockResolvedValue("v1");
       await expect(staleWhileRevalidate("swr1", fetcher, 30)).resolves.toBe("v1");
       await expect(staleWhileRevalidate("swr1", fetcher, 30)).resolves.toBe("v1");
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    });
+
+    it("coalesces concurrent misses into one fetch", async () => {
+      let resolveFetch!: (value: string) => void;
+      const fetcher = vi.fn(
+        () => new Promise<string>((resolve) => { resolveFetch = resolve; })
+      );
+
+      const first = staleWhileRevalidate("swr-coalesce", fetcher, 30);
+      const second = staleWhileRevalidate("swr-coalesce", fetcher, 30);
+      expect(fetcher).toHaveBeenCalledTimes(1);
+
+      resolveFetch("shared");
+      await expect(first).resolves.toBe("shared");
+      await expect(second).resolves.toBe("shared");
       expect(fetcher).toHaveBeenCalledTimes(1);
     });
 

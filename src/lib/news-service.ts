@@ -47,6 +47,9 @@ export function mapPrismaArticle(article: ArticleWithRelations): NewsArticle {
 }
 
 const DEFAULT_PAGE_SIZE = 10;
+// The home page and its briefing digest both read this many feed articles, so
+// they share one cached query per render instead of issuing two.
+export const HOME_FEED_SIZE = 30;
 const TTL = { feed: 30, single: 60 };
 // Sierra Leone news feed categories. "Local" and "National" were merged into
 // a single "National" tag — they drive the national feed.
