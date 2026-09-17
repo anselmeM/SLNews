@@ -80,10 +80,14 @@ export async function auth(): Promise<AppSession | null> {
       },
     };
   } catch (err) {
-    // Never swallow silently. If the Clerk session lookup (e.g. a secret-key or
-    // instance mismatch) or the Neon upsert fails, a signed-in user silently
-    // appears signed out — the most confusing auth failure to debug.
-    reportError(err, { where: "auth()" });
+    // Next throws a "Dynamic server usage" error as a control-flow signal to
+    // opt a route out of static rendering — that is not a real failure, so don't
+    // report it. Anything else (a Clerk session-lookup or Neon upsert failure)
+    // means a signed-in user silently appears signed out, so surface it.
+    const message = err instanceof Error ? err.message : String(err);
+    if (!message.includes("Dynamic server usage")) {
+      reportError(err, { where: "auth()" });
+    }
     return null;
   }
 }
