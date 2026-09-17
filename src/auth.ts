@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { isOwnerOrAdminEmail } from "@/lib/auth-callbacks";
 import { db } from "@/lib/db";
+import { reportError } from "@/lib/error-reporting";
 
 export interface SessionUser {
   id: string;
@@ -78,7 +79,15 @@ export async function auth(): Promise<AppSession | null> {
         role: "USER",
       },
     };
-  } catch {
+  } catch (err) {
+    // Next throws a "Dynamic server usage" error as a control-flow signal to
+    // opt a route out of static rendering — that is not a real failure, so don't
+    // report it. Anything else (a Clerk session-lookup or Neon upsert failure)
+    // means a signed-in user silently appears signed out, so surface it.
+    const message = err instanceof Error ? err.message : String(err);
+    if (!message.includes("Dynamic server usage")) {
+      reportError(err, { where: "auth()" });
+    }
     return null;
   }
 }
