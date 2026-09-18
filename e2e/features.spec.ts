@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 test.describe("Market actions", () => {
   test("market page shows alert and report actions", async ({ page }) => {
@@ -26,26 +26,34 @@ test.describe("Market actions", () => {
 });
 
 test.describe("Contributor following", () => {
-  test("author page shows follow control", async ({ page }) => {
-    await page.goto("/home");
-    const articleLink = page.locator('a[href^="/article/"]').first();
-    await expect(articleLink).toBeVisible();
-    await articleLink.click();
-    await expect(page).toHaveURL(/\/article\//);
+  // The home page streams several sections (briefing, latest, editors' picks,
+  // feed). Locating and clicking a link straight away races that stream: under
+  // CI load the "first" article link can be replaced mid-click, so the
+  // navigation never commits. Go to "/" (not "/home", which just redirects),
+  // let the stream settle, then click and wait for the navigation explicitly.
+  async function openFirstArticle(page: Page) {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    const articleLink = page.locator('main a[href^="/article/"]').first();
+    await articleLink.scrollIntoViewIfNeeded();
+    await Promise.all([page.waitForURL(/\/article\//), articleLink.click()]);
+  }
 
-    const authorLink = page.locator('a[href^="/author/"]').first();
-    await expect(authorLink).toBeVisible();
-    await authorLink.click();
-    await expect(page).toHaveURL(/\/author\//);
+  async function openFirstAuthor(page: Page) {
+    const authorLink = page.locator('main a[href^="/author/"]').first();
+    await authorLink.scrollIntoViewIfNeeded();
+    await Promise.all([page.waitForURL(/\/author\//), authorLink.click()]);
+  }
+
+  test("author page shows follow control", async ({ page }) => {
+    await openFirstArticle(page);
+    await openFirstAuthor(page);
     await expect(page.getByRole("button", { name: /Follow/ })).toBeVisible();
   });
 
   test("signed-out users are redirected to login when following", async ({ page }) => {
-    await page.goto("/home");
-    const articleLink = page.locator('a[href^="/article/"]').first();
-    await articleLink.click();
-    const authorLink = page.locator('a[href^="/author/"]').first();
-    await authorLink.click();
+    await openFirstArticle(page);
+    await openFirstAuthor(page);
     await page.getByRole("button", { name: /Follow/ }).click();
     await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
