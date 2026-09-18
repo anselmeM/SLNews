@@ -56,3 +56,6 @@ next-env.d.ts
 
 .reasonix/
 reasonix.toml
+
+# markdown docs — kept on disk but not tracked in the repo
+*.md
