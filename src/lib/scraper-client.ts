@@ -1,8 +1,9 @@
 // Typed client for the Sierra Leone news scraper API (Render).
 //
-// Designed to be the app's "customer #1" integration: it targets a versioned
-// `GET /v1/news` endpoint (the future business API contract) and falls back to
-// the legacy `GET /api/news` until /v1 is deployed on the Render service.
+// The app is "customer #1" and consumes the LEGACY full-text endpoint
+// `GET /api/news`. It must NOT move to the versioned `GET /v1/news` business
+// contract: that payload is metadata-only — no `link`, no `paragraphs` — so the
+// sync would silently skip every article.
 //
 // Error mapping (kept stable for the sync action):
 //   - SCRAPER_API_KEY missing        -> Error("SCRAPER_API_KEY is not set")
@@ -74,46 +75,32 @@ function normalizeVideoPayload(json: unknown): ScraperVideo[] {
 }
 
 /**
- * Fetch the latest scraped articles. Tries the versioned `/v1/news` endpoint
- * first; a 404 means the version isn't deployed yet, so it falls back to the
- * legacy `/api/news`. Any other non-OK status (e.g. 401) is a real error.
+ * Fetch the latest scraped articles from the legacy full-text endpoint.
+ *
+ * Pinned to `/api/news` on purpose (see the file header): the app needs `link`
+ * and `paragraphs`, which `/v1/news` does not provide. Every non-OK status
+ * (401, 404, …) is therefore a real error, not a signal to try another route.
  */
 export async function fetchScraperNews(): Promise<ScraperArticle[]> {
   const key = apiKey();
-  const base = baseUrl();
-  // The app is the full-text consumer: it reads `link`/`paragraphs`/`pubDate`
-  // from the legacy endpoint. `/v1/news` is the metadata-only business contract
-  // for future paying customers — the app must NOT switch to it, or the sync
-  // would skip every article (no `link`, no full text).
-  const urls = [`${base}/api/news`];
+  const url = `${baseUrl()}/api/news`;
 
-  let lastError: unknown;
-  for (const url of urls) {
-    let res: Response;
-    try {
-      res = await fetch(url, {
-        cache: "no-store",
-        headers: { Authorization: `Bearer ${key}` },
-      });
-    } catch (err) {
-      lastError = new ScraperUnreachableError();
-      void err;
-      continue;
-    }
-
-    if (res.status === 404) {
-      // Version not deployed yet — try the legacy endpoint.
-      lastError = new Error(`Scraper responded 404`);
-      continue;
-    }
-    if (!res.ok) {
-      throw new Error(`Scraper responded ${res.status}`);
-    }
-
-    return normalizePayload(await res.json());
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${key}` },
+    });
+  } catch (err) {
+    void err;
+    throw new ScraperUnreachableError();
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Scraper unreachable");
+  if (!res.ok) {
+    throw new Error(`Scraper responded ${res.status}`);
+  }
+
+  return normalizePayload(await res.json());
 }
 
 /**
