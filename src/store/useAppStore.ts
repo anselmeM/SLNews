@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { NewsArticle } from '@/lib/news-service';
+import { browserStorage } from '@/lib/persist-storage';
 
 type Theme = "light" | "dark" | "system";
 export type FontSize = "normal" | "large" | "xlarge";
@@ -161,7 +162,7 @@ export const useAppStore = create<AppState>()(
         }
         return persistedState as AppState;
       },
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(browserStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
           applyTheme(state.theme);
