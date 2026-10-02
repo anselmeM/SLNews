@@ -2,11 +2,37 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+// The suite runs as two vitest projects, split by environment.
+//
+// Running every file under jsdom was the dominant cost: jsdom setup accounted
+// for the majority of the suite's runtime (environment + setup) even though only
+// the component tests actually need a DOM. Logic-only files are far cheaper
+// under the `node` environment, and jsdom worker startup was also the flakiest
+// part of the run.
+//
+// These three `*.test.ts` files are the only non-component tests that touch DOM
+// globals (document / window / localStorage / navigator / matchMedia). Every
+// other `.test.ts` runs in the `unit` project, and every `.test.tsx` is a
+// component test and stays in `dom`.
+const DOM_TESTS = [
+  "src/lib/__tests__/meta-pixel.test.ts",
+  "src/lib/__tests__/pwa-install.test.ts",
+  "src/lib/__tests__/theme.test.ts",
+];
+
+// Project configs are isolated: the React plugin and the `@` alias are NOT
+// inherited from the root config, so each project must declare its own.
+const shared = {
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+};
+
+export default defineConfig({
   test: {
-    environment: "jsdom",
-    setupFiles: ["./vitest.setup.ts"],
     globals: true,
     exclude: ["e2e/**", "node_modules/**"],
     pool: "threads",
@@ -15,10 +41,30 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
     },
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    projects: [
+      {
+        ...shared,
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          globals: true,
+          setupFiles: ["./vitest.setup.ts"],
+          include: ["src/**/*.test.tsx", ...DOM_TESTS],
+        },
+      },
+      {
+        ...shared,
+        test: {
+          name: "unit",
+          environment: "node",
+          globals: true,
+          // Deliberately no `setupFiles`: nothing here needs the DOM shims or
+          // module mocks that `vitest.setup.ts` installs, and loading them would
+          // drag the jsdom-sized startup cost back in.
+          include: ["src/**/*.test.ts"],
+          exclude: ["e2e/**", "node_modules/**", ...DOM_TESTS],
+        },
+      },
+    ],
   },
 });
