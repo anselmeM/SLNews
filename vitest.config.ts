@@ -40,6 +40,23 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary", "lcov"],
+      // A ratchet, set ~1 point below the measured baseline so the existing CI
+      // coverage step can actually fail — previously it always exited 0, so
+      // coverage could regress silently.
+      //
+      // Measured on master when these were set (2026-10-03):
+      //   statements 65.33 | branches 54.6 | functions 63.92 | lines 67.2
+      //
+      // The ~1 point of headroom is deliberate: deleting tests, breaking
+      // coverage collection, or dropping a large covered module fails the gate,
+      // while ordinary incremental work does not. Tighten toward the measured
+      // values if you'd rather every untested addition fail CI.
+      thresholds: {
+        statements: 64,
+        branches: 53,
+        functions: 63,
+        lines: 66,
+      },
     },
     projects: [
       {
