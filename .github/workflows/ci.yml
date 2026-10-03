@@ -17,14 +17,20 @@ env:
   NEXTAUTH_SECRET: "ci-test-secret-not-for-production"
   NEXTAUTH_URL: "http://localhost:3000"
 
+# Every job resolves Node from `engines.node` in package.json
+# (`node-version-file`), NOT from a hard-coded version. That field is also what
+# Vercel reads to pick the runtime, so CI and production are guaranteed to run
+# the same major — previously CI pinned 20 while the repo declared 22 in .nvmrc
+# and production used Vercel's default, so the gate was testing a version nobody
+# shipped. `.nvmrc` stays for nvm/fnm users and must be kept in step.
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: package.json
           cache: npm
       - run: npm ci
       # Fail the gate on high/critical advisories in production dependencies
@@ -36,10 +42,10 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: package.json
           cache: npm
       - run: npm ci
       - run: npx prisma generate
@@ -61,10 +67,10 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: package.json
           cache: npm
       - run: npm ci
       - run: npx prisma generate
@@ -73,10 +79,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: package.json
           cache: npm
       - run: npm ci
       - run: npx prisma generate
@@ -100,10 +106,10 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version-file: package.json
           cache: npm
       - run: npm ci
       - run: npx prisma generate
