@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { browserStorage } from "@/lib/persist-storage";
 
 export type NotificationType = "breaking" | "briefing" | "market" | "announcement" | "system";
 
@@ -93,6 +94,7 @@ export const useNotificationStore = create<NotificationState>()(
     {
       name: "slnews-notifications-storage",
       skipHydration: true,
+      storage: createJSONStorage(browserStorage),
     }
   )
 );
