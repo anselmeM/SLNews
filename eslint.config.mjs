@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "scripts/**",
     "prisma/**",
+    // Local agent scratch (gitignored): linting it only produced noise, and
+    // `scripts/**` above is ignored for the same reason.
+    ".reasonix/**",
   ]),
 ]);
 
