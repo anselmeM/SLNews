@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/profile(.*)"]);
 
@@ -30,7 +31,13 @@ export default async function middleware(req: NextRequest, evt: NextFetchEvent) 
     try {
       return await clerkHandler(req, evt);
     } catch (err) {
-      console.error("[Middleware] Clerk invocation failed:", err);
+      // Middleware runs on the edge runtime, and this catch is the last line of
+      // defence before a request is served unauthenticated — so log it
+      // structurally rather than pulling the Sentry SDK into the edge bundle.
+      logger.error("Clerk middleware invocation failed", {
+        error: err instanceof Error ? err.message : String(err),
+        path: req.nextUrl.pathname,
+      });
     }
   }
 

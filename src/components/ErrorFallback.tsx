@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { reportError } from "@/lib/error-reporting";
 
 export default function ErrorFallback({
   error,
@@ -11,7 +12,9 @@ export default function ErrorFallback({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    // These error boundaries previously only reached the browser console, so
+    // unhandled render errors were invisible in production.
+    reportError(error, { where: "ErrorFallback", digest: error?.digest });
   }, [error]);
 
   return (

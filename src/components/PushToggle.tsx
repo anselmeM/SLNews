@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/Toast";
+import { reportError } from "@/lib/error-reporting";
 import { vibrate } from "@/lib/haptics";
 
 function urlB64ToUint8Array(base64String: string) {
@@ -84,7 +85,10 @@ export default function PushToggle() {
         }
       }
     } catch (err) {
-      console.error("Push toggle error:", err);
+      // Thrown errors here are unexpected (network / service worker). Permission
+      // denial returns false and is handled by the branch above, so this is not
+      // the noisy path.
+      reportError(err, { where: "PushToggle" });
       toast("Could not update notification preferences", "error");
     } finally {
       setLoading(false);

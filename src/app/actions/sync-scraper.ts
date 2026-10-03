@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { invalidate } from "@/lib/cache";
 import { normalizeCategory } from "@/lib/category-constants";
 import { db } from "@/lib/db";
+import { reportError } from "@/lib/error-reporting";
 import { fetchScraperNews, ScraperUnreachableError, type ScraperArticle } from "@/lib/scraper-client";
 
 async function getBotUser() {
@@ -187,7 +188,7 @@ export async function syncFromScraper() {
 
     return { success: true, count: totalCount };
   } catch (error: unknown) {
-    console.error("Scraper ingestion error:", error);
+    reportError(error, { where: "syncFromScraper" });
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
