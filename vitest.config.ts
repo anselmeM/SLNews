@@ -10,7 +10,7 @@ import { defineConfig } from "vitest/config";
 // under the `node` environment, and jsdom worker startup was also the flakiest
 // part of the run.
 //
-// These three `*.test.ts` files are the only non-component tests that touch DOM
+// These four `*.test.ts` files are the only non-component tests that touch DOM
 // globals (document / window / localStorage / navigator / matchMedia). Every
 // other `.test.ts` runs in the `unit` project, and every `.test.tsx` is a
 // component test and stays in `dom`.
@@ -18,6 +18,7 @@ const DOM_TESTS = [
   "src/lib/__tests__/meta-pixel.test.ts",
   "src/lib/__tests__/pwa-install.test.ts",
   "src/lib/__tests__/theme.test.ts",
+  "src/store/__tests__/useAppStore.test.ts",
 ];
 
 // Project configs are isolated: the React plugin and the `@` alias are NOT
@@ -44,18 +45,22 @@ export default defineConfig({
       // coverage step can actually fail — previously it always exited 0, so
       // coverage could regress silently.
       //
-      // Measured on master when these were set (2026-10-03):
-      //   statements 65.33 | branches 54.6 | functions 63.92 | lines 67.2
+      // Measured on master (2026-10-03):
+      //   statements 67.96 | branches 55.69 | functions 69.73 | lines 69.75
+      //
+      // Raised from 64/53/63/66 when the useAppStore tests landed, which took
+      // that module from 14.28% to 97.14% statements. Ratchet up when coverage
+      // improves, or the gain can regress unnoticed.
       //
       // The ~1 point of headroom is deliberate: deleting tests, breaking
       // coverage collection, or dropping a large covered module fails the gate,
       // while ordinary incremental work does not. Tighten toward the measured
       // values if you'd rather every untested addition fail CI.
       thresholds: {
-        statements: 64,
-        branches: 53,
-        functions: 63,
-        lines: 66,
+        statements: 66,
+        branches: 54,
+        functions: 68,
+        lines: 68,
       },
     },
     projects: [
