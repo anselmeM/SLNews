@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
+import { logger } from '@/lib/logger';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
@@ -27,7 +28,9 @@ const pool =
   });
 
 pool.on("error", (err) => {
-  console.error("pg pool unexpected error:", err.message);
+  // Deliberately `logger`, not `reportError`: `db.ts` sits in the module graph of
+  // many tests and services, and it does not need the Sentry SDK pulled in.
+  logger.error("pg pool unexpected error", { error: err.message });
 });
 
 // Retry helper for Neon cold-start connection timeouts

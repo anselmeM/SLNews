@@ -1,6 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { reportError } from "@/lib/error-reporting";
+import { logger } from "@/lib/logger";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,7 +64,10 @@ export async function syncWorldNews() {
 
       let retries = 0;
       while (res.status === 429 && retries < 3) {
-        console.warn(`Currents API rate-limited on ${endpoint.name}, backing off...`);
+        logger.warn("Currents API rate-limited, backing off", {
+          endpoint: endpoint.name,
+          retry: retries + 1,
+        });
         await sleep(8000);
         res = await fetch(buildUrl(endpoint.endpoint, endpoint.params), {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -124,7 +129,7 @@ export async function syncWorldNews() {
 
     return { success: true, count: totalCount };
   } catch (error: unknown) {
-    console.error("Currents world ingestion error:", error);
+    reportError(error, { where: "syncWorldNews" });
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }

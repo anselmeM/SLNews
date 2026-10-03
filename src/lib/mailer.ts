@@ -4,16 +4,17 @@
 //   RESEND_FROM_EMAIL  (must be a verified sender, e.g. "SLNews <noreply@yourdomain.com>";
 //                       defaults to Resend's test sender "onboarding@resend.dev")
 
+import { logger } from "@/lib/logger";
+
 export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn(
-      "[mailer] RESEND_API_KEY is not set — password reset email not sent to",
-      to
-    );
+    // Expected in environments without mail configured — a warning, not an error
+    // to page anyone about.
+    logger.warn("RESEND_API_KEY is not set — password reset email not sent", { to });
     return;
   }
 

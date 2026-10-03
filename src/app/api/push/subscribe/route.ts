@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { reportError } from "@/lib/error-reporting";
 import { checkDbRateLimit, getClientIp } from "@/lib/rate-limiter";
 
 export async function POST(request: Request) {
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, userId });
   } catch (error) {
-    console.error("Push subscribe error:", error);
+    reportError(error, { where: "api/push/subscribe" });
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
   }
 }
@@ -54,7 +55,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Push unsubscribe error:", error);
+    reportError(error, { where: "api/push/subscribe (DELETE)" });
     return NextResponse.json({ error: "Failed to unsubscribe" }, { status: 500 });
   }
 }

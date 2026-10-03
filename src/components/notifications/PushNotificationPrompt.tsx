@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/Toast";
+import { reportError } from "@/lib/error-reporting";
 
 function urlB64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -82,7 +83,7 @@ export default function PushNotificationPrompt({
         toast("Failed to enable notifications. Please try again.", "error");
       }
     } catch (err) {
-      console.error("Enable push error:", err);
+      reportError(err, { where: "PushNotificationPrompt" });
       toast("Could not enable notifications", "error");
     } finally {
       setLoading(false);
