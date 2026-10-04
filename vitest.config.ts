@@ -46,21 +46,21 @@ export default defineConfig({
       // coverage could regress silently.
       //
       // Measured on master (2026-10-03):
-      //   statements 72.08 | branches 59.5 | functions 71.54 | lines 74.08
+      //   statements 73.48 | branches 61.19 | functions 73.14 | lines 75.3
       //
-      // Raised twice as coverage improved — 64/53/63/66 (baseline), then
-      // 66/54/68/68 when the useAppStore tests landed, now this. Ratchet up
-      // whenever coverage improves, or the gain regresses unnoticed.
+      // Raised as coverage improved — 64/53/63/66 (baseline), 66/54/68/68
+      // (useAppStore), 71/58/70/73 (audio player), now this. Ratchet up whenever
+      // coverage improves, or the gain regresses unnoticed.
       //
       // The ~1 point of headroom is deliberate: deleting tests, breaking
       // coverage collection, or dropping a large covered module fails the gate,
       // while ordinary incremental work does not. Tighten toward the measured
       // values if you'd rather every untested addition fail CI.
       thresholds: {
-        statements: 71,
-        branches: 58,
-        functions: 70,
-        lines: 73,
+        statements: 72,
+        branches: 60,
+        functions: 72,
+        lines: 74,
       },
     },
     projects: [
