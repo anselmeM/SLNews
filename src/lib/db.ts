@@ -33,21 +33,25 @@ pool.on("error", (err) => {
   logger.error("pg pool unexpected error", { error: err.message });
 });
 
-// Retry helper for Neon cold-start connection timeouts
-export async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      const msg = (err as Error).message || "";
-      if (i === retries - 1 || (!msg.includes("timeout") && !msg.includes("terminated") && !msg.includes("Connection"))) {
-        throw err;
-      }
-      await new Promise((r) => setTimeout(r, 500 * (i + 1)));
-    }
-  }
-  throw new Error("unreachable");
-}
+// No query-level retry here on purpose.
+//
+// A `withRetry` helper used to live at this spot, intended for Neon cold-start
+// connection timeouts. It was never called by anything, and wiring it in as
+// written would have made things worse rather than better:
+//
+//   `connectionTimeoutMillis` is 10_000 and the helper retried 3 times with a
+//   `500ms * (i + 1)` backoff, so a cold-start failure could block for
+//   10s + 0.5s + 10s + 1s + 10s = ~31.5s. On Vercel that risks the function
+//   timeout while holding concurrency — worse for the reader than failing fast.
+//   And since a timeout is ambiguous, retrying a write can double-apply it.
+//
+// Cold starts are handled at the infrastructure level instead:
+// `.github/workflows/keep-warm.yml` pings `/api/health` every 5 minutes so the
+// Neon compute and the serverless function stay warm (a cold first request to
+// `/` was measured at ~6s TTFB).
+//
+// If retry is ever wanted, retry reads only and budget the added latency against
+// the function timeout — do not reuse the numbers above.
 
 const adapter = new PrismaPg(pool);
 
