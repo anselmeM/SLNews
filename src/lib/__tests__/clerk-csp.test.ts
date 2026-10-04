@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { clerkFrontendApiOrigin } from "@/lib/clerk-csp";
 
 // The real CI/dev publishable key encodes this host.
@@ -6,6 +6,10 @@ const DEV_KEY = "pk_test_b3B0aW1hbC1zaGVwaGVyZC01OTE5LmNsZXJrLmFjY291bnRzLmRldiQ
 
 const liveKeyFor = (host: string) =>
   `pk_live_${Buffer.from(`${host}$`).toString("base64")}`;
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("clerkFrontendApiOrigin", () => {
   it("derives the frontend API origin from a development key", () => {
@@ -22,9 +26,28 @@ describe("clerkFrontendApiOrigin", () => {
     );
   });
 
-  it("returns null when the key is missing", () => {
-    expect(clerkFrontendApiOrigin(undefined)).toBeNull();
-    expect(clerkFrontendApiOrigin("")).toBeNull();
+  // Note: `clerkFrontendApiOrigin(undefined)` is *not* a way to simulate a missing
+  // key — an explicit `undefined` triggers the default parameter, which reads the
+  // environment. These cases stub the variable instead, so they hold whether or
+  // not the runner has NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY set (CI does).
+  describe("sourcing the key", () => {
+    it("uses the configured publishable key by default", () => {
+      vi.stubEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", DEV_KEY);
+
+      expect(clerkFrontendApiOrigin()).toBe(
+        "https://optimal-shepherd-5919.clerk.accounts.dev"
+      );
+    });
+
+    it("returns null when the configured key is empty", () => {
+      vi.stubEnv("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "");
+
+      expect(clerkFrontendApiOrigin()).toBeNull();
+    });
+
+    it("returns null for an empty key passed directly", () => {
+      expect(clerkFrontendApiOrigin("")).toBeNull();
+    });
   });
 
   it("returns null when there is no third segment", () => {
