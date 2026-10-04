@@ -1,5 +1,24 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { clerkFrontendApiOrigin } from "./src/lib/clerk-csp";
+
+// ClerkJS needs its Frontend API host *and* its bot-protection host in the CSP.
+// The Frontend API host is derived from the configured publishable key rather
+// than hardcoded, so moving to the production instance — whose Frontend API is
+// served from our own domain — cannot silently block auth with a CSP violation.
+// See `src/lib/clerk-csp.ts`; falls back to the static origins below if unset.
+const CLERK_FAPI = clerkFrontendApiOrigin();
+
+// `connect-src` needs the `:*` form because the bot-protection challenge uses
+// ephemeral ports, which a bare host does not match.
+const CLERK_SCRIPTS = ["https://*.protect.clerk.com", CLERK_FAPI]
+  .filter(Boolean)
+  .join(" ");
+const CLERK_CONNECTIONS = ["https://*.protect.clerk.com:*", CLERK_FAPI]
+  .filter(Boolean)
+  .join(" ");
+const CLERK_IMAGES = [CLERK_FAPI].filter(Boolean).join(" ");
+const CLERK_FRAMES = "https://*.protect.clerk.com";
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -29,17 +48,19 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.google.com https://*.facebook.net https://*.facebook.com https://facebook.com https://*.instagram.com https://instagram.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://challenges.cloudflare.com",
+              `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.google.com https://*.facebook.net https://*.facebook.com https://facebook.com https://*.instagram.com https://instagram.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://challenges.cloudflare.com ${CLERK_SCRIPTS}`,
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-              "img-src 'self' data: https: blob: https://img.clerk.com https://*.clerk.accounts.dev",
+              `img-src 'self' data: https: blob: https://img.clerk.com https://*.clerk.accounts.dev ${CLERK_IMAGES}`,
               "font-src 'self' fonts.gstatic.com",
-              "frame-src 'self' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.youtu.be https://youtu.be https://*.google.com https://consent.youtube.com https://accounts.google.com https://*.facebook.com https://facebook.com https://*.fb.watch https://fb.watch https://*.instagram.com https://instagram.com https://*.tiktok.com https://tiktok.com https://challenges.cloudflare.com",
-              "child-src 'self' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.youtu.be https://youtu.be https://*.google.com https://consent.youtube.com https://accounts.google.com https://*.facebook.com https://facebook.com https://*.fb.watch https://fb.watch https://*.instagram.com https://instagram.com https://*.tiktok.com https://tiktok.com https://challenges.cloudflare.com",
+              `frame-src 'self' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.youtu.be https://youtu.be https://*.google.com https://consent.youtube.com https://accounts.google.com https://*.facebook.com https://facebook.com https://*.fb.watch https://fb.watch https://*.instagram.com https://instagram.com https://*.tiktok.com https://tiktok.com https://challenges.cloudflare.com ${CLERK_FRAMES}`,
+              `child-src 'self' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.youtu.be https://youtu.be https://*.google.com https://consent.youtube.com https://accounts.google.com https://*.facebook.com https://facebook.com https://*.fb.watch https://fb.watch https://*.instagram.com https://instagram.com https://*.tiktok.com https://tiktok.com https://challenges.cloudflare.com ${CLERK_FRAMES}`,
               "media-src 'self' https: data: blob:",
-              "connect-src 'self' https://*.vercel.app https://*.neon.tech https://*.currentsapi.services https://slnewsapiscapper.onrender.com https://*.youtube.com https://youtube.com https://*.google.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk-telemetry.com",
+              `connect-src 'self' https://*.vercel.app https://*.neon.tech https://*.currentsapi.services https://slnewsapiscapper.onrender.com https://*.youtube.com https://youtube.com https://*.google.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk-telemetry.com ${CLERK_CONNECTIONS}`,
               "worker-src 'self' blob:",
               "frame-ancestors 'self'",
-            ].join("; "),
+            ]
+              .map((directive) => directive.replace(/\s+/g, " ").trim())
+              .join("; "),
           },
         ],
       },
