@@ -44,6 +44,7 @@ export async function broadcastBreakingArticle(
       {
         tag: payload.tag,
         actions: payload.actions,
+        category: "breaking",
       }
     );
 

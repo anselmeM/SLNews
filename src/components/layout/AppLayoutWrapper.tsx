@@ -12,7 +12,9 @@ import EdgeSwipeBack from "@/components/navigation/EdgeSwipeBack";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
+import { readInboxRecords, subscribeToInboxMessages } from "@/lib/notification-inbox";
 import { useAppStore } from "@/store/useAppStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 
 // Non-critical widgets that sit below the fold or stay hidden until interaction.
 // Loading them client-side keeps them out of the first-load bundle so the shell
@@ -36,7 +38,28 @@ export default function AppLayoutWrapper({
   const pathname = usePathname();
   const setSavedIds = useAppStore((s) => s.setSavedIds);
   const setPreferences = useAppStore((s) => s.setPreferences);
+  const ingestNotifications = useNotificationStore((s) => s.ingestNotifications);
   const syncedRef = useRef(false);
+
+  useEffect(() => {
+    // The in-app inbox was previously seeded with fabricated entries and never
+    // reflected real alerts. Merge what the service worker recorded while the
+    // app was closed, then keep listening so an alert arriving while it is open
+    // appears without a reload.
+    let cancelled = false;
+    readInboxRecords().then((records) => {
+      if (!cancelled) ingestNotifications(records);
+    });
+
+    const unsubscribe = subscribeToInboxMessages((record) =>
+      ingestNotifications([record])
+    );
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [ingestNotifications]);
 
   useEffect(() => {
     // Rehydrate persisted preferences after mount so the client's first

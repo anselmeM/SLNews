@@ -1,5 +1,10 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import {
+  selectNewInboxRecords,
+  toAppNotification,
+  type InboxRecord,
+} from "@/lib/notification-inbox";
 import { browserStorage } from "@/lib/persist-storage";
 
 export type NotificationType = "breaking" | "briefing" | "market" | "announcement" | "system";
@@ -17,7 +22,14 @@ export type AppNotification = {
 
 interface NotificationState {
   notifications: AppNotification[];
+  /**
+   * Ids of device-recorded pushes already merged in. Persisted, so an alert the
+   * user deleted is not resurrected by the next sync from IndexedDB.
+   */
+  ingestedIds: string[];
   addNotification: (notif: Omit<AppNotification, "id" | "createdAt" | "read"> & { id?: string; createdAt?: number }) => void;
+  /** Merges pushes the service worker recorded. Safe to call repeatedly. */
+  ingestNotifications: (records: InboxRecord[]) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
@@ -25,33 +37,17 @@ interface NotificationState {
   unreadCount: () => number;
 }
 
-const INITIAL_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: "seed-briefing-1",
-    title: "Daily Sierra Leone Briefing",
-    body: "Your morning digest is ready with national headlines and market prices.",
-    url: "/digest",
-    category: "briefing",
-    createdAt: Date.now() - 1000 * 60 * 45, // 45m ago
-    read: false,
-    icon: "newspaper",
-  },
-  {
-    id: "seed-market-1",
-    title: "Market & FX Rate Update",
-    body: "USD/SLL and fuel commodity prices updated across Freetown and Bo markets.",
-    url: "/market",
-    category: "market",
-    createdAt: Date.now() - 1000 * 60 * 180, // 3h ago
-    read: false,
-    icon: "trending_up",
-  },
-];
+// Deliberately empty. This previously held two fabricated seed entries
+// ("seed-briefing-1", "seed-market-1") so the inbox looked populated, while the
+// real breaking-news / market / briefing pushes were never recorded at all. The
+// inbox now shows what the device actually received.
+const INITIAL_NOTIFICATIONS: AppNotification[] = [];
 
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
       notifications: INITIAL_NOTIFICATIONS,
+      ingestedIds: [],
       addNotification: (notif) => {
         const item: AppNotification = {
           id: notif.id ?? `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -65,6 +61,20 @@ export const useNotificationStore = create<NotificationState>()(
         };
         set((state) => ({
           notifications: [item, ...state.notifications.filter((n) => n.id !== item.id)].slice(0, 50),
+        }));
+      },
+      ingestNotifications: (records) => {
+        const fresh = selectNewInboxRecords(records, get().ingestedIds);
+        if (fresh.length === 0) return;
+
+        set((state) => ({
+          notifications: [
+            ...fresh.map(toAppNotification),
+            ...state.notifications.filter((n) => !fresh.some((f) => f.id === n.id)),
+          ].slice(0, 50),
+          // Capped so this cannot grow without bound; 200 is far more than the
+          // 50 the inbox can display.
+          ingestedIds: [...state.ingestedIds, ...fresh.map((r) => r.id)].slice(-200),
         }));
       },
       markAsRead: (id: string) => {

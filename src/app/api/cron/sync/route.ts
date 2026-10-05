@@ -50,7 +50,8 @@ export async function GET(request: Request) {
     pushResult = await sendPushNotifications(
       "Breaking News",
       `${total} new article${total > 1 ? "s" : ""} on SLNews. Tap to read.`,
-      "/"
+      "/",
+      { category: "breaking" }
     );
   }
 
