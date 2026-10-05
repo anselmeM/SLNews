@@ -70,6 +70,17 @@ model SavedArticle {
   @@index([userId])
 }
 
+/// Daily retention aggregates. One row per UTC day, counters only — no session,
+/// device or reader identifier, because the client decides "first visit or
+/// return?" locally and reports just the boolean.
+model RetentionDay {
+  id              String   @id @default(cuid())
+  day             DateTime @unique @db.Date
+  firstVisits     Int      @default(0)
+  returningVisits Int      @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
 model VerificationToken {
   identifier String
   token      String   @unique

@@ -10,13 +10,14 @@ import { defineConfig } from "vitest/config";
 // under the `node` environment, and jsdom worker startup was also the flakiest
 // part of the run.
 //
-// These four `*.test.ts` files are the only non-component tests that touch DOM
+// These five `*.test.ts` files are the only non-component tests that touch DOM
 // globals (document / window / localStorage / navigator / matchMedia). Every
 // other `.test.ts` runs in the `unit` project, and every `.test.tsx` is a
 // component test and stays in `dom`.
 const DOM_TESTS = [
   "src/lib/__tests__/meta-pixel.test.ts",
   "src/lib/__tests__/pwa-install.test.ts",
+  "src/lib/__tests__/retention-client.test.ts",
   "src/lib/__tests__/theme.test.ts",
   "src/store/__tests__/useAppStore.test.ts",
 ];

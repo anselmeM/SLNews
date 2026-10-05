@@ -9,6 +9,7 @@ import CampaignAttributionTracker from "@/components/CampaignAttributionTracker"
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import MetaPixel from "@/components/MetaPixel";
 import PageViewTracker from "@/components/PageViewTracker";
+import RetentionPing from "@/components/RetentionPing";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -116,6 +117,7 @@ export default async function RootLayout({
           </a>
           <Suspense fallback={null}>
             <PageViewTracker />
+            <RetentionPing />
             <MetaPixel />
             <CampaignAttributionTracker />
           </Suspense>
