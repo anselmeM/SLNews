@@ -7,6 +7,7 @@ import EditorsPicks from "@/app/home/_components/EditorsPicks";
 import FollowingFeed from "@/app/home/_components/FollowingFeed";
 import HomeBriefingHero from "@/app/home/_components/HomeBriefingHero";
 import HomeFeed from "@/app/home/_components/HomeFeed";
+import ReadingStats from "@/app/home/_components/ReadingStats";
 import LatestStories from "@/components/LatestStories";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { ShimmerFeed } from "@/components/Shimmer";
@@ -115,6 +116,9 @@ export default function FrontPage() {
       <Suspense fallback={null}>
         <RecentlyViewed />
       </Suspense>
+
+      {/* What the reader has accumulated locally — descriptive, never a streak. */}
+      <ReadingStats />
 
       <Suspense fallback={<ShimmerFeed count={4} />}>
         <HomeContent />
