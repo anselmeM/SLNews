@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { SL_TOPICS } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { savedInterestCategories } from "@/lib/interest-profile";
 
 const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
 
@@ -42,6 +43,18 @@ export async function getSavedArticleIds(): Promise<string[]> {
   });
 
   return saved.map((s) => s.articleId);
+}
+
+/**
+ * Category names derived from the reader's saved stories. The home feed ranks
+ * its next page with this signal, so bookmarking a story changes what the
+ * reader is shown on the following visit instead of only filling `/saved`.
+ */
+export async function getSavedInterestCategories(): Promise<string[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  return [...(await savedInterestCategories(session.user.id))];
 }
 
 export async function savePreferences(region: string | null, topics: string[]): Promise<void> {
