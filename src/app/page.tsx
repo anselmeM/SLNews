@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getPersonalizedDigest } from "@/app/actions/digest-actions";
-import { getSavedInterestCategories } from "@/app/actions/user-actions";
+import { getFeedInterestCategories } from "@/app/actions/user-actions";
 import BreakingNewsBanner from "@/app/home/_components/BreakingNewsBanner";
 import EditorsPicks from "@/app/home/_components/EditorsPicks";
 import FollowingFeed from "@/app/home/_components/FollowingFeed";
@@ -65,13 +65,13 @@ async function HomeContent() {
   // lookups fail independently: a broken interest lookup must never blank the
   // feed — the reader keeps the unranked recency mix.
   //
-  // Ranking happens on the *server*, so a reader who saved a story on their
-  // last visit sees an interest-matched feed on the very next one. With zero
-  // saves it is a no-op that returns the plain recency mix: the cold-start path
-  // for signed-out readers and new accounts.
+  // Ranking happens on the *server*, so a reader who followed a topic or saved
+  // a story on their last visit sees it reflected on the very next one. With no
+  // topics and no saves it is a no-op returning the plain recency mix: the
+  // cold-start path for signed-out readers and new accounts.
   const [feed, interestCategories] = await Promise.all([
     fetchMixedHomeFeed(HOME_FEED_SIZE).catch(() => [] as NewsArticle[]),
-    getSavedInterestCategories().catch(() => [] as string[]),
+    getFeedInterestCategories().catch(() => [] as string[]),
   ]);
 
   const fallbackArticles = rankFeedByInterest(

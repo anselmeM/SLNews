@@ -1,18 +1,8 @@
 "use server";
 
 import { auth } from "@/auth";
-import { SL_TOPICS } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { savedInterestCategories } from "@/lib/interest-profile";
-
-const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
-
-// Topics were renamed in 1dea548 ("Technology" -> "Tech"). Normalize any
-// legacy values saved to the DB so followed topics still match categories.
-function normalizeTopics(topics: string[]): string[] {
-  const mapped = topics.map((t) => LEGACY_TOPIC_MAP[t] ?? t);
-  return [...new Set(mapped)].filter((t) => SL_TOPICS.includes(t));
-}
+import { feedInterestCategories, normalizeTopics } from "@/lib/interest-profile";
 
 export async function toggleSavedArticle(articleId: string): Promise<boolean> {
   const session = await auth();
@@ -46,27 +36,25 @@ export async function getSavedArticleIds(): Promise<string[]> {
 }
 
 /**
- * Category names derived from the reader's saved stories. The home feed ranks
- * its next page with this signal, so bookmarking a story changes what the
- * reader is shown on the following visit instead of only filling `/saved`.
+ * Topics the reader follows plus the categories of the stories they saved. The
+ * home feed ranks its next page with this profile, so following a topic or
+ * bookmarking a story changes what the reader is shown instead of only
+ * re-titling the briefing card.
  */
-export async function getSavedInterestCategories(): Promise<string[]> {
+export async function getFeedInterestCategories(): Promise<string[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
-  return [...(await savedInterestCategories(session.user.id))];
+  return [...(await feedInterestCategories(session.user.id))];
 }
 
-export async function savePreferences(region: string | null, topics: string[]): Promise<void> {
+export async function savePreferences(topics: string[]): Promise<void> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   await db.user.update({
     where: { id: session.user.id },
-    data: {
-      preferredRegion: region,
-      preferredTopics: topics,
-    },
+    data: { preferredTopics: normalizeTopics(topics) },
   });
 }
 
@@ -74,7 +62,6 @@ export async function updateProfile(data: {
   name?: string;
   image?: string | null;
   bio?: string | null;
-  preferredRegion?: string | null;
   preferredTopics?: string[];
 }): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
@@ -87,8 +74,9 @@ export async function updateProfile(data: {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.image !== undefined && { image: data.image }),
         ...(data.bio !== undefined && { bio: data.bio }),
-        ...(data.preferredRegion !== undefined && { preferredRegion: data.preferredRegion }),
-        ...(data.preferredTopics !== undefined && { preferredTopics: data.preferredTopics }),
+        ...(data.preferredTopics !== undefined && {
+          preferredTopics: normalizeTopics(data.preferredTopics),
+        }),
       },
     });
     return { success: true };
@@ -98,23 +86,21 @@ export async function updateProfile(data: {
 }
 
 export async function loadPreferences(): Promise<{
-  preferredRegion: string | null;
   preferredTopics: string[];
   bio: string | null;
   dailyBriefing: boolean;
 }> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { preferredRegion: null, preferredTopics: [], bio: null, dailyBriefing: false };
+    return { preferredTopics: [], bio: null, dailyBriefing: false };
   }
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { preferredRegion: true, preferredTopics: true, bio: true, dailyBriefing: true },
+    select: { preferredTopics: true, bio: true, dailyBriefing: true },
   });
 
   return {
-    preferredRegion: user?.preferredRegion || null,
     preferredTopics: normalizeTopics(user?.preferredTopics || []),
     bio: user?.bio || null,
     dailyBriefing: user?.dailyBriefing ?? false,

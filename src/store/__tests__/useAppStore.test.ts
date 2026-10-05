@@ -23,7 +23,6 @@ const DEFAULTS = {
   fontSize: "normal" as const,
   savedArticles: [] as NewsArticle[],
   savedArticleIds: new Set<string>(),
-  preferredRegion: null,
   preferredTopics: [] as string[],
   breakingNews: true,
   localAlerts: true,
@@ -148,14 +147,13 @@ describe("useAppStore — simple preferences", () => {
     const s = useAppStore.getState();
 
     s.setFontSize("xlarge");
-    s.setPreferences("Western Area", ["Tech"]);
+    s.setPreferences(["Tech"]);
     s.setBreakingNews(false);
     s.setLocalAlerts(false);
     s.setLastRefresh(1234);
 
     const next = useAppStore.getState();
     expect(next.fontSize).toBe("xlarge");
-    expect(next.preferredRegion).toBe("Western Area");
     expect(next.preferredTopics).toEqual(["Tech"]);
     expect(next.breakingNews).toBe(false);
     expect(next.localAlerts).toBe(false);
@@ -220,7 +218,7 @@ describe("useAppStore — persistence", () => {
     expect(persisted).toHaveProperty("savedArticles");
   });
 
-  it("migrate normalises pre-v2 state and clears the dead region preference", () => {
+  it("migrate normalises pre-v3 state, drops the dead region key and renames topics", () => {
     const migrate = options().migrate as (
       s: unknown,
       v: number
@@ -231,8 +229,23 @@ describe("useAppStore — persistence", () => {
       1
     );
 
-    expect(migrated.preferredRegion).toBeNull();
+    expect(migrated).not.toHaveProperty("preferredRegion");
     expect(migrated.preferredTopics).toEqual(["Tech", "Sports"]);
+  });
+
+  it("migrate strips a persisted region from the current-1 version too", () => {
+    const migrate = options().migrate as (
+      s: unknown,
+      v: number
+    ) => Record<string, unknown>;
+
+    const migrated = migrate(
+      { preferredRegion: "Bo", preferredTopics: ["Sports"] },
+      2
+    );
+
+    expect(migrated).not.toHaveProperty("preferredRegion");
+    expect(migrated.preferredTopics).toEqual(["Sports"]);
   });
 
   it("migrate leaves already-current state untouched", () => {
@@ -241,8 +254,8 @@ describe("useAppStore — persistence", () => {
       v: number
     ) => Record<string, unknown>;
 
-    const state = { preferredRegion: "Bo", preferredTopics: ["Sports"] };
-    expect(migrate(state, 2)).toEqual(state);
+    const state = { preferredTopics: ["Sports"] };
+    expect(migrate(state, 3)).toEqual(state);
   });
 
   it("rehydrating rebuilds savedArticleIds and applies the stored theme", async () => {

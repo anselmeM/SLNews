@@ -21,12 +21,12 @@ export default function FollowedTopics({
   const availableTopics = SL_TOPICS.filter((t) => !topics.includes(t));
 
   const updateTopics = async (next: string[], message: string, type: ToastType) => {
-    setPreferences(null, next);
+    setPreferences(next);
     try {
-      await savePreferences(null, next);
+      await savePreferences(next);
       toast(message, type);
     } catch {
-      setPreferences(null, topics);
+      setPreferences(topics);
       toast("Could not update preferences", "error");
     }
   };

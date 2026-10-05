@@ -23,10 +23,12 @@ vi.mock("next-auth", () => ({
 vi.mock("@/app/actions/user-actions", () => ({
   toggleSavedArticle: vi.fn(),
   getSavedArticleIds: vi.fn(() => Promise.resolve([])),
+  getFeedInterestCategories: vi.fn(() => Promise.resolve([])),
   loadPreferences: vi.fn(() =>
-    Promise.resolve({ preferredRegion: null, preferredTopics: [] })
+    Promise.resolve({ preferredTopics: [] })
   ),
   savePreferences: vi.fn(),
+  updateProfile: vi.fn(() => Promise.resolve({ success: true })),
 }));
 
 vi.mock("@/app/actions/feed-actions", () => ({

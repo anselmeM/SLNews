@@ -38,7 +38,7 @@ export default function ProfilePage() {
         setBio(prefs.bio);
         setDailyBriefingState(prefs.dailyBriefing);
         if (prefs.preferredTopics.length > 0) {
-          setPreferences(null, prefs.preferredTopics);
+          setPreferences(prefs.preferredTopics);
         }
       })
       .catch(() => toast("Could not load preferences", "error"));
@@ -158,12 +158,12 @@ export default function ProfilePage() {
             topics={preferredTopics}
             onClear={async () => {
               const prevTopics = preferredTopics;
-              setPreferences(null, []);
+              setPreferences([]);
               try {
-                await savePreferences(null, []);
+                await savePreferences([]);
                 toast("Preferences cleared", "info");
               } catch {
-                setPreferences(null, prevTopics);
+                setPreferences(prevTopics);
                 toast("Could not clear preferences", "error");
               }
             }}

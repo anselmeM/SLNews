@@ -8,17 +8,15 @@ import { fetchMixedHomeFeed, HOME_FEED_SIZE } from "@/lib/news-service";
 export async function getPersonalizedDigest(): Promise<PersonalizedDigest> {
   const session = await auth();
   let userName: string | null = null;
-  let preferredRegion: string | null = null;
   let preferredTopics: string[] = [];
 
   if (session?.user?.id) {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { name: true, preferredRegion: true, preferredTopics: true },
+      select: { name: true, preferredTopics: true },
     });
     if (user) {
       userName = user.name;
-      preferredRegion = user.preferredRegion;
       preferredTopics = user.preferredTopics || [];
     }
   }
@@ -33,7 +31,6 @@ export async function getPersonalizedDigest(): Promise<PersonalizedDigest> {
 
   return buildPersonalizedDigest({
     userName,
-    preferredRegion,
     preferredTopics,
     articles,
   });
