@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getPersonalizedDigest } from "@/app/actions/digest-actions";
+import { getSavedInterestCategories } from "@/app/actions/user-actions";
 import BreakingNewsBanner from "@/app/home/_components/BreakingNewsBanner";
 import EditorsPicks from "@/app/home/_components/EditorsPicks";
 import FollowingFeed from "@/app/home/_components/FollowingFeed";
@@ -10,6 +11,7 @@ import LatestStories from "@/components/LatestStories";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { ShimmerFeed } from "@/components/Shimmer";
 import WelcomeBanner from "@/components/WelcomeBanner";
+import { rankFeedByInterest } from "@/lib/feed-ranking";
 import { fetchMixedHomeFeed, HOME_FEED_SIZE, type NewsArticle } from "@/lib/news-service";
 import { siteUrl } from "@/lib/site-url";
 
@@ -59,14 +61,24 @@ function BriefingHeroSkeleton() {
 }
 
 async function HomeContent() {
-  let fallbackArticles: NewsArticle[] = [];
-  try {
-    // Read the same feed the digest uses (one shared, coalesced query) and trim
-    // to the first page.
-    fallbackArticles = (await fetchMixedHomeFeed(HOME_FEED_SIZE)).slice(0, PAGE_SIZE + 1);
-  } catch {
-    fallbackArticles = [];
-  }
+  // Read the same feed the digest uses (one shared, coalesced query). The two
+  // lookups fail independently: a broken interest lookup must never blank the
+  // feed — the reader keeps the unranked recency mix.
+  //
+  // Ranking happens on the *server*, so a reader who saved a story on their
+  // last visit sees an interest-matched feed on the very next one. With zero
+  // saves it is a no-op that returns the plain recency mix: the cold-start path
+  // for signed-out readers and new accounts.
+  const [feed, interestCategories] = await Promise.all([
+    fetchMixedHomeFeed(HOME_FEED_SIZE).catch(() => [] as NewsArticle[]),
+    getSavedInterestCategories().catch(() => [] as string[]),
+  ]);
+
+  const fallbackArticles = rankFeedByInterest(
+    feed,
+    new Set(interestCategories),
+    PAGE_SIZE + 1
+  );
   const hasMore = fallbackArticles.length > PAGE_SIZE;
   if (hasMore) fallbackArticles.pop();
 

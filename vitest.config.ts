@@ -47,20 +47,24 @@ export default defineConfig({
       //
       // Measured on master (2026-10-03):
       //   statements 73.48 | branches 61.19 | functions 73.14 | lines 75.3
+      // Raised after the saves→feed ranking landed (2026-10-04):
+      //   statements 73.82 | branches 61.84 | functions 72.69 | lines 75.51
       //
       // Raised as coverage improved — 64/53/63/66 (baseline), 66/54/68/68
-      // (useAppStore), 71/58/70/73 (audio player), now this. Ratchet up whenever
-      // coverage improves, or the gain regresses unnoticed.
+      // (useAppStore), 71/58/70/73 (audio player), 72/60/72/74, now this.
+      // Ratchet up whenever coverage improves, or the gain regresses unnoticed.
+      // `functions` is left at 72: the ranking work added covered functions but
+      // the aggregate ratio did not clear the next point.
       //
       // The ~1 point of headroom is deliberate: deleting tests, breaking
       // coverage collection, or dropping a large covered module fails the gate,
       // while ordinary incremental work does not. Tighten toward the measured
       // values if you'd rather every untested addition fail CI.
       thresholds: {
-        statements: 72,
-        branches: 60,
+        statements: 73,
+        branches: 61,
         functions: 72,
-        lines: 74,
+        lines: 75,
       },
     },
     projects: [
