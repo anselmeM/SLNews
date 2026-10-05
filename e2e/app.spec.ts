@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { clerkFrontendApiOrigin } from "../src/lib/clerk-csp";
 
 test.describe("SLNews E2E", () => {
   test("front page loads with live feed", async ({ page }) => {
@@ -25,6 +26,31 @@ test.describe("SLNews E2E", () => {
   test("market can switch tabs", async ({ page }) => {
     await page.goto("/market");
     await expect(page.getByRole("heading", { name: "Market Prices" })).toBeVisible();
+  });
+
+  test.describe("Content-Security-Policy", () => {
+    test("serves a production policy without unsafe-eval", async ({ page }) => {
+      const response = await page.goto("/");
+      const csp = response?.headers()["content-security-policy"] ?? "";
+
+      expect(csp).toContain("default-src 'self'");
+      // `next dev` still allows eval for HMR; the built app must not.
+      expect(csp).not.toContain("'unsafe-eval'");
+      expect(csp).toContain("report-uri /api/csp-report");
+      expect(csp).toContain("https://challenges.cloudflare.com");
+
+      // #78: the Clerk Frontend API origin is derived from the publishable key.
+      const expectedOrigin = clerkFrontendApiOrigin();
+      if (expectedOrigin) expect(csp).toContain(expectedOrigin);
+    });
+
+    test("the home page loads with no CSP violations in the console", async ({ page }) => {
+      expect(await collectCspViolations(page, "/")).toEqual([]);
+    });
+
+    test("sign-in loads with no CSP violations in the console", async ({ page }) => {
+      expect(await collectCspViolations(page, "/sign-in")).toEqual([]);
+    });
   });
 
   test.describe("Accessibility", () => {
@@ -57,3 +83,21 @@ test.describe("SLNews E2E", () => {
     });
   });
 });
+
+/**
+ * Loads a route in a real browser and returns the CSP violations Chromium
+ * reported. The policy is only as good as the pages it actually serves.
+ */
+async function collectCspViolations(page: Page, path: string): Promise<string[]> {
+  const violations: string[] = [];
+  page.on("console", (message) => {
+    if (/content security policy/i.test(message.text())) {
+      violations.push(`${message.text()} (${message.location().url})`);
+    }
+  });
+
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+
+  return violations;
+}
