@@ -20,6 +20,26 @@ const CLERK_CONNECTIONS = ["https://*.protect.clerk.com:*", CLERK_FAPI]
 const CLERK_IMAGES = [CLERK_FAPI].filter(Boolean).join(" ");
 const CLERK_FRAMES = "https://*.protect.clerk.com";
 
+// `next dev` compiles and hot-reloads by evaluating generated code, so the dev
+// policy needs `'unsafe-eval'`. The production bundle does not: nothing in the
+// app source calls eval or `new Function`, Next's production runtime ships
+// precompiled output, and Clerk's own guidance treats `'unsafe-eval'` as
+// development-only in Next.js.
+const ALLOW_EVAL = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+
+// There is deliberately no AdSense domain allowlist here. Google's supported
+// AdSense policy is nonce + 'strict-dynamic' and still lists 'unsafe-eval', and
+// Google warns that hand-built domain lists go stale and start blocking ads
+// (https://support.google.com/adsense/answer/16283098). No publisher id is
+// configured in this deployment, so nothing is blocked today; if one is added,
+// the fix is the nonce work, not widening this list — and the `report-uri`
+// below is how that would be discovered.
+//
+// Where the browser sends CSP violation reports. Having somewhere to send them
+// is what turns "the policy looks right" into "we would find out if it were not",
+// including on devices and flows that cannot be reproduced locally.
+const CSP_REPORT_URI = "/api/csp-report";
+
 const nextConfig: NextConfig = {
   async redirects() {
     return [
@@ -48,7 +68,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.google.com https://*.facebook.net https://*.facebook.com https://facebook.com https://*.instagram.com https://instagram.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://challenges.cloudflare.com ${CLERK_SCRIPTS}`,
+              `script-src 'self' 'unsafe-inline'${ALLOW_EVAL} https://*.youtube.com https://youtube.com https://*.youtube-nocookie.com https://youtube-nocookie.com https://*.google.com https://*.facebook.net https://*.facebook.com https://facebook.com https://*.instagram.com https://instagram.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://challenges.cloudflare.com ${CLERK_SCRIPTS}`,
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               `img-src 'self' data: https: blob: https://img.clerk.com https://*.clerk.accounts.dev ${CLERK_IMAGES}`,
               "font-src 'self' fonts.gstatic.com",
@@ -58,6 +78,7 @@ const nextConfig: NextConfig = {
               `connect-src 'self' https://*.vercel.app https://*.neon.tech https://*.currentsapi.services https://slnewsapiscapper.onrender.com https://*.youtube.com https://youtube.com https://*.google.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk-telemetry.com ${CLERK_CONNECTIONS}`,
               "worker-src 'self' blob:",
               "frame-ancestors 'self'",
+              `report-uri ${CSP_REPORT_URI}`,
             ]
               .map((directive) => directive.replace(/\s+/g, " ").trim())
               .join("; "),
