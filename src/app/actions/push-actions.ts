@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import webpush from "web-push";
 import { db } from "@/lib/db";
@@ -12,6 +13,10 @@ export interface PushNotificationOptions {
   badge?: string;
   actions?: Array<{ action: string; title: string }>;
   data?: Record<string, unknown>;
+  /** In-app inbox badge: "breaking" | "market" | "briefing" | "announcement". */
+  category?: string;
+  /** Overrides the generated id. Only needed for re-sending a known alert. */
+  id?: string;
 }
 
 export async function sendPushNotifications(
@@ -53,6 +58,10 @@ export async function sendPushNotifications(
     tag: opts.tag || "slnews-general",
     actions: opts.actions || [{ action: "open", title: "Open" }],
     data: {
+      // A stable per-send id, so the device-side inbox can dedupe a redelivered
+      // push exactly instead of relying on the tag (which repeats by design).
+      id: opts.id || randomUUID(),
+      category: opts.category || "breaking",
       url,
       ...opts.data,
     },

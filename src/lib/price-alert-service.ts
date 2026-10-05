@@ -64,6 +64,7 @@ export async function processPriceAlerts(): Promise<{ notified: number; hits: nu
         userId,
         tag: `slnews-price-alert-${first ? first.commodity.toLowerCase() : "general"}`,
         actions: [{ action: "open", title: "View Market" }],
+        category: "market",
       }
     );
     notified += result.sent;

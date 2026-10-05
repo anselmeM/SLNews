@@ -80,6 +80,7 @@ export async function sendMorningBriefing(): Promise<{ sent: number; error?: str
           userId: user.id,
           tag: payload.tag,
           actions: payload.actions,
+          category: "briefing",
         }
       );
       if (result.sent > 0) {
@@ -101,6 +102,7 @@ export async function sendMorningBriefing(): Promise<{ sent: number; error?: str
         {
           tag: payload.tag,
           actions: payload.actions,
+          category: "briefing",
         }
       );
       totalSent += result.sent;
