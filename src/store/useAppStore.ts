@@ -20,9 +20,8 @@ interface AppState {
   toggleSave: (article: NewsArticle) => void;
   isSaved: (id: string) => boolean;
   setSavedIds: (ids: string[]) => void;
-  preferredRegion: string | null;
   preferredTopics: string[];
-  setPreferences: (region: string | null, topics: string[]) => void;
+  setPreferences: (topics: string[]) => void;
   breakingNews: boolean;
   setBreakingNews: (v: boolean) => void;
   localAlerts: boolean;
@@ -103,10 +102,8 @@ export const useAppStore = create<AppState>()(
           const filtered = state.savedArticles.filter((a) => idSet.has(a.id));
           return { savedArticleIds: idSet, savedArticles: filtered };
         }),
-      preferredRegion: null,
       preferredTopics: [],
-      setPreferences: (region, topics) =>
-        set({ preferredRegion: region, preferredTopics: topics }),
+      setPreferences: (topics) => set({ preferredTopics: topics }),
       breakingNews: true,
       setBreakingNews: (v) => set({ breakingNews: v }),
       localAlerts: true,
@@ -134,7 +131,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'slnews-app-storage',
-      version: 2,
+      version: 3,
       // Hydrate after mount (in AppLayoutWrapper) instead of at module load so
       // the client's first render matches the SSR defaults — otherwise every
       // page that renders persisted prefs throws a hydration mismatch (#418).
@@ -147,20 +144,23 @@ export const useAppStore = create<AppState>()(
         return rest as AppState;
       },
       migrate: (persistedState, version) => {
+        if (version >= 3) return persistedState as AppState;
         // Clean up preferences persisted by older app versions:
-        // - `preferredRegion` was removed as a preference (120edaa) — clear
-        //   stale values so they can't region-scope the feed into a dead end.
         // - Topic names were renamed ("Technology" -> "Tech", 1dea548) —
         //   normalize so followed topics still match categories.
-        if (version < 2) {
-          const state = (persistedState ?? {}) as Partial<AppState>;
-          const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
-          const topics = (state.preferredTopics ?? []).map(
-            (t) => LEGACY_TOPIC_MAP[t] ?? t
-          );
-          return { ...state, preferredRegion: null, preferredTopics: topics };
-        }
-        return persistedState as AppState;
+        // - `preferredRegion` is gone (v3). It was removed as a preference in
+        //   120edaa and nothing has written one since — the profile form sent
+        //   null and v2 migrate cleared what was left — so drop the dead key
+        //   rather than hydrate a field no reader can set.
+        const state = {
+          ...((persistedState ?? {}) as Record<string, unknown>),
+        };
+        delete state.preferredRegion;
+        const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
+        const topics = ((state.preferredTopics as string[] | undefined) ?? []).map(
+          (t) => LEGACY_TOPIC_MAP[t] ?? t
+        );
+        return { ...state, preferredTopics: topics } as unknown as AppState;
       },
       storage: createJSONStorage(browserStorage),
       onRehydrateStorage: () => (state) => {

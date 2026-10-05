@@ -94,11 +94,10 @@ export default function EditProfilePage() {
         name: currentName.trim(),
         image: currentImage || null,
         bio: bio || null,
-        preferredRegion: null,
         preferredTopics: selectedTopics,
       });
       if (result.success) {
-        setPreferences(null, selectedTopics);
+        setPreferences(selectedTopics);
         toast("Profile updated!", "success");
         router.push("/profile");
       } else {

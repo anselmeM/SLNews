@@ -43,7 +43,6 @@ model User {
   updatedAt       DateTime       @updatedAt
   password        String?
   bio             String?
-  preferredRegion String?
   preferredTopics String[]
   dailyBriefing   Boolean      @default(false)
   accounts        Account[]

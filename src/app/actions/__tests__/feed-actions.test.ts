@@ -1,14 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getUnseenNews } from "../feed-actions";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
+
+vi.mock("@/auth", () => ({
+  auth: vi.fn(),
+}));
 
 vi.mock("@/lib/db", () => ({
   db: {
     article: { findMany: vi.fn() },
+    savedArticle: { findMany: vi.fn() },
+    user: { findUnique: vi.fn() },
   },
 }));
 
+const authMock = vi.mocked(auth);
 const articleFindMany = vi.mocked(db.article.findMany);
+const savedFindMany = vi.mocked(db.savedArticle.findMany);
+const userFindUnique = vi.mocked(db.user.findUnique);
 
 type Row = {
   id: string;
@@ -43,77 +53,130 @@ function row(id: string, category = "National"): Row {
 }
 
 /** The interest lookup selects categories; the feed query includes relations. */
-function isInterestLookup(args: { select?: unknown }): boolean {
-  return Boolean(args?.select);
-}
-
-function mockPool(rows: Row[], categoryNames: string[] = []) {
+function mockPool(rows: Row[], savedArticleCategories: string[] = []) {
   articleFindMany.mockImplementation((async (args: { select?: unknown }) => {
-    if (isInterestLookup(args)) {
-      return categoryNames.map((name) => ({ categories: [{ name }] }));
+    if (args?.select) {
+      return savedArticleCategories.map((name) => ({ categories: [{ name }] }));
     }
     return rows;
   }) as never);
 }
 
+function signedIn(userId = "user-1") {
+  authMock.mockResolvedValue({ user: { id: userId } } as never);
+}
+
+function noProfile() {
+  signedIn();
+  userFindUnique.mockResolvedValue({ preferredTopics: [] } as never);
+  savedFindMany.mockResolvedValue([] as never);
+}
+
 describe("getUnseenNews ranking", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authMock.mockResolvedValue(null as never);
+    userFindUnique.mockResolvedValue(null as never);
+    savedFindMany.mockResolvedValue([] as never);
   });
 
-  it("keeps the plain recency page when the reader has saved nothing", async () => {
+  it("keeps the plain recency page for a signed-out reader", async () => {
     const rows = Array.from({ length: 12 }, (_, i) => row(`a${i}`));
     mockPool(rows);
 
     const result = await getUnseenNews(["seen-1"], 10);
 
     expect(result.map((a) => a.id)).toEqual(rows.slice(0, 10).map((r) => r.id));
-    // One query and an unwidened pool: zero saves must not change the query.
+    // No profile to read: one query, unwidened pool, recency order untouched.
     expect(articleFindMany).toHaveBeenCalledTimes(1);
     expect(articleFindMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: 10, orderBy: { publishedAt: "desc" } })
     );
+    expect(userFindUnique).not.toHaveBeenCalled();
   });
 
-  it("promotes a saved-category story into the page when the reader has saves", async () => {
-    // Only the last of the unseen stories is Tech, so it is off the unranked page.
+  it("keeps the plain recency page for a signed-in reader with no preferences", async () => {
+    noProfile();
+    const rows = Array.from({ length: 12 }, (_, i) => row(`a${i}`));
+    mockPool(rows);
+
+    const result = await getUnseenNews([], 10);
+
+    expect(result.map((a) => a.id)).toEqual(rows.slice(0, 10).map((r) => r.id));
+    expect(articleFindMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("promotes a followed topic into the page", async () => {
+    signedIn();
+    userFindUnique.mockResolvedValue({ preferredTopics: ["Tech"] } as never);
+    // Only the last unseen story is Tech, so it is off the unranked page.
     const rows = [
       ...Array.from({ length: 7 }, (_, i) => row(`a${i}`)),
       row("tech-story", "Tech"),
     ];
-    mockPool(rows, ["Tech"]);
+    mockPool(rows);
 
-    const result = await getUnseenNews([], 10, ["saved-1"]);
+    const result = await getUnseenNews([], 10);
 
     expect(result.map((a) => a.id)).toContain("tech-story");
     expect(result.findIndex((a) => a.id === "tech-story")).toBeLessThan(
       rows.findIndex((r) => r.id === "tech-story")
     );
-    // The interest lookup widens the candidate pool so a promotion has room.
+    // The profile widens the candidate pool so a promotion has room.
     expect(articleFindMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: 30 })
     );
   });
 
-  it("passes the saved ids through to the interest profile", async () => {
-    mockPool([row("a")], ["Tech"]);
+  it("normalises legacy topic names before ranking", async () => {
+    signedIn();
+    userFindUnique.mockResolvedValue({ preferredTopics: ["Technology"] } as never);
+    const rows = [...Array.from({ length: 4 }, (_, i) => row(`a${i}`)), row("tech", "Tech")];
+    mockPool(rows);
 
-    await getUnseenNews([], 10, ["saved-1", "saved-2"]);
+    const result = await getUnseenNews([], 5);
+
+    expect(result.map((a) => a.id)).toContain("tech");
+  });
+
+  it("promotes a category the reader saved, without any followed topic", async () => {
+    signedIn();
+    userFindUnique.mockResolvedValue({ preferredTopics: [] } as never);
+    savedFindMany.mockResolvedValue([{ articleId: "saved-1" }] as never);
+    const rows = [...Array.from({ length: 7 }, (_, i) => row(`a${i}`)), row("tech", "Tech")];
+    mockPool(rows, ["Tech"]);
+
+    const result = await getUnseenNews([], 10);
 
     expect(articleFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: { in: ["saved-1", "saved-2"] } },
-      })
+      expect.objectContaining({ where: { id: { in: ["saved-1"] } } })
+    );
+    expect(result.findIndex((a) => a.id === "tech")).toBeLessThan(
+      rows.findIndex((r) => r.id === "tech")
     );
   });
 
-  it("falls back to the unranked feed when saved stories no longer resolve", async () => {
+  it("falls back to the unranked feed when the profile cannot be read", async () => {
+    signedIn();
+    userFindUnique.mockRejectedValue(new Error("db down") as never);
     const rows = Array.from({ length: 12 }, (_, i) => row(`a${i}`));
-    // Saved article deleted: the interest lookup resolves to no categories.
-    mockPool(rows, []);
+    mockPool(rows, ["Tech"]);
 
-    const result = await getUnseenNews([], 10, ["deleted-article"]);
+    const result = await getUnseenNews([], 10);
 
     expect(result.map((a) => a.id)).toEqual(rows.slice(0, 10).map((r) => r.id));
+  });
+
+  it("excludes the ids the reader has already seen", async () => {
+    const rows = Array.from({ length: 12 }, (_, i) => row(`a${i}`));
+    mockPool(rows);
+
+    await getUnseenNews(["a0", "a1"], 10);
+
+    expect(articleFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { published: true, status: "PUBLISHED", id: { notIn: ["a0", "a1"] } },
+      })
+    );
   });
 });

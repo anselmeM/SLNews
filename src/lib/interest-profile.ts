@@ -1,3 +1,4 @@
+import { SL_TOPICS } from "./constants";
 import { db } from "./db";
 
 /**
@@ -7,6 +8,18 @@ import { db } from "./db";
  * indexed `IN` query rather than an unbounded one.
  */
 export const MAX_INTEREST_SOURCES = 50;
+
+const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
+
+/**
+ * Topics were renamed in 1dea548 ("Technology" -> "Tech"). Normalize any legacy
+ * value and drop anything the app does not offer as a topic, so a stale
+ * selection can never rank the feed by a category that does not exist.
+ */
+export function normalizeTopics(topics: readonly string[]): string[] {
+  const mapped = topics.map((topic) => LEGACY_TOPIC_MAP[topic] ?? topic);
+  return [...new Set(mapped)].filter((topic) => SL_TOPICS.includes(topic));
+}
 
 /**
  * Category names the reader has shown interest in, derived from saved stories.
@@ -46,4 +59,30 @@ export async function savedInterestCategories(userId: string): Promise<Set<strin
   });
 
   return interestCategoriesFromArticleIds(saved.map((s) => s.articleId));
+}
+
+/**
+ * The categories the feed should rank for a reader: the topics they explicitly
+ * follow, plus the categories of the stories they chose to save.
+ *
+ * Topics were previously only read by the briefing card (which renamed its
+ * title and scored the digest), so following "Tech" left the actual feed
+ * untouched. Both signals now reach the same `rankFeedByInterest` call.
+ */
+export async function feedInterestCategories(userId: string): Promise<Set<string>> {
+  if (!userId) return new Set();
+
+  const [user, saved] = await Promise.all([
+    db.user.findUnique({
+      where: { id: userId },
+      select: { preferredTopics: true },
+    }),
+    savedInterestCategories(userId),
+  ]);
+
+  const categories = new Set(saved);
+  for (const topic of normalizeTopics(user?.preferredTopics ?? [])) {
+    categories.add(topic);
+  }
+  return categories;
 }

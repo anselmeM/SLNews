@@ -18,24 +18,23 @@ describe("Breaking Push & Morning Briefing formatting", () => {
     expect(payload.actions[0]?.title).toBe("Read Story");
   });
 
-  it("formats morning briefing payload with personalized region", () => {
+  it("formats morning briefing payload with the followed topic", () => {
     const payload = formatMorningBriefingPayload(
       {
         leadStory: { title: "Bo District Mining Revenues Reach New High" },
         topicStories: [{}, {}],
-        regionalStories: [{}],
         quickBriefs: [{}],
         totalReadTimeMinutes: 4,
       },
       {
         name: "Amara",
-        preferredRegion: "Southern Province",
+        preferredTopics: ["Economy"],
       }
     );
 
-    expect(payload.title).toContain("Southern Province");
+    expect(payload.title).toContain("Economy");
     expect(payload.body).toContain("Bo District Mining Revenues Reach New High");
-    expect(payload.body).toContain("+4 stories");
+    expect(payload.body).toContain("+3 stories");
     expect(payload.body).toContain("4 min read");
     expect(payload.url).toBe("/digest");
     expect(payload.tag).toMatch(/^slnews-morning-briefing-\d{4}-\d{2}-\d{2}$/);

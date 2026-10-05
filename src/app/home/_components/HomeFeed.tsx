@@ -16,7 +16,7 @@ const PAGE_SIZE = 10;
  * pull-to-refresh.
  */
 export default function HomeFeed({ fallbackArticles }: { fallbackArticles: NewsArticle[] }) {
-  const { seenArticleIds, addSeenArticles, savedArticleIds } = useAppStore();
+  const { seenArticleIds, addSeenArticles } = useAppStore();
   const [articles, setArticles] = useState<NewsArticle[]>(fallbackArticles);
   const [hasMore, setHasMore] = useState(fallbackArticles.length >= PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -60,9 +60,10 @@ export default function HomeFeed({ fallbackArticles }: { fallbackArticles: NewsA
     if (fetchingRef.current) return "error"; // loadMore in flight — skip
     fetchingRef.current = true;
     try {
-      // Saved stories are the interest signal: the refresh page promotes
-      // categories the reader bookmarked instead of only serving novelty.
-      const fresh = await getUnseenNews(seenArticleIds, PAGE_SIZE, [...savedArticleIds]);
+      // The server resolves the interest profile (followed topics + saved
+      // categories), so the refresh page promotes what the reader cares about
+      // instead of only serving novelty.
+      const fresh = await getUnseenNews(seenArticleIds, PAGE_SIZE);
       if (fresh.length === 0) return "empty";
       const existing = new Set(articlesRef.current.map((a) => a.id));
       const unique = fresh.filter((a) => !existing.has(a.id));
@@ -79,7 +80,7 @@ export default function HomeFeed({ fallbackArticles }: { fallbackArticles: NewsA
     } finally {
       fetchingRef.current = false;
     }
-  }, [seenArticleIds, savedArticleIds, addSeenArticles]);
+  }, [seenArticleIds, addSeenArticles]);
 
   useAutoRefresh(handleRefresh);
 

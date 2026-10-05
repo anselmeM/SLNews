@@ -24,7 +24,6 @@ const mockDigest: PersonalizedDigest = {
   dateFormatted: "Saturday, September 5, 2026",
   greeting: "Good Afternoon",
   totalReadTimeMinutes: 4,
-  preferredRegion: "Western Area",
   preferredTopics: ["Politics", "Economy"],
   leadStory: {
     id: "lead-1",
@@ -38,7 +37,6 @@ const mockDigest: PersonalizedDigest = {
     readTimeMinutes: 3,
     matchReasons: ["Top national story"],
   },
-  regionalStories: [],
   topicStories: [],
   quickBriefs: [],
   fallbackToNational: false,

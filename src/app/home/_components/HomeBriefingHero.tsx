@@ -37,7 +37,6 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
 
   const allDigestArticles: NewsArticle[] = [
     ...(digest.leadStory ? [digestArticleToNewsArticle(digest.leadStory)] : []),
-    ...digest.regionalStories.map(digestArticleToNewsArticle),
     ...digest.topicStories.map(digestArticleToNewsArticle),
   ];
 
@@ -172,11 +171,6 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
               <span className="font-bold text-on-surface-variant uppercase tracking-wider text-[11px]">
                 Tailored for:
               </span>
-              {digest.preferredRegion && (
-                <span className="bg-primary-container text-on-primary-container px-2.5 py-0.5 rounded-full font-bold">
-                  📍 {digest.preferredRegion}
-                </span>
-              )}
               {digest.preferredTopics.length > 0 ? (
                 digest.preferredTopics.map((topic) => (
                   <span
@@ -186,9 +180,9 @@ export default function HomeBriefingHero({ digest }: { digest: PersonalizedDiges
                     #{topic}
                   </span>
                 ))
-              ) : !digest.preferredRegion ? (
+              ) : (
                 <span className="text-on-surface-variant font-medium">All Sierra Leone Stories</span>
-              ) : null}
+              )}
             </div>
             <Link
               href="/profile"

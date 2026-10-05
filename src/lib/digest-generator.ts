@@ -26,10 +26,8 @@ export type PersonalizedDigest = {
   dateFormatted: string;
   greeting: string;
   totalReadTimeMinutes: number;
-  preferredRegion: string | null;
   preferredTopics: string[];
   leadStory: DigestArticle | null;
-  regionalStories: DigestArticle[];
   topicStories: DigestArticle[];
   quickBriefs: DigestQuickBrief[];
   fallbackToNational: boolean;
@@ -37,7 +35,6 @@ export type PersonalizedDigest = {
 
 export type DigestOptions = {
   userName?: string | null;
-  preferredRegion?: string | null;
   preferredTopics?: string[];
   articles: NewsArticle[];
   targetDate?: Date;
@@ -45,10 +42,8 @@ export type DigestOptions = {
 
 export function scoreAndFilterDigestArticles(
   articles: NewsArticle[],
-  preferredRegion?: string | null,
   preferredTopics: string[] = []
 ): { article: DigestArticle; score: number }[] {
-  const normRegion = preferredRegion?.trim().toLowerCase() || "";
   const normTopics = preferredTopics.map((t) => t.trim().toLowerCase());
   const now = Date.now();
 
@@ -56,15 +51,6 @@ export function scoreAndFilterDigestArticles(
     .map((art) => {
       let score = 0;
       const reasons: string[] = [];
-
-      // Region check
-      if (normRegion && art.location) {
-        const artLoc = art.location.toLowerCase();
-        if (artLoc.includes(normRegion) || normRegion.includes(artLoc)) {
-          score += 5;
-          reasons.push(`${preferredRegion} News`);
-        }
-      }
 
       // Topic check
       if (normTopics.length > 0 && art.category) {
@@ -108,7 +94,7 @@ export function scoreAndFilterDigestArticles(
 }
 
 export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDigest {
-  const { userName, preferredRegion, preferredTopics = [], articles, targetDate = new Date() } = options;
+  const { userName, preferredTopics = [], articles, targetDate = new Date() } = options;
 
   const hours = targetDate.getHours();
   let timeGreeting = "Good Morning";
@@ -127,18 +113,16 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
     year: "numeric",
   });
 
-  const hasPreferences = Boolean(preferredRegion?.trim()) || preferredTopics.length > 0;
-  const scored = scoreAndFilterDigestArticles(articles, preferredRegion, preferredTopics);
+  const hasPreferences = preferredTopics.length > 0;
+  const scored = scoreAndFilterDigestArticles(articles, preferredTopics);
 
   if (scored.length === 0) {
     return {
       dateFormatted,
       greeting,
       totalReadTimeMinutes: 0,
-      preferredRegion: preferredRegion || null,
       preferredTopics,
       leadStory: null,
-      regionalStories: [],
       topicStories: [],
       quickBriefs: [],
       fallbackToNational: true,
@@ -154,21 +138,7 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
     usedIds.add(leadStory.id);
   }
 
-  // 2. Regional Stories
-  const normRegion = preferredRegion?.trim().toLowerCase() || "";
-  const regionalStories: DigestArticle[] = [];
-  if (normRegion) {
-    for (const item of scored) {
-      if (usedIds.has(item.article.id)) continue;
-      if (item.article.location && item.article.location.toLowerCase().includes(normRegion)) {
-        regionalStories.push(item.article);
-        usedIds.add(item.article.id);
-        if (regionalStories.length >= 3) break;
-      }
-    }
-  }
-
-  // 3. Topic Stories
+  // 2. Topic Stories
   const normTopics = preferredTopics.map((t) => t.trim().toLowerCase());
   const topicStories: DigestArticle[] = [];
   if (normTopics.length > 0) {
@@ -184,7 +154,7 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
   }
 
   // Fallback for general stories if preferences yielded few items
-  if (topicStories.length === 0 && regionalStories.length === 0) {
+  if (topicStories.length === 0) {
     for (const item of scored) {
       if (usedIds.has(item.article.id)) continue;
       topicStories.push(item.article);
@@ -211,17 +181,14 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
   // Calculate total read time across all selected stories
   const totalReadTime =
     (leadStory ? leadStory.readTimeMinutes : 0) +
-    regionalStories.reduce((acc, s) => acc + s.readTimeMinutes, 0) +
     topicStories.reduce((acc, s) => acc + s.readTimeMinutes, 0);
 
   return {
     dateFormatted,
     greeting,
     totalReadTimeMinutes: Math.max(1, Math.round(totalReadTime)),
-    preferredRegion: preferredRegion || null,
     preferredTopics,
     leadStory,
-    regionalStories,
     topicStories,
     quickBriefs,
     fallbackToNational: !hasPreferences,
@@ -235,13 +202,6 @@ export function generateDigestAudioScript(digest: PersonalizedDigest): string {
 
   if (digest.leadStory) {
     parts.push(`Today's lead story: ${digest.leadStory.title}. ${digest.leadStory.summary}`);
-  }
-
-  if (digest.regionalStories.length > 0) {
-    parts.push(`From your region, ${digest.preferredRegion}:`);
-    digest.regionalStories.forEach((s) => {
-      parts.push(`${s.title}. ${s.summary}`);
-    });
   }
 
   if (digest.topicStories.length > 0) {

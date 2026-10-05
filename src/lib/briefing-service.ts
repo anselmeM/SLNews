@@ -11,13 +11,10 @@ export function formatMorningBriefingPayload(digest: {
   totalReadTimeMinutes?: number;
 }, user?: {
   name?: string | null;
-  preferredRegion?: string | null;
   preferredTopics?: string[];
 }) {
   let title = "🌅 Your Morning Briefing";
-  if (user?.preferredRegion) {
-    title = `🌅 ${user.preferredRegion} & Top Stories`;
-  } else if (user?.preferredTopics && user.preferredTopics.length > 0) {
+  if (user?.preferredTopics && user.preferredTopics.length > 0) {
     title = `🌅 ${user.preferredTopics[0]} & Morning Brief`;
   }
 
@@ -45,7 +42,7 @@ export function formatMorningBriefingPayload(digest: {
 export async function sendMorningBriefing(): Promise<{ sent: number; error?: string }> {
   const users = await db.user.findMany({
     where: { dailyBriefing: true },
-    select: { id: true, name: true, preferredRegion: true, preferredTopics: true },
+    select: { id: true, name: true, preferredTopics: true },
   });
 
   let articles;
@@ -64,7 +61,6 @@ export async function sendMorningBriefing(): Promise<{ sent: number; error?: str
     for (const user of users) {
       const digest = buildPersonalizedDigest({
         userName: user.name,
-        preferredRegion: user.preferredRegion,
         preferredTopics: user.preferredTopics,
         articles,
       });

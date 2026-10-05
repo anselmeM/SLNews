@@ -35,7 +35,6 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
 
   const allDigestArticles: NewsArticle[] = [
     ...(digest.leadStory ? [digestArticleToNewsArticle(digest.leadStory)] : []),
-    ...digest.regionalStories.map(digestArticleToNewsArticle),
     ...digest.topicStories.map(digestArticleToNewsArticle),
   ];
 
@@ -130,11 +129,6 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
             <span className="font-bold text-on-surface-variant uppercase tracking-wider">
               Tailored for:
             </span>
-            {digest.preferredRegion && (
-              <span className="bg-primary-container text-on-primary-container px-2.5 py-0.5 rounded-full font-bold">
-                📍 {digest.preferredRegion}
-              </span>
-            )}
             {digest.preferredTopics.length > 0 ? (
               digest.preferredTopics.map((topic) => (
                 <span
@@ -144,9 +138,9 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
                   #{topic}
                 </span>
               ))
-            ) : !digest.preferredRegion ? (
+            ) : (
               <span className="text-on-surface-variant font-medium">All National Stories</span>
-            ) : null}
+            )}
           </div>
           <Link
             href="/profile"
@@ -220,53 +214,7 @@ export default function DigestClient({ digest }: { digest: PersonalizedDigest })
         </section>
       )}
 
-      {/* 2. Regional Spotlight (if user has region) */}
-      {digest.regionalStories.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-xl">location_on</span>
-              <h2 className="font-bold text-sm uppercase tracking-widest text-on-surface-variant">
-                From {digest.preferredRegion}
-              </h2>
-            </div>
-            <Link
-              href="/local-news"
-              className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5"
-            >
-              More regional <span className="material-symbols-outlined text-xs">chevron_right</span>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {digest.regionalStories.map((art) => (
-              <Link
-                key={art.id}
-                href={`/article/${art.id}`}
-                className="group flex flex-col justify-between bg-surface-container-lowest rounded-2xl border border-outline-variant p-5 shadow-sm hover:border-primary/40 transition-all"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs text-on-surface-variant mb-2">
-                    <span className="font-bold text-primary">{art.category}</span>
-                    <span>{art.readTimeMinutes} min read</span>
-                  </div>
-                  <h3 className="font-bold text-base text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                    {art.title}
-                  </h3>
-                  <p className="text-xs text-on-surface-variant mt-2 line-clamp-2 leading-relaxed">
-                    {art.summary || art.content.slice(0, 100)}
-                  </p>
-                </div>
-                <div className="text-[11px] text-on-surface-variant font-medium pt-3 mt-3 border-t border-outline-variant/40">
-                  {art.source}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 3. Followed Topics & Key Stories */}
+      {/* 2. Followed Topics & Key Stories */}
       {digest.topicStories.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">

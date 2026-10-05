@@ -35,22 +35,17 @@ describe("digest-generator", () => {
   ];
 
   describe("scoreAndFilterDigestArticles", () => {
-    it("assigns higher scores to matching regions and topics", () => {
-      const scored = scoreAndFilterDigestArticles(
-        sampleArticles,
-        "Northern",
-        ["Politics", "Health"]
-      );
+    it("assigns higher scores to matching topics", () => {
+      const scored = scoreAndFilterDigestArticles(sampleArticles, ["Politics", "Health"]);
 
-      // Article 2 (Politics + Northern) should rank top
+      // Article 2 (Politics, 3h old) outranks the fresher but unmatched article 1.
       expect(scored[0]!.article.id).toBe("2");
       expect(scored[0]!.score).toBeGreaterThan(scored[scored.length - 1]!.score);
-      expect(scored[0]!.article.matchReasons).toContain("Northern News");
       expect(scored[0]!.article.matchReasons).toContain("Politics");
     });
 
     it("ranks recent stories even without user preferences", () => {
-      const scored = scoreAndFilterDigestArticles(sampleArticles, null, []);
+      const scored = scoreAndFilterDigestArticles(sampleArticles, []);
       expect(scored.length).toBe(sampleArticles.length);
       // Article 1 (1 hour ago) should have recency score
       expect(scored[0]!.article.id).toBe("1");
@@ -61,7 +56,6 @@ describe("digest-generator", () => {
     it("generates structured sections for a user with preferences", () => {
       const digest = buildPersonalizedDigest({
         userName: "Anselme Motcho",
-        preferredRegion: "Northern",
         preferredTopics: ["Politics", "Tech"],
         articles: sampleArticles,
         targetDate: new Date("2026-08-17T08:30:00"),
@@ -69,21 +63,20 @@ describe("digest-generator", () => {
 
       expect(digest.greeting).toBe("Good Morning, Anselme");
       expect(digest.leadStory).not.toBeNull();
-      expect(digest.preferredRegion).toBe("Northern");
       expect(digest.preferredTopics).toEqual(["Politics", "Tech"]);
       expect(digest.totalReadTimeMinutes).toBeGreaterThan(0);
       expect(digest.fallbackToNational).toBe(false);
 
-      // Regional stories should only contain Northern
-      digest.regionalStories.forEach((s) => {
-        expect(s.location).toContain("Northern");
+      // Followed topics only: every topic story matches one of them.
+      expect(digest.topicStories.length).toBeGreaterThan(0);
+      digest.topicStories.forEach((s) => {
+        expect(["Politics", "Tech"]).toContain(s.category);
       });
     });
 
     it("handles guest / empty preferences gracefully with fallbackToNational", () => {
       const digest = buildPersonalizedDigest({
         userName: null,
-        preferredRegion: null,
         preferredTopics: [],
         articles: sampleArticles,
         targetDate: new Date("2026-08-17T14:00:00"),
@@ -92,7 +85,6 @@ describe("digest-generator", () => {
       expect(digest.greeting).toBe("Good Afternoon");
       expect(digest.fallbackToNational).toBe(true);
       expect(digest.leadStory).not.toBeNull();
-      expect(digest.regionalStories.length).toBe(0);
       expect(digest.topicStories.length).toBeGreaterThan(0);
     });
 
@@ -112,7 +104,6 @@ describe("digest-generator", () => {
     it("produces full audio speech text from digest", () => {
       const digest = buildPersonalizedDigest({
         userName: "Anselme",
-        preferredRegion: "Northern",
         preferredTopics: ["Politics"],
         articles: sampleArticles,
       });
