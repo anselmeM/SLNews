@@ -46,13 +46,13 @@ export default function PrivacyPolicyPage() {
               <strong>Account Information:</strong> If you choose to create an account or submit community notices, we collect your name and email address via our authentication provider (Clerk). Guest reading does not require an account.
             </li>
             <li>
-              <strong>Local On-Device Storage:</strong> Articles you bookmark, your reading history, and your theme preferences (Dark/Light mode) are stored directly on your device via browser local storage to enable offline reading.
+              <strong>Local On-Device Storage:</strong> Articles you bookmark, your reading history, your theme preferences (Dark/Light mode), and the days you visited (used only to tell a return visit from a first one) are stored directly on your device via browser local storage to enable offline reading. None of it is uploaded.
             </li>
             <li>
               <strong>Push Notification Tokens:</strong> If you voluntarily enable breaking news alerts, we store an encrypted web-push subscription endpoint so our server can dispatch news alerts. You can revoke this anytime in your device settings.
             </li>
             <li>
-              <strong>Anonymous Usage Data:</strong> We collect non-personally identifiable diagnostic data (such as page views, device type, and approximate network connection status) to optimize performance on mobile networks.
+              <strong>Anonymous Usage Data:</strong> We collect non-personally identifiable diagnostic data (such as page views, device type, and approximate network connection status) to optimize performance on mobile networks. We also keep a daily count of how many reading sessions are first visits versus return visits, so we can tell whether the service is worth coming back to. That count is stored as a number per day: no cookie, account, device or session identifier is created or kept, so a visit cannot be traced back to you or linked to your other visits.
             </li>
           </ul>
         </section>
