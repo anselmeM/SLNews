@@ -31,10 +31,6 @@ vi.mock("@/app/actions/user-actions", () => ({
   updateProfile: vi.fn(() => Promise.resolve({ success: true })),
 }));
 
-vi.mock("@/app/actions/feed-actions", () => ({
-  getPersonalizedNews: vi.fn(() => Promise.resolve([])),
-}));
-
 vi.mock("next/link", async () => {
   const React = await import("react");
   const Link = React.forwardRef<HTMLAnchorElement, { children: React.ReactNode; href: string; className?: string }>(
