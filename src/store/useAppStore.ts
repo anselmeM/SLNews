@@ -28,6 +28,12 @@ interface AppState {
   setLocalAlerts: (v: boolean) => void;
   recentlyViewed: NewsArticle[];
   addRecentlyViewed: (article: NewsArticle) => void;
+  /**
+   * Stories opened on this device. Monotonic and local-only — it exists so the
+   * reader can see their own reading accumulate. Deliberately not a streak:
+   * nothing is lost by missing a day, and nothing is scored.
+   */
+  storiesReadCount: number;
   seenArticleIds: string[];
   addSeenArticle: (id: string) => void;
   addSeenArticles: (ids: string[]) => void;
@@ -109,10 +115,19 @@ export const useAppStore = create<AppState>()(
       localAlerts: true,
       setLocalAlerts: (v) => set({ localAlerts: v }),
       recentlyViewed: [],
+      storiesReadCount: 0,
       addRecentlyViewed: (article) =>
         set((state) => {
+          // A repeat of the most recently opened story (React's double-invoked
+          // effect in development, a re-render) must not inflate the count.
+          const isRepeatOfLastView = state.recentlyViewed[0]?.id === article.id;
           const filtered = state.recentlyViewed.filter((a) => a.id !== article.id);
-          return { recentlyViewed: [article, ...filtered].slice(0, 20) };
+          return {
+            recentlyViewed: [article, ...filtered].slice(0, 20),
+            storiesReadCount: isRepeatOfLastView
+              ? state.storiesReadCount
+              : state.storiesReadCount + 1,
+          };
         }),
       seenArticleIds: [],
       addSeenArticle: (id) =>

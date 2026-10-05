@@ -27,6 +27,7 @@ const DEFAULTS = {
   breakingNews: true,
   localAlerts: true,
   recentlyViewed: [] as NewsArticle[],
+  storiesReadCount: 0,
   seenArticleIds: [] as string[],
   lastRefreshAt: null,
 };
@@ -113,6 +114,40 @@ describe("useAppStore — recently viewed", () => {
     expect(viewed).toHaveLength(20);
     expect(viewed[0]?.id).toBe("a21");
     expect(viewed.map((a) => a.id)).not.toContain("a0");
+  });
+});
+
+describe("useAppStore — reading accumulation", () => {
+  it("counts every story opened", () => {
+    const { addRecentlyViewed } = useAppStore.getState();
+
+    addRecentlyViewed(article("a"));
+    addRecentlyViewed(article("b"));
+    addRecentlyViewed(article("a"));
+
+    // Re-reading "a" later is still a read, so the count is per open event.
+    expect(useAppStore.getState().storiesReadCount).toBe(3);
+  });
+
+  it("does not count a repeat of the most recent view twice", () => {
+    const { addRecentlyViewed } = useAppStore.getState();
+
+    // React double-invokes effects in development; that must not inflate it.
+    addRecentlyViewed(article("a"));
+    addRecentlyViewed(article("a"));
+    addRecentlyViewed(article("a"));
+
+    expect(useAppStore.getState().storiesReadCount).toBe(1);
+    expect(useAppStore.getState().recentlyViewed.map((a) => a.id)).toEqual(["a"]);
+  });
+
+  it("keeps counting past the 20-item recently-viewed cap", () => {
+    for (let i = 0; i < 25; i++) {
+      useAppStore.getState().addRecentlyViewed(article(`a${i}`));
+    }
+
+    expect(useAppStore.getState().recentlyViewed).toHaveLength(20);
+    expect(useAppStore.getState().storiesReadCount).toBe(25);
   });
 });
 
@@ -216,6 +251,12 @@ describe("useAppStore — persistence", () => {
 
     expect(persisted).not.toHaveProperty("savedArticleIds");
     expect(persisted).toHaveProperty("savedArticles");
+    // The accumulated reading count must survive a reload, or it is not
+    // accumulation at all.
+    expect(partialize({ ...DEFAULTS, storiesReadCount: 7 })).toHaveProperty(
+      "storiesReadCount",
+      7
+    );
   });
 
   it("migrate normalises pre-v3 state, drops the dead region key and renames topics", () => {
