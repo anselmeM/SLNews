@@ -1,0 +1,155 @@
+name: Database schema
+
+# Nothing in the deploy path applies Prisma schema changes. `next build` only
+# generates the client, `postinstall` runs `prisma generate`, and the `db push`
+# in ci.yml targets the throwaway CI database — so production drifts from
+# prisma/schema.prisma until somebody runs `db push` by hand. That is how the
+# RetentionDay table shipped in #83 while production kept answering
+# `{"error":"retention data unavailable"}`, silently collecting nothing.
+#
+# This workflow is that missing step, and the reason no database credential
+# lives in the repository: the connection string is resolved at run time from
+# the Neon API using the project's own key.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "discover = list databases (read-only); preview = print SQL diff; apply = run it"
+        type: choice
+        options:
+          - discover
+          - preview
+          - apply
+        default: discover
+      database_name:
+        description: "Database to target (required for preview and apply)"
+        required: false
+      role_name:
+        description: "Role to connect as (defaults to the database's owner)"
+        required: false
+
+# Two schema runs against the same database must never overlap.
+concurrency:
+  group: db-schema
+  cancel-in-progress: false
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    env:
+      # Placeholder so `prisma generate` (postinstall) has a datasource URL to
+      # read. Every DDL step overrides it with the resolved Neon URI, and each of
+      # them fails closed — a resolution failure aborts the run rather than
+      # falling back to this.
+      DATABASE_URL: "postgresql://unused:unused@127.0.0.1:5432/unused"
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+      MODE: ${{ inputs.mode }}
+      DATABASE_NAME_INPUT: ${{ inputs.database_name }}
+      ROLE_NAME_INPUT: ${{ inputs.role_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+      - run: npm ci
+
+      - name: Resolve the target
+        id: target
+        run: |
+          set -euo pipefail
+          if [ -z "${NEON_API_KEY}" ] || [ -z "${NEON_PROJECT_ID}" ]; then
+            echo "::error::NEON_API_KEY secret / NEON_PROJECT_ID variable are not configured."
+            exit 1
+          fi
+
+          api="https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}"
+          auth="Authorization: Bearer ${NEON_API_KEY}"
+
+          branches=$(curl -fsS -H "$auth" "$api/branches")
+          # The default branch is the one production talks to.
+          branch_id=$(echo "$branches" | jq -r '([.branches[] | select(.default)] + .branches)[0].id')
+          echo "Branch: $(echo "$branches" | jq -r --arg id "$branch_id" '.branches[] | select(.id == $id) | .name') (${branch_id})"
+
+          databases=$(curl -fsS -H "$auth" "$api/branches/${branch_id}/databases")
+          echo "Databases:"
+          echo "$databases" | jq -r '.databases[] | "  - \(.name) (owner: \(.owner_name))"'
+
+          # Which database holds the app's tables is probed, never assumed: a
+          # Neon branch can carry several, and picking the wrong one would apply
+          # the schema to a database nobody reads.
+          echo "App schema present in:"
+          while IFS= read -r db; do
+            owner=$(echo "$databases" | jq -r --arg db "$db" '.databases[] | select(.name == $db) | .owner_name')
+            uri=$(curl -fsS -H "$auth" --get \
+              --data-urlencode "database_name=${db}" \
+              --data-urlencode "role_name=${owner}" \
+              --data-urlencode "pooled=false" \
+              "$api/connection_uri" | jq -r '.uri')
+            echo "::add-mask::${uri}"
+            found=$(PROBE_URL="$uri" node --input-type=module -e 'import { Pool } from "pg"; const pool = new Pool({ connectionString: process.env.PROBE_URL, ssl: { rejectUnauthorized: false } }); try { const r = await pool.query(`SELECT to_regclass($$"Article"$$) AS a, to_regclass($$"User"$$) AS u`); console.log(Boolean(r.rows[0].a && r.rows[0].u)); } catch { console.log(false); } finally { await pool.end(); }')
+            echo "  - ${db}: app-schema=${found}"
+          done < <(echo "$databases" | jq -r '.databases[].name')
+
+          if [ "${MODE}" = "discover" ]; then
+            echo "Discovery only — nothing was changed."
+            exit 0
+          fi
+
+          if [ -z "${DATABASE_NAME_INPUT}" ]; then
+            echo "::error::database_name is required for mode=${MODE}."
+            exit 1
+          fi
+
+          owner="${ROLE_NAME_INPUT:-$(echo "$databases" | jq -r --arg db "${DATABASE_NAME_INPUT}" '.databases[] | select(.name == $db) | .owner_name')}"
+          if [ -z "$owner" ] || [ "$owner" = "null" ]; then
+            echo "::error::No database named '${DATABASE_NAME_INPUT}' on this branch."
+            exit 1
+          fi
+
+          uri=$(curl -fsS -H "$auth" --get \
+            --data-urlencode "database_name=${DATABASE_NAME_INPUT}" \
+            --data-urlencode "role_name=${owner}" \
+            --data-urlencode "pooled=false" \
+            "$api/connection_uri" | jq -r '.uri')
+          echo "::add-mask::${uri}"
+
+          host=$(DATABASE_URI="$uri" node -e 'console.log(new URL(process.env.DATABASE_URI).host)')
+          echo "Target: host=${host} database=${DATABASE_NAME_INPUT} role=${owner}"
+          case "$host" in
+            *.neon.tech) ;;
+            *)
+              echo "::error::Refusing to run: resolved host is not a Neon host."
+              exit 1
+              ;;
+          esac
+
+          # Direct (unpooled) connection: DDL through the pooler is not reliable.
+          echo "uri=${uri}" >> "$GITHUB_OUTPUT"
+
+      - name: Preview the schema diff
+        if: inputs.mode != 'discover'
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.uri }}
+        run: |
+          set -euo pipefail
+          npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script
+
+      - name: Apply the schema
+        if: inputs.mode == 'apply'
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.uri }}
+        # No --accept-data-loss: if a change would drop data, Prisma refuses and
+        # this run fails instead of guessing on production.
+        run: npx prisma db push
+
+      - name: Verify the database matches the schema
+        if: inputs.mode == 'apply'
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.uri }}
+        # Exits 2 — failing the step — if any drift remains.
+        run: |
+          set -euo pipefail
+          npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script --exit-code
+          echo "Database matches prisma/schema.prisma."
