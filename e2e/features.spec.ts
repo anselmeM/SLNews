@@ -91,6 +91,26 @@ test.describe("Search filters", () => {
     await expect(page.getByRole("group", { name: "Filter by date" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Last 7 days" })).toBeVisible();
   });
+
+  // The seeded story is filed under "Southern Province" (and district "Bo").
+  // Matched on a fragment because the result title highlights the query.
+  const southStory = /New Solar Grid Project/;
+
+  test("the province filter finds a story filed under that province", async ({ page }) => {
+    await page.goto("/search?q=solar&province=Southern+Province");
+    await expect(page.getByText(southStory).first()).toBeVisible();
+  });
+
+  test("the province filter still finds it under the spelling the old dashboard wrote", async ({ page }) => {
+    await page.goto("/search?q=solar&province=Southern");
+    await expect(page.getByText(southStory).first()).toBeVisible();
+  });
+
+  test("a different province does not match it", async ({ page }) => {
+    await page.goto("/search?q=solar&province=Eastern+Province");
+    await expect(page.getByText("No results found")).toBeVisible();
+    await expect(page.getByText(southStory)).toHaveCount(0);
+  });
 });
 
 test.describe("Route metadata", () => {

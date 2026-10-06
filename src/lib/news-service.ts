@@ -1,6 +1,7 @@
 import type { Article, User, Category, Prisma } from "@prisma/client";
 import { cachedFetch, staleWhileRevalidate } from "./cache";
 import { db } from "./db";
+import { provinceMatchTerms } from "./geo";
 
 export type NewsArticle = {
   id: string;
@@ -188,7 +189,22 @@ export async function searchArticles(
       OR: [{ title: { contains: sanitized, mode: "insensitive" } }, { summary: { contains: sanitized, mode: "insensitive" } }, { content: { contains: sanitized, mode: "insensitive" } }],
     };
     if (f.category) where.categories = { some: { name: f.category } };
-    if (f.province) where.province = f.province;
+    // Province filtering matches every spelling the column may hold, plus the
+    // districts of that province — `mapPrismaArticle` shows `district || province`
+    // as the story's location, so a story tagged only "Bo" is a Southern Province
+    // story to the reader. An unrecognised value filters nothing rather than
+    // filtering on an impossible one, which would look like "no news from there".
+    const provinceTerms = provinceMatchTerms(f.province);
+    if (provinceTerms) {
+      where.AND = [
+        {
+          OR: [
+            { province: { in: provinceTerms.provinces } },
+            { district: { in: provinceTerms.districts } },
+          ],
+        },
+      ];
+    }
     if (f.dateFrom) {
       const from = new Date(f.dateFrom);
       if (!Number.isNaN(from.getTime())) where.publishedAt = { gte: from };

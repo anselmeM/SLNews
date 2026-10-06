@@ -5,6 +5,7 @@ import InstantSearch from "./_components/InstantSearch";
 import SearchSuggestions from "./_components/SearchSuggestions";
 import { getTrendingTopics } from "@/app/actions/search-actions";
 import NewsFeed from "@/components/NewsFeed";
+import { normalizeProvince, SL_PROVINCES } from "@/lib/geo";
 import { searchArticles, type NewsArticle } from "@/lib/news-service";
 import { checkRateLimit } from "@/lib/rate-limiter";
 
@@ -14,7 +15,6 @@ export const metadata: Metadata = {
 };
 
 const CATEGORY_FILTERS = ["All", "National", "Politics", "Business", "Tech", "Health", "Economy", "Education"];
-const PROVINCES = ["Western Area", "Northern Province", "Southern Province", "Eastern Province", "North West Province"];
 const PERIODS: { key: string; label: string }[] = [
   { key: "", label: "All time" },
   { key: "24h", label: "Last 24 hours" },
@@ -35,7 +35,11 @@ export default async function SearchPage(props: {
   const searchParams = await props.searchParams;
   const query = searchParams.q || "";
   const category = searchParams.category || "";
-  const province = searchParams.province || "";
+  // Old links and the rows the dashboard used to write carry short spellings
+  // ("Southern"); normalize so the chip stays active and the filter still
+  // matches. A value that is not a province at all drops the filter rather than
+  // filtering on something impossible.
+  const province = normalizeProvince(searchParams.province) ?? "";
   const period = searchParams.period || "";
 
   if (query) {
@@ -139,7 +143,7 @@ export default async function SearchPage(props: {
             })}
           </div>
           <div className="flex flex-wrap gap-2 pb-1" role="group" aria-label="Filter by province">
-            {["All of Sierra Leone", ...PROVINCES].map((p) => {
+            {["All of Sierra Leone", ...SL_PROVINCES].map((p) => {
               const isActive = p === "All of Sierra Leone" ? !province : province === p;
               const pValue = p === "All of Sierra Leone" ? "" : p;
               const base = `/search?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}${period ? `&period=${period}` : ""}`;
@@ -193,9 +197,24 @@ export default async function SearchPage(props: {
           <p className="text-sm text-gray-500 font-medium max-w-xs leading-relaxed">
             We couldn&rsquo;t find any articles matching your search. Try using different keywords or checking your spelling.
           </p>
-          <Link href="/" className="mt-4 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm">
-            Return Home
-          </Link>
+          {province && (
+            <p className="text-sm text-gray-500 font-medium max-w-xs leading-relaxed">
+              Only some stories carry a location, so this filter can hide matches that have none.
+              Clearing it shows every article for your search.
+            </p>
+          )}
+          {province ? (
+            <Link
+              href={`/search?q=${encodeURIComponent(query)}${category ? `&category=${encodeURIComponent(category)}` : ""}${period ? `&period=${period}` : ""}`}
+              className="mt-4 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm"
+            >
+              Clear the province filter
+            </Link>
+          ) : (
+            <Link href="/" className="mt-4 px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm hover:bg-primary/95 transition-colors shadow-sm">
+              Return Home
+            </Link>
+          )}
         </div>
       )}
 

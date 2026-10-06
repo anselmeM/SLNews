@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { broadcastBreakingArticle } from "@/lib/breaking-push-service";
 import { db } from "@/lib/db";
+import { normalizeProvince } from "@/lib/geo";
 
 export async function upsertArticle(data: {
   id?: string;
@@ -80,7 +81,7 @@ export async function upsertArticle(data: {
         content,
         summary,
         imageUrl: imageUrl || null,
-        province: province || null,
+        province: normalizeProvince(province),
         district: district || null,
         status,
         ...(canSetBreaking ? { breaking: !!breaking, breakingSetAt: breaking ? new Date() : null } : {}),
@@ -94,7 +95,7 @@ export async function upsertArticle(data: {
         content,
         summary,
         imageUrl: imageUrl || null,
-        province: province || null,
+        province: normalizeProvince(province),
         district: district || null,
         status,
         authorId: session.user.id,
