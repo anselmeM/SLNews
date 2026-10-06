@@ -1,5 +1,7 @@
 "use client";
 
+import { SL_PROVINCES } from "@/lib/geo";
+
 const CATEGORIES = [
   "National",
   "Politics",
@@ -13,13 +15,7 @@ const CATEGORIES = [
   "Culture",
 ];
 
-const PROVINCES = [
-  "Western Area",
-  "Northern",
-  "Eastern",
-  "Southern",
-  "North-West",
-];
+const PROVINCES = SL_PROVINCES;
 
 type EditorMetadataProps = {
   province: string;

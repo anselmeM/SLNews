@@ -52,11 +52,13 @@ export default defineConfig({
       //   statements 73.82 | branches 61.84 | functions 72.69 | lines 75.51
       // Raised after the retention ping retry landed (2026-10-06):
       //   statements 74.68 | branches 62.52 | functions 74.17 | lines 76.11
+      // Raised after the province vocabulary fix landed (2026-10-06):
+      //   statements 75.36 | branches 63.59 | functions 74.74 | lines 76.84
       //
       // Raised as coverage improved — 64/53/63/66 (baseline), 66/54/68/68
       // (useAppStore), 71/58/70/73 (audio player), 72/60/72/74, 73/61/72/75,
-      // now this. Ratchet up whenever coverage improves, or the gain regresses
-      // unnoticed.
+      // 74/62/73/75, now this. Ratchet up whenever coverage improves, or the
+      // gain regresses unnoticed.
       //
       // The ~1 point of headroom is deliberate: deleting tests, breaking
       // coverage collection, or dropping a large covered module fails the gate,
@@ -64,9 +66,9 @@ export default defineConfig({
       // values if you'd rather every untested addition fail CI.
       thresholds: {
         statements: 74,
-        branches: 62,
-        functions: 73,
-        lines: 75,
+        branches: 63,
+        functions: 74,
+        lines: 76,
       },
     },
     projects: [
