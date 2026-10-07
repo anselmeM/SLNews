@@ -155,26 +155,31 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
         </h1>
       </div>
 
-      {/* Author byline + actions */}
-      <div className="flex items-center justify-between py-3 border-b border-outline-variant/20 mb-6">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="min-w-0">
-            <p className="font-semibold text-sm text-on-surface">
-              {article.authorId ? (
-                <Link
-                  href={`/author/${article.authorId}`}
-                  className="hover:text-primary transition-colors focus-visible:outline-none focus-visible:text-primary"
-                >
-                  {article.source}
-                </Link>
-              ) : (
-                article.source
-              )}
-            </p>
-            <p className="text-xs text-on-surface-variant mt-0.5">
-              {formattedDate} · {readTime.text}
-            </p>
-          </div>
+      {/*
+        Byline and actions. On a narrow screen these share one row, which
+        squeezes the byline into a ~60px column — "October 6, 2026 · 1 min read"
+        wraps to three lines beside the action icons. So the byline gets its own
+        line until there is room (sm and up) for the original row.
+      */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-3 border-b border-outline-variant/20 mb-6">
+        <div className="min-w-0" data-testid="article-byline">
+          <p className="font-semibold text-sm text-on-surface">
+            {article.authorId ? (
+              <Link
+                href={`/author/${article.authorId}`}
+                className="hover:text-primary transition-colors focus-visible:outline-none focus-visible:text-primary"
+              >
+                {article.source}
+              </Link>
+            ) : (
+              article.source
+            )}
+          </p>
+          <p className="text-xs text-on-surface-variant mt-0.5">
+            {formattedDate} · {readTime.text}
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap" data-testid="article-actions">
           {canFollow && (
             <FollowButton
               authorId={article.authorId}
@@ -184,8 +189,6 @@ export default async function ArticlePage(props: { params: Promise<{ id: string 
               callbackPath={`/article/${article.id}`}
             />
           )}
-        </div>
-        <div className="flex items-center gap-1.5">
           <TextSizeSelector />
           <ListenButton title={article.title} content={article.content} />
           <ShareSheet article={article} />
