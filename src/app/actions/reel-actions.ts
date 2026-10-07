@@ -6,6 +6,7 @@ import { staleWhileRevalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { CURATED_SL_REELS, type ReelVideo } from "@/lib/fixtures/curated-reels";
 import { splitLocation } from "@/lib/geo";
+import { logger } from "@/lib/logger";
 import { fetchScraperVideos, triggerScraperVideoSync, type ScraperVideo } from "@/lib/scraper-client";
 
 export type { ReelVideo };
@@ -44,8 +45,17 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
       SCRAPER_REELS_TTL_SECONDS
     );
     scraperReels = scrapedVideos.map(mapScraperVideoToReel);
-  } catch {
+    // "The scraper has nothing" and "the scraper failed" look identical from the
+    // outside — curated reels render either way — but one is a product gap and
+    // the other is a bug, so they must not share a silent path.
+    if (scraperReels.length === 0) {
+      logger.info("reels: scraper returned no videos", { take, page });
+    }
+  } catch (error) {
     scraperReels = [];
+    logger.warn("reels: scraper feed unavailable", {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   // 2. Fetch community-submitted / published video articles from Neon Postgres
