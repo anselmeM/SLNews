@@ -30,11 +30,43 @@ if (!connectionString) {
   process.exit(1);
 }
 
+/**
+ * Mirror of `src/lib/db-ssl.ts` (this script is plain node, run by the workflow,
+ * so it cannot import the TypeScript module). `sslmode` is read and then removed
+ * from the URL because pg resolves TLS with
+ * `Object.assign({}, config, parse(config.connectionString))`: a parsed
+ * `sslmode` overrides any `ssl` passed here, and `require` currently means
+ * verify-full only by accident of version (pg v9 weakens it).
+ *
+ * Unlike the app, this script has no local mode: the workflow refuses any host
+ * that is not Neon, so TLS is always on and always verified.
+ */
+function resolvePgConnection(rawUrl) {
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return { connectionString: rawUrl, ssl: { rejectUnauthorized: true } };
+  }
+
+  const mode = url.searchParams.get("sslmode");
+  if (!mode) return { connectionString: rawUrl, ssl: { rejectUnauthorized: true } };
+  if (url.searchParams.get("uselibpqcompat") === "true") {
+    return { connectionString: rawUrl, ssl: undefined };
+  }
+
+  url.searchParams.delete("sslmode");
+  return {
+    connectionString: url.toString(),
+    ssl: mode === "disable" ? false : { rejectUnauthorized: true },
+  };
+}
+
+const resolved = resolvePgConnection(connectionString);
+
 const pool = new Pool({
-  connectionString,
-  ...(/sslmode=disable/.test(connectionString)
-    ? {}
-    : { ssl: { rejectUnauthorized: false } }),
+  connectionString: resolved.connectionString,
+  ...(resolved.ssl === undefined ? {} : { ssl: resolved.ssl }),
   connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
 });
 

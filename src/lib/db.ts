@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
+import { resolvePgConnection } from '@/lib/db-ssl';
 import { logger } from '@/lib/logger';
 
 const connectionString = `${process.env.DATABASE_URL}`;
@@ -13,18 +14,33 @@ declare global {
   var pgPool: Pool | undefined;
 }
 
+const resolved = resolvePgConnection(connectionString);
+
+// When the URL says nothing about TLS we have to choose, and the two
+// environments want opposite things: local Postgres on 127.0.0.1 (see
+// `.env`, which says `sslmode=disable`) has no certificate to verify, while a
+// hosted database should never be reached unverified. `rejectUnauthorized:
+// false` keeps a hosted database working but gives up verification, so it is
+// logged rather than silent — the fix is to spell out `sslmode=verify-full`.
+const fallbackSsl = resolved.unset && isProduction ? { rejectUnauthorized: false } : undefined;
+const ssl = resolved.ssl === undefined ? fallbackSsl : resolved.ssl;
+
+if (fallbackSsl) {
+  logger.warn(
+    "DATABASE_URL has no sslmode: connecting without certificate verification. Set sslmode=verify-full.",
+  );
+}
+
 const pool =
   global.pgPool ||
   new Pool({
-    connectionString,
+    connectionString: resolved.connectionString,
     max: Number(process.env.PG_POOL_MAX) || (isProduction ? 5 : 5),
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
     keepAlive: true,
     keepAliveInitialDelayMillis: 10_000,
-    ...(isProduction && !connectionString.includes("sslmode")
-      ? { ssl: { rejectUnauthorized: false } }
-      : {}),
+    ...(ssl === undefined ? {} : { ssl }),
   });
 
 pool.on("error", (err) => {
