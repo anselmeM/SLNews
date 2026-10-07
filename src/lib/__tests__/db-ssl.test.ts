@@ -20,6 +20,32 @@ describe("resolvePgConnection", () => {
     expect(resolvePgConnection(`${NEON}?sslmode=disable`).ssl).toBe(false);
   });
 
+  it("honours an explicit no-verify instead of silently upgrading it", () => {
+    // pg's own opt-out, not a libpq mode. Forcing verification on it would break
+    // a self-signed setup later with a confusing error, and would be a change
+    // from today's behaviour. db.ts logs it.
+    const resolved = resolvePgConnection(`${NEON}?sslmode=no-verify`);
+
+    expect(resolved.ssl).toEqual({ rejectUnauthorized: false });
+    expect(resolved.mode).toBe("no-verify");
+    expect(resolved.connectionString).not.toContain("sslmode");
+  });
+
+  it("reports the mode it read so the caller can explain itself", () => {
+    expect(resolvePgConnection(`${NEON}?sslmode=require`).mode).toBe("require");
+    expect(resolvePgConnection(NEON).mode).toBeUndefined();
+  });
+
+  it("treats libpq's permissive modes as verified TLS", () => {
+    // `allow` and `prefer` mean "do not require TLS" to libpq, so pg v9 would
+    // stop requiring it. pg 8 gives verified TLS for both; keep that.
+    for (const mode of ["allow", "prefer"]) {
+      expect(resolvePgConnection(`${NEON}?sslmode=${mode}`).ssl, mode).toEqual({
+        rejectUnauthorized: true,
+      });
+    }
+  });
+
   it("removes sslmode so pg cannot override the decision", () => {
     // pg merges the parsed URL over the pool options, so leaving the alias in
     // place is what made an explicit ssl config ineffective.
@@ -118,9 +144,23 @@ describe("the deprecation warning", () => {
 
     expect(warnings).toEqual([]);
   });
+
+  it("never fired for no-verify, which is not one of the aliased modes", async () => {
+    const warnings = await warningsForParsing(`${NEON}?sslmode=no-verify`);
+
+    expect(warnings).toEqual([]);
+  });
 });
 
 describe("the assumption the fix rests on", () => {
+  it("applies an explicit no-verify to pg unchanged", () => {
+    const resolved = resolvePgConnection(`${NEON}?sslmode=no-verify`);
+
+    expect(
+      effectiveSsl({ connectionString: resolved.connectionString, ssl: resolved.ssl })
+    ).toEqual({ rejectUnauthorized: false });
+  });
+
   it("lets the connection string win over an explicit ssl option", () => {
     // pg/lib/connection-parameters.js:60 is
     //   Object.assign({}, config, parse(config.connectionString))

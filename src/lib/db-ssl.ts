@@ -34,6 +34,8 @@ export interface ResolvedPgConnection {
   ssl?: PgSslConfig;
   /** The URL carried no `sslmode`: the caller's policy applies. */
   unset: boolean;
+  /** The `sslmode` that was read, when the URL carried one. */
+  mode?: string;
   /**
    * The URL opted into libpq semantics (`uselibpqcompat=true`), which is an
    * explicit request for the weaker modes. It is left untouched rather than
@@ -67,7 +69,7 @@ export function resolvePgConnection(rawUrl: string): ResolvedPgConnection {
   if (!mode) return unchanged;
 
   if (url.searchParams.get("uselibpqcompat") === "true") {
-    return { ...unchanged, libpqCompat: true };
+    return { ...unchanged, mode, libpqCompat: true };
   }
 
   // pg must not see the alias, or it overrides this decision (and warns).
@@ -75,11 +77,24 @@ export function resolvePgConnection(rawUrl: string): ResolvedPgConnection {
 
   return {
     connectionString: url.toString(),
-    // `disable` is the only mode that turns TLS off. Everything else means TLS
-    // with the certificate *and hostname* verified — which is what `require` has
-    // meant in practice, and what we want it to keep meaning.
-    ssl: mode === "disable" ? false : { rejectUnauthorized: true },
+    ssl: sslForMode(mode),
+    mode,
     unset: false,
     libpqCompat: false,
   };
+}
+
+function sslForMode(mode: string): PgSslConfig {
+  // `disable` is the only mode that turns TLS off. `no-verify` is pg's own
+  // explicit opt-out of certificate verification rather than a libpq mode, so it
+  // is honoured too: forcing verification on it is how a self-signed setup breaks
+  // later with a confusing error, and it would be a silent change from today.
+  // Callers are expected to say so in the log (see `db.ts`).
+  if (mode === "disable") return false;
+  if (mode === "no-verify") return { rejectUnauthorized: false };
+  // Everything else — including `allow` and `prefer`, which libpq reads as "do
+  // not require TLS" — means TLS with the certificate *and hostname* verified,
+  // which is what these modes have meant in practice (pg 8) and what we want
+  // them to keep meaning after pg v9.
+  return { rejectUnauthorized: true };
 }

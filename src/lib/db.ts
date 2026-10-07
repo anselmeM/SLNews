@@ -25,9 +25,15 @@ const resolved = resolvePgConnection(connectionString);
 const fallbackSsl = resolved.unset && isProduction ? { rejectUnauthorized: false } : undefined;
 const ssl = resolved.ssl === undefined ? fallbackSsl : resolved.ssl;
 
-if (fallbackSsl) {
+// Any TLS configuration that does not verify the certificate is worth saying out
+// loud, whether it came from the fallback above or from an explicit
+// `sslmode=no-verify`. `ssl === false` is the honest "no TLS at all" of local
+// development, and is not warned about.
+if (typeof ssl === "object" && ssl.rejectUnauthorized === false) {
   logger.warn(
-    "DATABASE_URL has no sslmode: connecting without certificate verification. Set sslmode=verify-full.",
+    resolved.unset
+      ? "DATABASE_URL has no sslmode: connecting without certificate verification. Set sslmode=verify-full."
+      : `DATABASE_URL sets sslmode=${resolved.mode}: connecting without certificate verification.`,
   );
 }
 

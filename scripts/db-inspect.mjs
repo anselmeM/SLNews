@@ -56,10 +56,20 @@ function resolvePgConnection(rawUrl) {
   }
 
   url.searchParams.delete("sslmode");
-  return {
-    connectionString: url.toString(),
-    ssl: mode === "disable" ? false : { rejectUnauthorized: true },
-  };
+  // `disable` and `no-verify` are explicit opt-outs and are honoured; anything
+  // else means TLS with the certificate and hostname verified (see db-ssl.ts).
+  const ssl =
+    mode === "disable"
+      ? false
+      : mode === "no-verify"
+        ? { rejectUnauthorized: false }
+        : { rejectUnauthorized: true };
+
+  if (typeof ssl === "object" && ssl.rejectUnauthorized === false) {
+    console.warn(`warning: sslmode=${mode} connects without certificate verification`);
+  }
+
+  return { connectionString: url.toString(), ssl };
 }
 
 const resolved = resolvePgConnection(connectionString);
