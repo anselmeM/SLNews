@@ -50,14 +50,20 @@ export type ScraperVideo = {
  * against 0.8s when the instance was warm, and the `try/catch` around the call
  * only ever handled a *failed* request, never a slow one.
  *
+ * The first attempt cut the video feed at 4s, and production logs then showed
+ * every `/reels` request timing out — a cold Render boot measured at 5.5s, so the
+ * cut fired every time and the scraped feed rendered nothing at all while the
+ * curated clips quietly covered for it. 10s clears a measured boot with room to
+ * spare; a pathological boot still falls back, and this call is slated to leave
+ * the request path entirely once videos are synced ahead of the reader.
+ *
  * The defaults differ on purpose:
- * - the video feed is on the interactive path, so it gives up quickly and falls
- *   back to the community and curated reels;
+ * - the video feed is on the interactive path, so it gives up and falls back;
  * - the news sync is a bulk cron job with no reader waiting, and its payload is
  *   legitimately slower;
  * - the sync trigger waits on the scraper's own ingestion run.
  */
-export const VIDEO_REQUEST_TIMEOUT_MS = 4_000;
+export const VIDEO_REQUEST_TIMEOUT_MS = 10_000;
 export const NEWS_REQUEST_TIMEOUT_MS = 20_000;
 export const SYNC_REQUEST_TIMEOUT_MS = 60_000;
 
@@ -152,6 +158,7 @@ export async function fetchScraperVideos(
   const key = apiKey();
   const base = baseUrl();
   const url = `${base}/api/videos?limit=${limit}&page=${page}`;
+  const startedAt = Date.now();
 
   let res: Response;
   try {
@@ -168,7 +175,16 @@ export async function fetchScraperVideos(
     throw new Error(`Scraper responded ${res.status}`);
   }
 
-  return normalizeVideoPayload(await res.json());
+  const videos = normalizeVideoPayload(await res.json());
+  // Without this the only latency signal is a timeout, which cannot distinguish
+  // "slow but working" from "not working" — the question this call kept raising.
+  logger.info("scraper videos fetched", {
+    ms: Date.now() - startedAt,
+    count: videos.length,
+    limit,
+    page,
+  });
+  return videos;
 }
 
 /**
