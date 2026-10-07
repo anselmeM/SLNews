@@ -98,6 +98,9 @@ export default function ShareSheet({ article }: { article: NewsArticle }) {
           setOpen(true);
           vibrate();
         }}
+        // The label is hidden below `sm`, so without this the button's only
+        // accessible name would be the icon's ligature text.
+        aria-label="Share article"
         className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-outline-variant/30 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
       >
         <span className="material-symbols-outlined text-xl">share</span>

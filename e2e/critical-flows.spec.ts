@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 test.describe("Home & Navigation", () => {
   test("home page loads and shows articles", async ({ page }) => {
@@ -26,6 +26,51 @@ test.describe("Home & Navigation", () => {
     await expect(page.locator("aside a[href='/market']")).toBeVisible();
     await expect(page.locator("aside a[href='/profile']")).toBeVisible();
     await expect(page.locator("aside a[href='/sign-in']")).toBeVisible();
+  });
+});
+
+test.describe("Article header layout", () => {
+  /**
+   * The byline and the action buttons shared one row at every width, which on a
+   * phone squeezed "October 6, 2026 · 1 min read" into a ~60px column beside the
+   * icons. The byline now has its own line until `sm`.
+   */
+  async function openFirstArticle(page: Page) {
+    await page.goto("/home");
+    // Read the link and navigate directly: clicking a feed card means depending
+    // on overlays, sticky bars and whether the card opens in a new tab, none of
+    // which this test is about.
+    const href = await page.locator('main a[href^="/article/"]').first().getAttribute("href");
+    expect(href).toBeTruthy();
+    await page.goto(href!);
+    await expect(page.getByTestId("article-byline")).toBeVisible();
+  }
+
+  test("the byline sits above the action buttons on a phone", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openFirstArticle(page);
+
+    const bylineBox = await page.getByTestId("article-byline").boundingBox();
+    const actionsBox = await page.getByTestId("article-actions").boundingBox();
+
+    expect(bylineBox).not.toBeNull();
+    expect(actionsBox).not.toBeNull();
+    // Whole byline above the action row, not beside it.
+    expect(bylineBox!.y + bylineBox!.height).toBeLessThanOrEqual(actionsBox!.y + 1);
+  });
+
+  test("the byline and the action buttons share a row on desktop", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openFirstArticle(page);
+
+    const bylineBox = await page.getByTestId("article-byline").boundingBox();
+    const actionsBox = await page.getByTestId("article-actions").boundingBox();
+
+    expect(bylineBox).not.toBeNull();
+    expect(actionsBox).not.toBeNull();
+    // Same band vertically, actions to the right of the byline.
+    expect(actionsBox!.y).toBeLessThan(bylineBox!.y + bylineBox!.height);
+    expect(actionsBox!.x).toBeGreaterThan(bylineBox!.x + bylineBox!.width);
   });
 });
 
