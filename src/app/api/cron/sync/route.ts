@@ -5,11 +5,16 @@ import { syncFromScraper } from "@/app/actions/sync-scraper";
 import { sendMorningBriefing } from "@/lib/briefing-service";
 import { syncMarketPrices } from "@/lib/market-sync-service";
 import { processPriceAlerts } from "@/lib/price-alert-service";
-import { syncScraperVideos, VIDEO_SYNC_MAX_DURATION_S } from "@/lib/video-sync";
+import { syncScraperVideos } from "@/lib/video-sync";
 
+// A literal on purpose: Next reads segment config statically, and an imported
+// identifier fails the build ("Unknown identifier ... at maxDuration"). The
+// documented budget lives in `VIDEO_SYNC_MAX_DURATION_S`, and a test asserts the
+// two agree.
+//
 // The video step waits on the scraper's own ingestion run (up to 40s) before it
 // reads the list, and it runs alongside the others rather than after them.
-export const maxDuration = VIDEO_SYNC_MAX_DURATION_S;
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

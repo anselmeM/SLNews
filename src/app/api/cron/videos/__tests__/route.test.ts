@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { GET } from "../route";
+import { GET, maxDuration } from "../route";
 import { logger } from "@/lib/logger";
 import { fetchScraperVideos, triggerScraperVideoSync } from "@/lib/scraper-client";
+import { VIDEO_SYNC_MAX_DURATION_S } from "@/lib/video-sync";
 
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
@@ -43,6 +44,11 @@ beforeEach(() => {
 });
 
 describe("GET /api/cron/videos", () => {
+  it("keeps the documented budget and the segment config in step", () => {
+    // Next reads `maxDuration` statically, so the route has to carry the literal.
+    expect(maxDuration).toBe(VIDEO_SYNC_MAX_DURATION_S);
+  });
+
   it("rejects a request without the cron secret", async () => {
     const response = await GET(get("?trigger=0"));
 

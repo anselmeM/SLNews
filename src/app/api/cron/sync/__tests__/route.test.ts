@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { GET } from "../route";
+import { GET, maxDuration } from "../route";
 import { sendPushNotifications } from "@/app/actions/push-actions";
 import { syncWorldNews } from "@/app/actions/sync-news-api";
 import { syncFromScraper } from "@/app/actions/sync-scraper";
@@ -49,6 +49,17 @@ beforeEach(() => {
 });
 
 describe("GET /api/cron/sync", () => {
+  it("keeps the documented budget and the segment config in step", async () => {
+    // Next reads `maxDuration` statically, so the route has to carry the literal.
+    // The real module is imported here rather than the mock below, or the
+    // comparison would be against a number this file made up.
+    const actual = (await vi.importActual("@/lib/video-sync")) as {
+      VIDEO_SYNC_MAX_DURATION_S: number;
+    };
+
+    expect(maxDuration).toBe(actual.VIDEO_SYNC_MAX_DURATION_S);
+  });
+
   it("rejects a request without the cron secret, without syncing anything", async () => {
     const response = await GET(get());
 

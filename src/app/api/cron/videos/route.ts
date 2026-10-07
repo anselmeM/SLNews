@@ -18,6 +18,10 @@ import { syncScraperVideos } from "@/lib/video-sync";
  * cron slot — see `src/lib/video-sync.ts` and the `Video` table note in
  * docs/TODO.md.
  */
+// A literal on purpose: Next reads segment config statically, and an imported
+// identifier fails the build ("Unknown identifier ... at maxDuration"). The
+// documented budget lives in `VIDEO_SYNC_MAX_DURATION_S`, and a test asserts the
+// two agree.
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
