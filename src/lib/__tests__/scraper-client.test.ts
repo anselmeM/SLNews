@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { logger } from "@/lib/logger";
 import {
   fetchScraperNews,
   fetchScraperVideos,
@@ -8,6 +9,10 @@ import {
   VIDEO_REQUEST_TIMEOUT_MS,
   ScraperUnreachableError,
 } from "@/lib/scraper-client";
+
+vi.mock("@/lib/logger", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
 
 const LEGACY = "https://slnewsapiscapper.onrender.com/api/news";
 const VIDEOS_ENDPOINT = "https://slnewsapiscapper.onrender.com/api/videos?limit=20&page=1";
@@ -227,6 +232,25 @@ describe("fetchScraperVideos", () => {
       // The feed has a reader waiting; the cron does not.
       expect(VIDEO_REQUEST_TIMEOUT_MS).toBeLessThan(NEWS_REQUEST_TIMEOUT_MS);
       expect(NEWS_REQUEST_TIMEOUT_MS).toBeLessThan(SYNC_REQUEST_TIMEOUT_MS);
+    });
+
+    it("clears a measured cold boot of the host", () => {
+      // A sleeping Render instance answered a probe in 5.5s, so the earlier 4s
+      // cut fired on every /reels request and the scraped feed rendered nothing.
+      expect(VIDEO_REQUEST_TIMEOUT_MS).toBeGreaterThan(5_500);
+    });
+
+    it("records how long a successful call took", async () => {
+      const fetchMock = vi.fn(() => Promise.resolve(jsonResponse([])));
+      vi.stubGlobal("fetch", fetchMock);
+      vi.mocked(logger.info).mockClear();
+
+      await fetchScraperVideos(10, 2);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        "scraper videos fetched",
+        expect.objectContaining({ count: 0, limit: 10, page: 2, ms: expect.any(Number) })
+      );
     });
   });
 });
