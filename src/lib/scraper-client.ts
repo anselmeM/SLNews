@@ -8,8 +8,11 @@
 // Error mapping (kept stable for the sync action):
 //   - SCRAPER_API_KEY missing        -> Error("SCRAPER_API_KEY is not set")
 //   - network failure                -> ScraperUnreachableError
+//   - no answer within the timeout   -> ScraperUnreachableError (logged)
 //   - non-OK response (incl. 401)    -> Error("Scraper responded <status>")
 //   - unexpected body shape          -> Error("Unexpected scraper payload")
+
+import { logger } from "@/lib/logger";
 
 export type ScraperArticle = {
   id?: number | string;
@@ -38,12 +41,45 @@ export type ScraperVideo = {
   category: string[];
 };
 
+/**
+ * Request timeouts.
+ *
+ * The scraper runs on Render, where an idle instance spins down — so the first
+ * request after a quiet spell waits for the boot. Without a timeout that wait
+ * happens *inside a page render*: `/reels` was measured at 54.8s end-to-end
+ * against 0.8s when the instance was warm, and the `try/catch` around the call
+ * only ever handled a *failed* request, never a slow one.
+ *
+ * The defaults differ on purpose:
+ * - the video feed is on the interactive path, so it gives up quickly and falls
+ *   back to the community and curated reels;
+ * - the news sync is a bulk cron job with no reader waiting, and its payload is
+ *   legitimately slower;
+ * - the sync trigger waits on the scraper's own ingestion run.
+ */
+export const VIDEO_REQUEST_TIMEOUT_MS = 4_000;
+export const NEWS_REQUEST_TIMEOUT_MS = 20_000;
+export const SYNC_REQUEST_TIMEOUT_MS = 60_000;
+
 /** Raised when the scraper host cannot be reached at the network level. */
 export class ScraperUnreachableError extends Error {
   constructor() {
     super("Scraper unreachable");
     this.name = "ScraperUnreachableError";
   }
+}
+
+/**
+ * A timeout and a refused connection are the same thing to a caller — the host
+ * did not answer in useful time — but only one of them is worth a log line: a
+ * timeout means the instance was probably asleep, which is what an operator
+ * needs to see to know the feed is running on fallback content.
+ */
+function unreachable(url: string, timeoutMs: number, cause: unknown): ScraperUnreachableError {
+  if ((cause as { name?: string } | null)?.name === "TimeoutError") {
+    logger.warn("scraper request timed out", { url, timeoutMs });
+  }
+  return new ScraperUnreachableError();
 }
 
 const DEFAULT_BASE_URL = "https://slnewsapiscapper.onrender.com";
@@ -81,7 +117,9 @@ function normalizeVideoPayload(json: unknown): ScraperVideo[] {
  * and `paragraphs`, which `/v1/news` does not provide. Every non-OK status
  * (401, 404, …) is therefore a real error, not a signal to try another route.
  */
-export async function fetchScraperNews(): Promise<ScraperArticle[]> {
+export async function fetchScraperNews(
+  timeoutMs: number = NEWS_REQUEST_TIMEOUT_MS
+): Promise<ScraperArticle[]> {
   const key = apiKey();
   const url = `${baseUrl()}/api/news`;
 
@@ -90,10 +128,10 @@ export async function fetchScraperNews(): Promise<ScraperArticle[]> {
     res = await fetch(url, {
       cache: "no-store",
       headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
-    void err;
-    throw new ScraperUnreachableError();
+    throw unreachable(url, timeoutMs, err);
   }
 
   if (!res.ok) {
@@ -106,7 +144,11 @@ export async function fetchScraperNews(): Promise<ScraperArticle[]> {
 /**
  * Fetch scraped YouTube news videos and Shorts from the scraper API.
  */
-export async function fetchScraperVideos(limit = 20, page = 1): Promise<ScraperVideo[]> {
+export async function fetchScraperVideos(
+  limit = 20,
+  page = 1,
+  timeoutMs: number = VIDEO_REQUEST_TIMEOUT_MS
+): Promise<ScraperVideo[]> {
   const key = apiKey();
   const base = baseUrl();
   const url = `${base}/api/videos?limit=${limit}&page=${page}`;
@@ -116,10 +158,10 @@ export async function fetchScraperVideos(limit = 20, page = 1): Promise<ScraperV
     res = await fetch(url, {
       cache: "no-store",
       headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
-    void err;
-    throw new ScraperUnreachableError();
+    throw unreachable(url, timeoutMs, err);
   }
 
   if (!res.ok) {
@@ -132,7 +174,9 @@ export async function fetchScraperVideos(limit = 20, page = 1): Promise<ScraperV
 /**
  * Trigger an immediate ingestion cycle of all YouTube channel feeds.
  */
-export async function triggerScraperVideoSync(): Promise<{ status: string; result?: unknown }> {
+export async function triggerScraperVideoSync(
+  timeoutMs: number = SYNC_REQUEST_TIMEOUT_MS
+): Promise<{ status: string; result?: unknown }> {
   const key = apiKey();
   const base = baseUrl();
   const url = `${base}/api/videos/sync`;
@@ -146,10 +190,10 @@ export async function triggerScraperVideoSync(): Promise<{ status: string; resul
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
-    void err;
-    throw new ScraperUnreachableError();
+    throw unreachable(url, timeoutMs, err);
   }
 
   if (!res.ok) {
