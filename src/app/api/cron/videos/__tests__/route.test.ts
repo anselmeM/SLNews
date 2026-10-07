@@ -69,7 +69,7 @@ describe("GET /api/cron/videos", () => {
       {
         videoId: "abc123",
         title: "Freetown Port Commissioned",
-        channel: "AYV News Sierra Leone",
+        channelTitle: "AYV News Sierra Leone",
         publishedAt: "2026-09-01T10:00:00.000Z",
         url: "https://www.youtube.com/watch?v=abc123",
       },
@@ -97,7 +97,7 @@ describe("GET /api/cron/videos", () => {
     expect(response.status).toBe(200);
     expect(body).toMatchObject({ success: true, count: 0 });
     expect(logger.info).toHaveBeenCalledWith(
-      "cron/videos: scraped video count",
+      "videos: scraped video count",
       expect.objectContaining({ count: 0 })
     );
   });
@@ -114,7 +114,7 @@ describe("GET /api/cron/videos", () => {
       count: 1,
     });
     expect(logger.warn).toHaveBeenCalledWith(
-      "cron/videos: scraper ingestion trigger failed",
+      "videos: scraper ingestion trigger failed",
       expect.objectContaining({ error: "Scraper unreachable" })
     );
   });
