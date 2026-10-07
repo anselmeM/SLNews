@@ -14,18 +14,22 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "discover = list databases (read-only); preview = print SQL diff; apply = run it"
+        description: "discover = list databases; inspect = read-only query; preview = print SQL diff; apply = run it"
         type: choice
         options:
           - discover
+          - inspect
           - preview
           - apply
         default: discover
       database_name:
-        description: "Database to target (required for preview and apply)"
+        description: "Database to target (required for inspect, preview and apply)"
         required: false
       role_name:
         description: "Role to connect as (defaults to the database's owner)"
+        required: false
+      inspect_sql:
+        description: "inspect mode: the query to run (executed in a READ ONLY transaction)"
         required: false
 
 # Two schema runs against the same database must never overlap.
@@ -47,6 +51,7 @@ jobs:
       MODE: ${{ inputs.mode }}
       DATABASE_NAME_INPUT: ${{ inputs.database_name }}
       ROLE_NAME_INPUT: ${{ inputs.role_name }}
+      INSPECT_SQL: ${{ inputs.inspect_sql }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -128,8 +133,18 @@ jobs:
           # Direct (unpooled) connection: DDL through the pooler is not reliable.
           echo "uri=${uri}" >> "$GITHUB_OUTPUT"
 
+      - name: Run a read-only query
+        if: inputs.mode == 'inspect'
+        env:
+          DATABASE_URL: ${{ steps.target.outputs.uri }}
+        # Auditing what the database actually holds, e.g. every distinct province
+        # spelling, so a normalizer can be checked against real data instead of
+        # against what the code intends to write. The query runs inside a READ
+        # ONLY transaction, so a mistake cannot write.
+        run: node scripts/db-inspect.mjs
+
       - name: Preview the schema diff
-        if: inputs.mode != 'discover'
+        if: inputs.mode == 'preview' || inputs.mode == 'apply'
         env:
           DATABASE_URL: ${{ steps.target.outputs.uri }}
         run: |

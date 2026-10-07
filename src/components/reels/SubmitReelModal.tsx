@@ -5,28 +5,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { submitCommunityReel } from "@/app/actions/reel-actions";
 import { useToast } from "@/components/Toast";
+import { SL_DISTRICTS } from "@/lib/geo";
 import { vibrateLight, vibrateSuccess } from "@/lib/haptics";
 import { parseVideoUrl } from "@/lib/video-embed";
 
-const SL_DISTRICTS = [
-  "Freetown (Western Urban)",
-  "Western Rural",
-  "Bo",
-  "Kenema",
-  "Makeni (Bombali)",
-  "Port Loko",
-  "Kono",
-  "Kambia",
-  "Tonkolili",
-  "Kailahun",
-  "Bonthe",
-  "Pujehun",
-  "Karene",
-  "Koinadugu",
-  "Falaba",
-  "Moyamba",
-  "National",
-];
+// The select must offer the values the database stores, so the location is
+// filterable. "National" is not a district: it stores no province, which is
+// correct for a nationwide clip.
+const LOCATION_OPTIONS = [...SL_DISTRICTS, "National"];
 
 const CATEGORIES = [
   "National",
@@ -46,7 +32,7 @@ export default function SubmitReelModal() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [category, setCategory] = useState("National");
-  const [location, setLocation] = useState("Freetown (Western Urban)");
+  const [location, setLocation] = useState("Western Area Urban");
   const [loading, setLoading] = useState(false);
 
   const parsed = videoUrl.trim() ? parseVideoUrl(videoUrl) : null;
@@ -265,7 +251,7 @@ export default function SubmitReelModal() {
                       onChange={(e) => setLocation(e.target.value)}
                       className="w-full px-3 py-2.5 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 text-xs font-medium text-on-surface focus:outline-none focus:border-primary transition-colors"
                     >
-                      {SL_DISTRICTS.map((d) => (
+                      {LOCATION_OPTIONS.map((d) => (
                         <option key={d} value={d}>
                           {d}
                         </option>

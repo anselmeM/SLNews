@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { CURATED_SL_REELS, type ReelVideo } from "@/lib/fixtures/curated-reels";
+import { splitLocation } from "@/lib/geo";
 import { fetchScraperVideos, triggerScraperVideoSync, type ScraperVideo } from "@/lib/scraper-client";
 
 export type { ReelVideo };
@@ -181,6 +182,10 @@ export async function submitCommunityReel(data: {
   const status = isPrivileged ? "PUBLISHED" : "IN_REVIEW";
   const published = isPrivileged;
   const categoryName = data.category || "National";
+  // The submitted value is a district from the form's select; it used to be
+  // written verbatim into `province` as well, which is how strings like
+  // "Makeni (Bombali)" ended up in a column the province filter reads.
+  const location = splitLocation(data.location);
 
   try {
     const article = await db.article.create({
@@ -192,8 +197,8 @@ export async function submitCommunityReel(data: {
         published,
         status,
         publishedAt: published ? new Date() : null,
-        district: data.location?.trim() || null,
-        province: data.location?.trim() || null,
+        district: location.district,
+        province: location.province,
         author: { connect: { id: session.user.id } },
         categories: {
           connectOrCreate: {
