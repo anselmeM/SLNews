@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fetchReelsFeed, submitCommunityReel } from "@/app/actions/reel-actions";
 import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { fetchScraperVideos } from "@/lib/scraper-client";
+
+vi.mock("@/lib/logger", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
 
 // The reels feed calls the scraper API live; the whole point of these tests is
 // what happens when it does not answer.
@@ -152,6 +157,31 @@ describe("fetchReelsFeed", () => {
     expect(reels.length).toBeGreaterThan(0);
     // Only curated clips and published community reels can be served.
     expect(reels.every((reel) => reel.authorId !== "scraper-system")).toBe(true);
+  });
+
+  it("logs a failure, because the feed looks the same either way", async () => {
+    vi.mocked(fetchScraperVideos).mockRejectedValue(
+      new Error("Scraper unreachable") as never
+    );
+
+    await fetchReelsFeed(0, 10);
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      "reels: scraper feed unavailable",
+      expect.objectContaining({ error: "Scraper unreachable" })
+    );
+  });
+
+  it("separates an empty scraper from a broken one", async () => {
+    vi.mocked(fetchScraperVideos).mockResolvedValue([] as never);
+
+    await fetchReelsFeed(0, 10);
+
+    expect(logger.info).toHaveBeenCalledWith(
+      "reels: scraper returned no videos",
+      expect.objectContaining({ take: 10 })
+    );
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   it("uses the DOM-free fallback path when the scraper returns nothing", async () => {
