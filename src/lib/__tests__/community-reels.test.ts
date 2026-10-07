@@ -1,6 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
-import { submitCommunityReel } from "@/app/actions/reel-actions";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { fetchReelsFeed, submitCommunityReel } from "@/app/actions/reel-actions";
+import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
+import { fetchScraperVideos } from "@/lib/scraper-client";
+
+// The reels feed calls the scraper API live; the whole point of these tests is
+// what happens when it does not answer.
+vi.mock("@/lib/scraper-client", () => ({
+  fetchScraperVideos: vi.fn(),
+  triggerScraperVideoSync: vi.fn(),
+  ScraperUnreachableError: class ScraperUnreachableError extends Error {},
+}));
 
 // Mock auth
 vi.mock("@/auth", () => ({
@@ -114,6 +124,78 @@ describe("Community Video Reel Actions", () => {
         province: null,
         district: null,
       });
+    });
+  });
+});
+
+/**
+ * The feed merges three sources: scraped videos (a live third-party call),
+ * community reels (Article rows) and curated broadcaster clips (a fixture). The
+ * third-party call is the only one that can be slow or absent, so the feed has
+ * to stay useful without it.
+ */
+describe("fetchReelsFeed", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(db.article.findMany).mockResolvedValue([] as never);
+    // The scraper hop is cached across calls within an instance.
+    invalidate("reels:");
+  });
+
+  it("still returns reels when the scraper does not answer", async () => {
+    vi.mocked(fetchScraperVideos).mockRejectedValue(
+      new Error("Scraper unreachable") as never
+    );
+
+    const reels = await fetchReelsFeed(0, 10);
+
+    expect(reels.length).toBeGreaterThan(0);
+    // Only curated clips and published community reels can be served.
+    expect(reels.every((reel) => reel.authorId !== "scraper-system")).toBe(true);
+  });
+
+  it("uses the DOM-free fallback path when the scraper returns nothing", async () => {
+    vi.mocked(fetchScraperVideos).mockResolvedValue([] as never);
+
+    const reels = await fetchReelsFeed(0, 10);
+
+    expect(reels.length).toBeGreaterThan(0);
+  });
+
+  it("serves the cached scraper hop on a second call", async () => {
+    vi.mocked(fetchScraperVideos).mockResolvedValue([] as never);
+
+    await fetchReelsFeed(0, 10);
+    await fetchReelsFeed(0, 10);
+
+    expect(fetchScraperVideos).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps a scraped video into the reel the feed expects", async () => {
+    vi.mocked(fetchScraperVideos).mockResolvedValue([
+      {
+        id: 9,
+        videoId: "abc123",
+        title: "Port expansion commissioned",
+        url: "https://www.youtube.com/watch?v=abc123",
+        description: "Details",
+        thumbnailUrl: "https://i.ytimg.com/vi/abc123/hqdefault.jpg",
+        channelId: "UC1",
+        channelTitle: "AYV News",
+        publishedAt: "2026-09-01T10:00:00.000Z",
+        category: ["National"],
+      },
+    ] as never);
+
+    const reels = await fetchReelsFeed(0, 10);
+    const scraped = reels.find((reel) => reel.id === "scraper-video-abc123");
+
+    expect(scraped).toMatchObject({
+      title: "Port expansion commissioned",
+      videoUrl: "https://www.youtube.com/watch?v=abc123",
+      source: "AYV News",
+      category: "National",
+      authorId: "scraper-system",
     });
   });
 });

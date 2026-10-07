@@ -56,22 +56,24 @@ export default defineConfig({
       //   statements 75.36 | branches 63.59 | functions 74.74 | lines 76.84
       // Raised after the location write-path fix landed (2026-10-06):
       //   statements 75.61 | branches 63.85 | functions 74.95 | lines 77.05
+      // Raised after the scraper timeout/cache landed (2026-10-06):
+      //   statements 76.49 | branches 64.38 | functions 75.25 | lines 77.99
       //
       // Raised as coverage improved — 64/53/63/66 (baseline), 66/54/68/68
       // (useAppStore), 71/58/70/73 (audio player), 72/60/72/74, 73/61/72/75,
-      // 74/62/73/75, 74/63/74/76, now this (only `statements` cleared the next
-      // point). Ratchet up whenever coverage improves, or the gain regresses
-      // unnoticed.
+      // 74/62/73/75, 74/63/74/76, 75/63/74/76, now this (`branches` and
+      // `functions` stay put: their gain did not clear the next point). Ratchet
+      // up whenever coverage improves, or the gain regresses unnoticed.
       //
       // The ~1 point of headroom is deliberate: deleting tests, breaking
       // coverage collection, or dropping a large covered module fails the gate,
       // while ordinary incremental work does not. Tighten toward the measured
       // values if you'd rather every untested addition fail CI.
       thresholds: {
-        statements: 75,
+        statements: 76,
         branches: 63,
         functions: 74,
-        lines: 76,
+        lines: 77,
       },
     },
     projects: [

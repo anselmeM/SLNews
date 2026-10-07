@@ -3,6 +3,9 @@ import {
   fetchScraperNews,
   fetchScraperVideos,
   triggerScraperVideoSync,
+  NEWS_REQUEST_TIMEOUT_MS,
+  SYNC_REQUEST_TIMEOUT_MS,
+  VIDEO_REQUEST_TIMEOUT_MS,
   ScraperUnreachableError,
 } from "@/lib/scraper-client";
 
@@ -145,6 +148,86 @@ describe("fetchScraperVideos", () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError("network failed"));
     vi.stubGlobal("fetch", fetchMock);
     await expect(fetchScraperVideos()).rejects.toBeInstanceOf(ScraperUnreachableError);
+  });
+
+  /**
+   * The scraper's host sleeps when idle, and the fetch used to have no timeout —
+   * so a cold instance held the page render for as long as it took to boot
+   * (measured: 54.8s for /reels versus 0.8s warm).
+   */
+  describe("timeout", () => {
+    function hangingFetch() {
+      return vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () =>
+              reject(Object.assign(new Error("The operation was aborted"), { name: "TimeoutError" }))
+            );
+          })
+      );
+    }
+
+    it("aborts a hanging request instead of holding the render open", async () => {
+      const fetchMock = hangingFetch();
+      vi.stubGlobal("fetch", fetchMock);
+
+      await expect(fetchScraperVideos(10, 1, 25)).rejects.toBeInstanceOf(
+        ScraperUnreachableError
+      );
+    });
+
+    it("passes an abort signal on every call", async () => {
+      // A fresh Response per call: a body can only be read once.
+      const seen: { url: string; signal?: AbortSignal | null }[] = [];
+      const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+        seen.push({ url, signal: init?.signal });
+        return Promise.resolve(jsonResponse([]));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      await fetchScraperVideos();
+      await fetchScraperNews();
+      await triggerScraperVideoSync();
+
+      expect(seen.map((call) => call.url)).toEqual([
+        VIDEOS_ENDPOINT,
+        LEGACY,
+        SYNC_VIDEOS_ENDPOINT,
+      ]);
+      for (const call of seen) {
+        expect(call.signal).toBeInstanceOf(AbortSignal);
+      }
+    });
+
+    it("still accepts a slow response that arrives in time", async () => {
+      const videos = [
+        {
+          id: 3,
+          videoId: "slow-but-fine",
+          title: "Delayed bulletin",
+          url: "https://www.youtube.com/watch?v=slow-but-fine",
+          description: null,
+          thumbnailUrl: null,
+          channelId: "c",
+          channelTitle: "SLBC",
+          publishedAt: "2026-09-03T10:00:00.000Z",
+          category: ["National"],
+        },
+      ];
+      const fetchMock = vi.fn(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve(jsonResponse(videos)), 15))
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      await expect(fetchScraperVideos(10, 1, 500)).resolves.toEqual(videos);
+    });
+
+    it("gives the interactive video feed less room than the news sync", () => {
+      // The feed has a reader waiting; the cron does not.
+      expect(VIDEO_REQUEST_TIMEOUT_MS).toBeLessThan(NEWS_REQUEST_TIMEOUT_MS);
+      expect(NEWS_REQUEST_TIMEOUT_MS).toBeLessThan(SYNC_REQUEST_TIMEOUT_MS);
+    });
   });
 });
 

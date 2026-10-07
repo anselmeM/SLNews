@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { staleWhileRevalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { CURATED_SL_REELS, type ReelVideo } from "@/lib/fixtures/curated-reels";
 import { splitLocation } from "@/lib/geo";
@@ -25,12 +26,23 @@ function mapScraperVideoToReel(v: ScraperVideo): ReelVideo {
   };
 }
 
+// The scraper hop is cached so a repeat visitor on a warm instance never waits
+// on it. It does not save the first visitor on a cold instance — the request
+// timeout in scraper-client.ts bounds that — but it does stop every page view
+// from paying for a call whose content changes on the scraper's schedule, not
+// ours.
+const SCRAPER_REELS_TTL_SECONDS = 120;
+
 export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> {
   // 1. Fetch scraped videos from Render Scraper API
   let scraperReels: ReelVideo[] = [];
   try {
     const page = Math.floor(skip / take) + 1;
-    const scrapedVideos = await fetchScraperVideos(take, page);
+    const scrapedVideos = await staleWhileRevalidate(
+      `reels:scraper:${take}:${page}`,
+      () => fetchScraperVideos(take, page),
+      SCRAPER_REELS_TTL_SECONDS
+    );
     scraperReels = scrapedVideos.map(mapScraperVideoToReel);
   } catch {
     scraperReels = [];
@@ -110,7 +122,11 @@ export async function getReelById(id: string): Promise<ReelVideo | null> {
   if (id.startsWith("scraper-video-")) {
     const videoId = id.replace("scraper-video-", "");
     try {
-      const scraped = await fetchScraperVideos(50, 1);
+      const scraped = await staleWhileRevalidate(
+        "reels:scraper:50:1",
+        () => fetchScraperVideos(50, 1),
+        SCRAPER_REELS_TTL_SECONDS
+      );
       const match = scraped.find((v) => v.videoId === videoId);
       if (match) return mapScraperVideoToReel(match);
     } catch {
