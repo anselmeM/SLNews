@@ -10,8 +10,9 @@
  * broken, since it looks like "there is no news from there".
  *
  * The canonical form is the one the public UI already shows and the seed already
- * writes: the full `"… Province"` names. Everything else is an alias, so rows
- * written by the old dashboard keep working without a data migration.
+ * writes: the full `"… Province"` names and the official district names.
+ * Everything else that has ever been written is an alias, so rows already in the
+ * database keep working without a data migration.
  */
 
 export type SlProvince =
@@ -20,6 +21,24 @@ export type SlProvince =
   | "North West Province"
   | "Southern Province"
   | "Eastern Province";
+
+export type SlDistrict =
+  | "Western Area Urban"
+  | "Western Area Rural"
+  | "Bombali"
+  | "Falaba"
+  | "Koinadugu"
+  | "Tonkolili"
+  | "Kambia"
+  | "Karene"
+  | "Port Loko"
+  | "Bo"
+  | "Bonthe"
+  | "Moyamba"
+  | "Pujehun"
+  | "Kailahun"
+  | "Kenema"
+  | "Kono";
 
 /** Canonical spellings, in the order the UI should present them. */
 export const SL_PROVINCES: readonly SlProvince[] = [
@@ -30,52 +49,63 @@ export const SL_PROVINCES: readonly SlProvince[] = [
   "Eastern Province",
 ];
 
-type ProvinceDefinition = {
-  canonical: SlProvince;
-  /** Other spellings that have shipped, in the UI or in stored rows. */
-  aliases: readonly string[];
-  districts: readonly string[];
+/** Sierra Leone's 16 districts, by province. */
+export const SL_DISTRICTS_BY_PROVINCE: Record<SlProvince, readonly SlDistrict[]> = {
+  "Western Area": ["Western Area Urban", "Western Area Rural"],
+  "Northern Province": ["Bombali", "Falaba", "Koinadugu", "Tonkolili"],
+  "North West Province": ["Kambia", "Karene", "Port Loko"],
+  "Southern Province": ["Bo", "Bonthe", "Moyamba", "Pujehun"],
+  "Eastern Province": ["Kailahun", "Kenema", "Kono"],
 };
 
-const PROVINCES: readonly ProvinceDefinition[] = [
-  {
-    canonical: "Western Area",
-    aliases: ["Western"],
-    districts: ["Western Area Urban", "Western Area Rural", "Freetown"],
-  },
-  {
-    canonical: "Northern Province",
-    aliases: ["Northern"],
-    districts: ["Bombali", "Falaba", "Koinadugu", "Tonkolili"],
-  },
+/** Every district, in province order. */
+export const SL_DISTRICTS: readonly SlDistrict[] = SL_PROVINCES.flatMap(
+  (province) => SL_DISTRICTS_BY_PROVINCE[province]
+);
+
+/** Other province spellings that have shipped, in the UI or in stored rows. */
+const PROVINCE_ALIASES: readonly { canonical: SlProvince; aliases: readonly string[] }[] = [
+  { canonical: "Western Area", aliases: ["Western"] },
+  { canonical: "Northern Province", aliases: ["Northern"] },
   {
     canonical: "North West Province",
     aliases: ["North West", "North-West", "Northwest", "Northwest Province"],
-    districts: ["Kambia", "Karene", "Port Loko"],
   },
-  {
-    canonical: "Southern Province",
-    aliases: ["Southern"],
-    districts: ["Bo", "Bonthe", "Moyamba", "Pujehun"],
-  },
-  {
-    canonical: "Eastern Province",
-    aliases: ["Eastern"],
-    districts: ["Kailahun", "Kenema", "Kono"],
-  },
+  { canonical: "Southern Province", aliases: ["Southern"] },
+  { canonical: "Eastern Province", aliases: ["Eastern"] },
 ];
 
-const PROVINCE_LOOKUP = new Map<string, SlProvince>();
-const DISTRICT_LOOKUP = new Map<string, SlProvince>();
+/**
+ * Other district spellings that have shipped. `SubmitReelModal` offered city
+ * names with the district in brackets, then wrote that label straight into the
+ * article's `district` *and* `province` columns, so both columns hold strings
+ * like `"Makeni (Bombali)"` today.
+ */
+const DISTRICT_ALIASES: readonly { canonical: SlDistrict; aliases: readonly string[] }[] = [
+  {
+    canonical: "Western Area Urban",
+    aliases: ["Freetown", "Freetown (Western Urban)", "Western Urban"],
+  },
+  { canonical: "Western Area Rural", aliases: ["Western Rural"] },
+  { canonical: "Bombali", aliases: ["Makeni", "Makeni (Bombali)"] },
+];
 
-for (const province of PROVINCES) {
-  PROVINCE_LOOKUP.set(province.canonical.toLowerCase(), province.canonical);
-  for (const alias of province.aliases) {
-    PROVINCE_LOOKUP.set(alias.toLowerCase(), province.canonical);
+const PROVINCE_BY_ALIAS = new Map<string, SlProvince>();
+const DISTRICT_BY_ALIAS = new Map<string, SlDistrict>();
+const PROVINCE_BY_DISTRICT = new Map<SlDistrict, SlProvince>();
+
+for (const province of SL_PROVINCES) {
+  PROVINCE_BY_ALIAS.set(province.toLowerCase(), province);
+  for (const district of SL_DISTRICTS_BY_PROVINCE[province]) {
+    DISTRICT_BY_ALIAS.set(district.toLowerCase(), district);
+    PROVINCE_BY_DISTRICT.set(district, province);
   }
-  for (const district of province.districts) {
-    DISTRICT_LOOKUP.set(district.toLowerCase(), province.canonical);
-  }
+}
+for (const { canonical, aliases } of PROVINCE_ALIASES) {
+  for (const alias of aliases) PROVINCE_BY_ALIAS.set(alias.toLowerCase(), canonical);
+}
+for (const { canonical, aliases } of DISTRICT_ALIASES) {
+  for (const alias of aliases) DISTRICT_BY_ALIAS.set(alias.toLowerCase(), canonical);
 }
 
 function key(raw: string | null | undefined): string {
@@ -87,12 +117,43 @@ function key(raw: string | null | undefined): string {
  * on write, so the stored vocabulary cannot drift again.
  */
 export function normalizeProvince(raw: string | null | undefined): SlProvince | null {
-  return PROVINCE_LOOKUP.get(key(raw)) ?? null;
+  return PROVINCE_BY_ALIAS.get(key(raw)) ?? null;
 }
 
-/** The province a district belongs to, or `null` when it is not a district. */
+/** Canonical spelling for a district value, or `null` when it is not one. */
+export function normalizeDistrict(raw: string | null | undefined): SlDistrict | null {
+  return DISTRICT_BY_ALIAS.get(key(raw)) ?? null;
+}
+
+/** The province a district spelling belongs to, or `null` if it is not one. */
 export function districtProvince(raw: string | null | undefined): SlProvince | null {
-  return DISTRICT_LOOKUP.get(key(raw)) ?? null;
+  const district = normalizeDistrict(raw);
+  return district ? PROVINCE_BY_DISTRICT.get(district) ?? null : null;
+}
+
+/**
+ * Splits one location value into the two columns that should hold it.
+ *
+ * A value that is neither a province nor a district is kept as-is in `district`
+ * rather than being forced into `province`: the location is still shown to
+ * readers (`mapPrismaArticle` uses `district || province`), and an unrecognised
+ * string in the province column is exactly what made the province filter
+ * unusable in the first place.
+ */
+export function splitLocation(raw: string | null | undefined): {
+  province: SlProvince | null;
+  district: string | null;
+} {
+  const province = normalizeProvince(raw);
+  if (province) return { province, district: null };
+
+  const district = normalizeDistrict(raw);
+  if (district) {
+    return { province: PROVINCE_BY_DISTRICT.get(district) ?? null, district };
+  }
+
+  const trimmed = (raw ?? "").trim();
+  return { province: null, district: trimmed.length > 0 ? trimmed : null };
 }
 
 /**
@@ -100,10 +161,11 @@ export function districtProvince(raw: string | null | undefined): SlProvince | n
  * province (in which case the caller must not filter, rather than filter on an
  * impossible value and return nothing).
  *
- * Districts are included because `mapPrismaArticle` presents `district ||
- * province` as a story's location: a story tagged only with the district "Bo" is
- * a Southern Province story as far as the reader is concerned, even though its
- * `province` column is empty.
+ * Districts are included — with their old spellings — because
+ * `mapPrismaArticle` presents `district || province` as a story's location: a
+ * story tagged only with the district "Bo", or with the reel form's
+ * "Makeni (Bombali)", is a story from that province as far as the reader is
+ * concerned, even though its `province` column is empty.
  */
 export function provinceMatchTerms(raw: string | null | undefined): {
   provinces: string[];
@@ -112,12 +174,17 @@ export function provinceMatchTerms(raw: string | null | undefined): {
   const canonical = normalizeProvince(raw) ?? districtProvince(raw);
   if (!canonical) return null;
 
-  const definition = PROVINCES.find((entry) => entry.canonical === canonical);
-  if (!definition) return null;
+  const provinceAliases =
+    PROVINCE_ALIASES.find((entry) => entry.canonical === canonical)?.aliases ?? [];
+  const districtAliases = DISTRICT_ALIASES.filter(
+    (entry) => PROVINCE_BY_DISTRICT.get(entry.canonical) === canonical
+  ).flatMap((entry) => entry.aliases);
 
-  // Canonical first, then every legacy spelling that may already be stored.
   return {
-    provinces: [...new Set([definition.canonical, ...definition.aliases])],
-    districts: [...definition.districts],
+    // Canonical first, then every legacy spelling that may already be stored.
+    provinces: [...new Set([canonical, ...provinceAliases])],
+    districts: [
+      ...new Set([...SL_DISTRICTS_BY_PROVINCE[canonical], ...districtAliases]),
+    ],
   };
 }
