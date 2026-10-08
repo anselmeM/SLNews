@@ -1,0 +1,77 @@
+name: Dependency audit
+
+# The wider half of the dependency signal.
+#
+# `ci.yml` blocks a PR only on a *critical* production advisory, because a high
+# advisory in a transitive dependency usually has no patch to apply and no
+# relation to the change under review - yet it used to turn master red for every
+# open PR (observed three times in four days: source-map-js + fast-uri in #87,
+# sharp via librsvg in #89). This workflow keeps that signal without blocking the
+# queue: one issue, updated in place, and a red run only when a *critical*
+# advisory appears.
+#
+# Manual runs: Actions -> Dependency audit -> Run workflow.
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  ISSUE_TITLE: Dependency advisories in production dependencies
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+      - run: npm ci
+
+      # Both commands are expected to exit non-zero when advisories exist, so the
+      # reports are collected regardless and the decision is made below.
+      - name: Collect the audit reports
+        run: |
+          npm audit --omit=dev --audit-level=high --json > audit.json || true
+          npm audit --omit=dev --audit-level=high > audit.txt || true
+          npx tsx scripts/audit-summary.ts
+
+      - name: Open or update the advisories issue
+        if: env.AUDIT_ACTIONABLE != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file audit-report.md
+          else
+            gh issue create --title "$ISSUE_TITLE" --body-file audit-report.md
+          fi
+
+      - name: Close the issue once nothing is outstanding
+        if: env.AUDIT_ACTIONABLE == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue close "$existing" \
+              --comment "No high or critical advisories in production dependencies as of this run."
+          fi
+
+      # Last, so the issue is filed even when this fails. A critical advisory is
+      # worth a red run and a notification; the exit code is also what makes the
+      # scheduled failure visible in the Actions tab.
+      - name: Fail on a critical advisory
+        run: npm audit --omit=dev --audit-level=critical
