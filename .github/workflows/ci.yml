@@ -33,9 +33,13 @@ jobs:
           node-version-file: package.json
           cache: npm
       - run: npm ci
-      # Fail the gate on high/critical advisories in production dependencies
-      # (dev-only advisories are reported by `npm audit` but do not ship).
-      - run: npm audit --omit=dev --audit-level=high
+      # Critical production advisories block the gate; high ones do not. A newly
+      # published *high* advisory in a transitive dependency has no patch to apply
+      # and no relation to the PR, yet it turned master red for every open PR with
+      # no code change at all - three times in four days (#87, #89). Those are
+      # tracked by the scheduled `dependency-audit` workflow instead, which files
+      # one issue. Dev-only advisories still do not ship.
+      - run: npm audit --omit=dev --audit-level=critical
       - run: npm run lint
 
   test:
