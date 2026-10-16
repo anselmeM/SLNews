@@ -1,5 +1,16 @@
+-- Additive mobile-sync schema.
+--
+-- Applied by scripts/apply-mobile-sync-schema.mjs before every Vercel build, so
+-- every statement is IF NOT EXISTS-guarded and nothing is dropped or altered:
+-- running it against an already-migrated database must be a no-op. The local
+-- development database receives the same file.
+--
+-- Why this is a script and not a Prisma migration: this schema has no migration
+-- history (it was created with pushes), so there is no baseline to deploy onto.
+-- These three tables are additive, so an idempotent file is enough.
+
 -- CreateTable
-CREATE TABLE "MobileBookmark" (
+CREATE TABLE IF NOT EXISTS "MobileBookmark" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "itemId" TEXT NOT NULL,
@@ -17,7 +28,7 @@ CREATE TABLE "MobileBookmark" (
 );
 
 -- CreateTable
-CREATE TABLE "MobileReaction" (
+CREATE TABLE IF NOT EXISTS "MobileReaction" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "itemId" TEXT NOT NULL,
@@ -30,7 +41,7 @@ CREATE TABLE "MobileReaction" (
 );
 
 -- CreateTable
-CREATE TABLE "MobileFollow" (
+CREATE TABLE IF NOT EXISTS "MobileFollow" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "targetId" TEXT NOT NULL,
@@ -44,28 +55,46 @@ CREATE TABLE "MobileFollow" (
 );
 
 -- CreateIndex
-CREATE INDEX "MobileBookmark_userId_updatedAt_idx" ON "MobileBookmark"("userId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "MobileBookmark_userId_updatedAt_idx" ON "MobileBookmark"("userId", "updatedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MobileBookmark_userId_itemId_key" ON "MobileBookmark"("userId", "itemId");
+CREATE UNIQUE INDEX IF NOT EXISTS "MobileBookmark_userId_itemId_key" ON "MobileBookmark"("userId", "itemId");
 
 -- CreateIndex
-CREATE INDEX "MobileReaction_userId_updatedAt_idx" ON "MobileReaction"("userId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "MobileReaction_userId_updatedAt_idx" ON "MobileReaction"("userId", "updatedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MobileReaction_userId_itemId_kind_key" ON "MobileReaction"("userId", "itemId", "kind");
+CREATE UNIQUE INDEX IF NOT EXISTS "MobileReaction_userId_itemId_kind_key" ON "MobileReaction"("userId", "itemId", "kind");
 
 -- CreateIndex
-CREATE INDEX "MobileFollow_userId_updatedAt_idx" ON "MobileFollow"("userId", "updatedAt");
+CREATE INDEX IF NOT EXISTS "MobileFollow_userId_updatedAt_idx" ON "MobileFollow"("userId", "updatedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "MobileFollow_userId_targetId_key" ON "MobileFollow"("userId", "targetId");
+CREATE UNIQUE INDEX IF NOT EXISTS "MobileFollow_userId_targetId_key" ON "MobileFollow"("userId", "targetId");
 
 -- AddForeignKey
-ALTER TABLE "MobileBookmark" ADD CONSTRAINT "MobileBookmark_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- `ADD CONSTRAINT` has no IF NOT EXISTS form, so each one checks the catalogue
+-- first: the foreign keys cascade with the User rows the sync route bootstraps.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'MobileBookmark_userId_fkey'
+    ) THEN
+        ALTER TABLE "MobileBookmark" ADD CONSTRAINT "MobileBookmark_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
 
--- AddForeignKey
-ALTER TABLE "MobileReaction" ADD CONSTRAINT "MobileReaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'MobileReaction_userId_fkey'
+    ) THEN
+        ALTER TABLE "MobileReaction" ADD CONSTRAINT "MobileReaction_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
 
--- AddForeignKey
-ALTER TABLE "MobileFollow" ADD CONSTRAINT "MobileFollow_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'MobileFollow_userId_fkey'
+    ) THEN
+        ALTER TABLE "MobileFollow" ADD CONSTRAINT "MobileFollow_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
