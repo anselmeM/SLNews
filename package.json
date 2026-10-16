@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
+    "vercel-build": "node scripts/apply-mobile-sync-schema.mjs && next build --webpack",
     "start": "next start",
     "postinstall": "prisma generate",
     "lint": "eslint",
