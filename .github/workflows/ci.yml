@@ -11,7 +11,12 @@ env:
   # enables client-side SSL for production builds unless the URL carries sslmode.
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/slnews_test?sslmode=disable"
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_b3B0aW1hbC1zaGVwaGVyZC01OTE5LmNsZXJrLmFjY291bnRzLmRldiQ"
-  CLERK_SECRET_KEY: "sk_test_k5EUvd2RoRVHMBJPVRsUQogYDEJdSpAPSxb2xqK19h"
+  # The secret half of the same Clerk instance, from the repository secrets. Never
+  # inline it: this file is public, the value is a credential, and a key committed
+  # here is burned the moment it lands (this line used to carry one, which is why
+  # the e2e job started failing with a Clerk handshake loop once that key was
+  # rotated). The publishable key above is public by design.
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: "/sign-in"
   NEXT_PUBLIC_CLERK_SIGN_UP_URL: "/sign-up"
   NEXTAUTH_SECRET: "ci-test-secret-not-for-production"
