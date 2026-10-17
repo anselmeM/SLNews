@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { feedInterestCategories, normalizeTopics } from "@/lib/interest-profile";
+import { mapPrismaArticle, type NewsArticle } from "@/lib/news-service";
 
 export async function toggleSavedArticle(articleId: string): Promise<boolean> {
   const session = await auth();
@@ -120,4 +121,66 @@ export async function setDailyBriefing(enabled: boolean): Promise<{ success: boo
   } catch {
     return { success: false };
   }
+}
+
+/**
+ * Stories this reader saved in the mobile app, resolved against the articles the
+ * web app stores.
+ *
+ * The two surfaces never shared an identity: the app keeps a snapshot keyed by an
+ * external item id (`slnews-api:4821`, `rss:<hash>`) while the web keeps a
+ * `SavedArticle` row pointing at an `Article`. `Article.sourceUrl` is the bridge
+ * - scraped rows now record the outlet's link, and app bookmarks carry the same
+ * link - so a story bookmarked on a phone can appear in the web saved list.
+ *
+ * Only matched bookmarks are returned. A bookmark whose URL has no article yet
+ * (not scraped, or saved from a feed the importer has not ingested) is skipped:
+ * without a row there is nothing to read on the web, and inventing one would
+ * duplicate the importer's job. Unmatched bookmarks stay visible in the app.
+ *
+ * Ordered by when the reader saved them, newest first.
+ */
+export async function getPhoneSavedArticles(): Promise<NewsArticle[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const bookmarks = await db.mobileBookmark.findMany({
+    where: {
+      userId: session.user.id,
+      deletedAt: null,
+      sourceUrl: { not: null },
+    },
+    orderBy: { savedAt: "desc" },
+    take: 50,
+    select: { sourceUrl: true },
+  });
+
+  const urls = [
+    ...new Set(
+      bookmarks
+        .map((bookmark) => bookmark.sourceUrl?.trim())
+        .filter((url): url is string => Boolean(url))
+    ),
+  ];
+  if (urls.length === 0) return [];
+
+  const articles = await db.article.findMany({
+    where: { sourceUrl: { in: urls }, published: true, status: "PUBLISHED" },
+    include: { author: { select: { name: true, image: true } }, categories: true },
+  });
+
+  const bySourceUrl = new Map(
+    articles
+      .filter((article): article is typeof article & { sourceUrl: string } =>
+        Boolean(article.sourceUrl)
+      )
+      .map((article) => [article.sourceUrl, article])
+  );
+
+  return urls.flatMap((url) => {
+    const article = bySourceUrl.get(url);
+    return article
+      ? [{ ...mapPrismaArticle(article), externalUrl: article.sourceUrl }]
+      : [];
+  });
 }

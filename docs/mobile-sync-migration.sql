@@ -98,3 +98,18 @@ BEGIN
             FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
 END $$;
+
+-- Phase 5 parity: Article.sourceUrl.
+--
+-- Additive so it can run on every deploy. The column lets the scraper importer
+-- identify a story by its canonical link instead of its headline, and lets a
+-- bookmark saved in the mobile app (MobileBookmark.sourceUrl) be matched to the
+-- article the web app stored.
+--
+-- Nullable for rows that predate it and for editor drafts, which have no external
+-- link. The unique index still allows any number of NULLs in Postgres, so the
+-- existing rows are not affected; the index exists to stop two rows claiming the
+-- same story, which is the duplicate this column replaces title matching to
+-- avoid.
+ALTER TABLE "Article" ADD COLUMN IF NOT EXISTS "sourceUrl" TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS "Article_sourceUrl_key" ON "Article"("sourceUrl");

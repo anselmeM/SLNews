@@ -32,6 +32,7 @@ function makeArticle(overrides: Partial<TestArticle> = {}): TestArticle {
     content: "Test content goes here.",
     summary: "A test summary.",
     imageUrl: "/test.jpg",
+    sourceUrl: null,
     published: true,
     status: "PUBLISHED",
     province: "Western Area",

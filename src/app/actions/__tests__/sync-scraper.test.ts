@@ -112,13 +112,34 @@ describe("syncFromScraper Action", () => {
     expect(db.article.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          title: {
-            in: [
-              "Bank of Sierra Leone Implements New Monetary Measures",
-              "National Assembly Reviews Land Rights Act",
-            ],
-          },
+          OR: [
+            {
+              title: {
+                in: [
+                  "Bank of Sierra Leone Implements New Monetary Measures",
+                  "National Assembly Reviews Land Rights Act",
+                ],
+              },
+            },
+            {
+              sourceUrl: {
+                in: [
+                  "https://example.com/news/1",
+                  "https://example.com/news/2",
+                ],
+              },
+            },
+          ],
         },
+      })
+    );
+
+    // Identity is recorded on create, which is what makes later matches link-based
+    expect(db.article.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceUrl: "https://example.com/news/1",
+        }),
       })
     );
 
@@ -169,4 +190,94 @@ describe("syncFromScraper Action", () => {
     );
     expect(db.article.create).not.toHaveBeenCalled();
   });
+
+  it("backfills sourceUrl on a row that predates the column", async () => {
+    vi.mocked(fetchScraperNews).mockResolvedValue([
+      {
+        title: "Existing Story Title",
+        link: "https://example.com/existing",
+        paragraphs: ["Body"],
+        category: ["National"],
+      },
+    ]);
+
+    vi.mocked(db.article.findMany).mockResolvedValue([
+      {
+        id: "existing-art-1",
+        title: "Existing Story Title",
+        sourceUrl: null,
+        imageUrl: "/globe.svg",
+        summary: "Summary",
+        categories: [{ id: "cat-National", name: "National" }],
+      },
+    ] as never);
+    vi.mocked(db.article.update).mockResolvedValue({ id: "existing-art-1" } as never);
+
+    const res = await syncFromScraper();
+
+    expect(res.count).toBe(1);
+    expect(db.article.create).not.toHaveBeenCalled();
+    expect(db.article.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "existing-art-1" },
+        data: expect.objectContaining({ sourceUrl: "https://example.com/existing" }),
+      })
+    );
+  });
+
+  it("treats a shared headline from a different link as a separate story", async () => {
+    vi.mocked(fetchScraperNews).mockResolvedValue([
+      {
+        title: "Shared Headline",
+        link: "https://telegraph.example/story-b",
+        paragraphs: ["Body"],
+        category: ["National"],
+      },
+    ]);
+
+    vi.mocked(db.article.findMany).mockResolvedValue([
+      {
+        id: "existing-art-1",
+        title: "Shared Headline",
+        sourceUrl: "https://awoko.example/story-a",
+        imageUrl: "/globe.svg",
+        summary: "Summary",
+        categories: [{ id: "cat-National", name: "National" }],
+      },
+    ] as never);
+    vi.mocked(db.article.create).mockResolvedValue({ id: "new-art-2" } as never);
+
+    const res = await syncFromScraper();
+
+    expect(res.count).toBe(1);
+    expect(db.article.update).not.toHaveBeenCalled();
+    expect(db.article.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceUrl: "https://telegraph.example/story-b",
+        }),
+      })
+    );
+  });
+
+  it("collapses a story the scraper repeats across category feeds", async () => {
+    const repeated = {
+      title: "Repeated Story",
+      link: "https://example.com/same-story",
+      paragraphs: ["Body"],
+      category: ["National"],
+    };
+    vi.mocked(fetchScraperNews).mockResolvedValue([
+      repeated,
+      { ...repeated, category: ["Politics"] },
+    ]);
+    vi.mocked(db.article.findMany).mockResolvedValue([] as never);
+    vi.mocked(db.article.create).mockResolvedValue({ id: "new-art-1" } as never);
+
+    const res = await syncFromScraper();
+
+    expect(res.count).toBe(1);
+    expect(db.article.create).toHaveBeenCalledTimes(1);
+  });
 });
+
