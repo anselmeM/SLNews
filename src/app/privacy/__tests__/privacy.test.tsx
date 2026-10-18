@@ -35,9 +35,7 @@ describe("PrivacyPolicyPage Component", () => {
     render(<PrivacyPolicyPage />);
 
     expect(
-      screen.getByText(
-        /no analytics SDK, no advertising SDK and no\s+crash-reporting SDK/i
-      )
+      screen.getByText(/no analytics SDK and no\s+advertising SDK/i)
     ).toBeInTheDocument();
     // Both services appear twice: once in the web section, once in the provider list.
     expect(
@@ -46,6 +44,19 @@ describe("PrivacyPolicyPage Component", () => {
     expect(
       screen.getAllByText(/Google AdSense/i).length
     ).toBeGreaterThanOrEqual(1);
+  });
+
+  it("discloses Sentry crash diagnostics without account identifiers", () => {
+    render(<PrivacyPolicyPage />);
+
+    // The label and its paragraph both mention crash diagnostics.
+    expect(
+      screen.getAllByText(/Crash diagnostics/i).length
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Sentry/i).length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText(/configured without IP\s+storage/i)
+    ).toBeInTheDocument();
   });
 
   it("links deletion and contact paths", () => {

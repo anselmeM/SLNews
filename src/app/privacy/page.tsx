@@ -86,6 +86,16 @@ export default function PrivacyPolicyPage() {
               to our hosting providers, and they appear in our logs for security
               and debugging.
             </li>
+            <li>
+              <strong>Crash diagnostics:</strong> if the app crashes or hits an
+              unexpected error, it sends a report to Sentry containing the stack
+              trace, the device model, the operating system and version, the app
+              version and the action that failed. We configure Sentry not to
+              store IP addresses; reports carry no account identifier, no
+              reading history and no article content. A small sample (5 %) of
+              anonymous performance traces (app start, navigation and network
+              timings) is sent for the same diagnostic purpose.
+            </li>
           </ul>
           <p className="mt-3">
             <strong>The apps do not collect</strong> your location (the weather
@@ -95,11 +105,11 @@ export default function PrivacyPolicyPage() {
           </p>
           <p className="mt-2">
             The apps contain{" "}
-            <strong>
-              no analytics SDK, no advertising SDK and no crash-reporting SDK
-            </strong>
-            . Search terms are matched against content already on your device
-            and are not sent to us as a search log.
+            <strong>no analytics SDK and no advertising SDK</strong>. Search
+            terms are matched against content already on your device and are not
+            sent to us as a search log. Crash diagnostics are the only automatic
+            telemetry the apps send, and they are limited to what the paragraph
+            above lists.
           </p>
         </section>
 
@@ -154,6 +164,11 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>Clerk:</strong> authentication and session management
               (apps and website).
+            </li>
+            <li>
+              <strong>Sentry:</strong> crash and error diagnostics for the apps
+              and this website, configured without IP storage and without
+              account identifiers.
             </li>
             <li>
               <strong>Vercel &amp; Neon Postgres:</strong> hosting, delivery and
@@ -214,12 +229,13 @@ export default function PrivacyPolicyPage() {
             6. Retention, deletion and your rights
           </h2>
           <p>
-            Account data and synced reading state are kept until you delete your
-            account. Deleting removes the account record and the synced saved
-            stories, likes, follows and device tokens; backups are purged on a
-            rolling basis within 90 days. Server logs follow our providers&apos;
-            standard retention. The on-device cache clears when you clear the
-            app data or uninstall.
+            Crash reports are retained by Sentry for 90 days and are not linked
+            to an account. Account data and synced reading state are kept until
+            you delete your account. Deleting removes the account record and the
+            synced saved stories, likes, follows and device tokens; backups are
+            purged on a rolling basis within 90 days. Server logs follow our
+            providers&apos; standard retention. The on-device cache clears when
+            you clear the app data or uninstall.
           </p>
           <p className="mt-2">You can at any time:</p>
           <ul className="list-disc list-inside space-y-2 mt-2">
