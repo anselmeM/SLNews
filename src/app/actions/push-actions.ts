@@ -4,6 +4,11 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import webpush from "web-push";
 import { db } from "@/lib/db";
+import {
+  isFcmConfigured,
+  sendNativePush,
+  type NativeSendResult,
+} from "@/lib/push/fcm";
 
 export interface PushNotificationOptions {
   userId?: string;
@@ -19,35 +24,36 @@ export interface PushNotificationOptions {
   id?: string;
 }
 
+export interface PushResult {
+  /** Browser pushes delivered. */
+  sent: number;
+  /** Native deliveries, present only when Firebase is configured. */
+  native?: NativeSendResult;
+  error?: string;
+}
+
+/**
+ * Sends one alert to every channel that can receive it.
+ *
+ * Two delivery channels exist because two kinds of client do: browsers register a
+ * VAPID endpoint (`PushSubscription`) and phones register an FCM token
+ * (`MobileDevice`). Both are attempted from this one function so the services
+ * that raise alerts — breaking news, briefing, price alerts — stay unaware of
+ * which devices exist.
+ *
+ * A missing credential for one channel disables that channel only: an operator who
+ * has configured Firebase but not VAPID (or vice versa) still reaches the devices
+ * they can, and is told which channel was skipped.
+ */
 export async function sendPushNotifications(
   title: string,
   body: string,
   url: string,
   opts: PushNotificationOptions = {}
-) {
+): Promise<PushResult> {
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
   const contactEmail = process.env.VAPID_CONTACT_EMAIL || "admin@slnews.vercel.app";
-
-  if (!vapidPublic || !vapidPrivate) {
-    return { sent: 0, error: "VAPID keys not configured" };
-  }
-
-  webpush.setVapidDetails(`mailto:${contactEmail}`, vapidPublic, vapidPrivate);
-
-  let where: Prisma.PushSubscriptionWhereInput | undefined;
-  if (opts.userIds && opts.userIds.length > 0) {
-    where = { userId: { in: opts.userIds } };
-  } else if (opts.userId) {
-    where = { userId: opts.userId };
-  }
-
-  const subscriptions = await db.pushSubscription.findMany({
-    take: 1000,
-    where,
-  });
-
-  if (subscriptions.length === 0) return { sent: 0 };
 
   const payload = JSON.stringify({
     title,
@@ -68,33 +74,68 @@ export async function sendPushNotifications(
   });
 
   let sent = 0;
-  const expiredEndpoints: string[] = [];
+  let error: string | undefined;
 
-  await Promise.all(
-    subscriptions.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          {
-            endpoint: sub.endpoint,
-            keys: sub.keys as { p256dh: string; auth: string },
-          },
-          payload
-        );
-        sent++;
-      } catch (err: unknown) {
-        const errBody = (err as { statusCode?: number; body?: string }) ?? {};
-        if (errBody.statusCode === 410 || errBody.statusCode === 404) {
-          expiredEndpoints.push(sub.endpoint);
-        }
-      }
-    })
-  );
+  if (vapidPublic && vapidPrivate) {
+    webpush.setVapidDetails(`mailto:${contactEmail}`, vapidPublic, vapidPrivate);
 
-  if (expiredEndpoints.length > 0) {
-    await db.pushSubscription.deleteMany({
-      where: { endpoint: { in: expiredEndpoints } },
+    let where: Prisma.PushSubscriptionWhereInput | undefined;
+    if (opts.userIds && opts.userIds.length > 0) {
+      where = { userId: { in: opts.userIds } };
+    } else if (opts.userId) {
+      where = { userId: opts.userId };
+    }
+
+    const subscriptions = await db.pushSubscription.findMany({
+      take: 1000,
+      where,
     });
+
+    const expiredEndpoints: string[] = [];
+
+    await Promise.all(
+      subscriptions.map(async (sub) => {
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: sub.keys as { p256dh: string; auth: string },
+            },
+            payload
+          );
+          sent++;
+        } catch (err: unknown) {
+          const errBody = (err as { statusCode?: number; body?: string }) ?? {};
+          if (errBody.statusCode === 410 || errBody.statusCode === 404) {
+            expiredEndpoints.push(sub.endpoint);
+          }
+        }
+      })
+    );
+
+    if (expiredEndpoints.length > 0) {
+      await db.pushSubscription.deleteMany({
+        where: { endpoint: { in: expiredEndpoints } },
+      });
+    }
+  } else {
+    error = "VAPID keys not configured";
   }
 
-  return { sent };
+  // Phones: the same alert, through Firebase. Inert without a service account.
+  let native: NativeSendResult | undefined;
+  if (isFcmConfigured()) {
+    native = await sendNativePush(
+      {
+        title,
+        body,
+        url,
+        category: opts.category,
+        data: { id: opts.id || randomUUID(), ...opts.data },
+      },
+      { userId: opts.userId, userIds: opts.userIds }
+    );
+  }
+
+  return { sent, native, ...(error ? { error } : {}) };
 }

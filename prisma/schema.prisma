@@ -59,6 +59,7 @@ model User {
   mobileBookmarks MobileBookmark[]
   mobileReactions MobileReaction[]
   mobileFollows   MobileFollow[]
+  mobileDevices   MobileDevice[]
 }
 
 model SavedArticle {
@@ -359,4 +360,28 @@ model MobileFollow {
 
   @@unique([userId, targetId])
   @@index([userId, updatedAt])
+}
+
+/// A native app installation that can receive push notifications.
+///
+/// The web app registers browser endpoints in `PushSubscription` (VAPID), which
+/// only browsers can receive. A phone needs an FCM token instead, so it registers
+/// here after sign-in and the token is used by `src/lib/push/fcm.ts`.
+///
+/// `token` is unique because FCM reissues the same token for a reinstalled app on
+/// the same device: the registration is an upsert keyed by the token, so a reader
+/// with two devices gets two rows and a re-registration never duplicates one.
+model MobileDevice {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  /// "android" | "ios"; kept as text so a new platform needs no migration.
+  platform   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  /// Last time the app re-registered (cheap liveness signal for pruning).
+  lastSeenAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

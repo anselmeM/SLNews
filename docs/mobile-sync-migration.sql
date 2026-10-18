@@ -113,3 +113,35 @@ END $$;
 -- avoid.
 ALTER TABLE "Article" ADD COLUMN IF NOT EXISTS "sourceUrl" TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS "Article_sourceUrl_key" ON "Article"("sourceUrl");
+
+-- Phase 6: MobileDevice, the native push token registry.
+--
+-- Browsers register a VAPID endpoint in "PushSubscription"; a phone registers an
+-- FCM token here after sign-in. The token is unique because FCM reissues the same
+-- token for a reinstalled app on the same device, so registration is an upsert
+-- keyed by token: two devices are two rows, a re-registration is one.
+CREATE TABLE IF NOT EXISTS "MobileDevice" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "platform" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MobileDevice_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "MobileDevice_token_key" ON "MobileDevice"("token");
+CREATE INDEX IF NOT EXISTS "MobileDevice_userId_idx" ON "MobileDevice"("userId");
+
+-- `ADD CONSTRAINT` has no IF NOT EXISTS form, so check the catalogue first.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'MobileDevice_userId_fkey'
+    ) THEN
+        ALTER TABLE "MobileDevice" ADD CONSTRAINT "MobileDevice_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    END IF;
+END $$;
