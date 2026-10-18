@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { trackCustomMetaEvent } from "@/lib/meta-pixel";
 
-// Overridable once the Play listing goes live (Milestone 2).
-const PLAY_STORE_FALLBACK = "https://play.google.com/store/apps/details?id=com.slnews.app";
+// Overridable with NEXT_PUBLIC_PLAY_STORE_URL once the listing is live. The package id
+// must match the Android app (com.slnews.mobile), not the website host.
+const PLAY_STORE_FALLBACK =
+  "https://play.google.com/store/apps/details?id=com.slnews.mobile";
 
 /**
  * Conversion actions for the /download ad landing page. The primary action
@@ -14,7 +16,8 @@ const PLAY_STORE_FALLBACK = "https://play.google.com/store/apps/details?id=com.s
  */
 export default function DownloadCTA() {
   const { isStandalone, isInstalled, promptInstall } = usePWAInstall();
-  const playStoreUrl = process.env.NEXT_PUBLIC_PLAY_STORE_URL || PLAY_STORE_FALLBACK;
+  const playStoreUrl =
+    process.env.NEXT_PUBLIC_PLAY_STORE_URL || PLAY_STORE_FALLBACK;
   const installed = isStandalone || isInstalled;
 
   if (installed) {
@@ -29,7 +32,9 @@ export default function DownloadCTA() {
           className="inline-flex items-center gap-2 bg-on-primary text-primary font-bold px-5 py-3 rounded-full hover:opacity-90 transition-opacity"
         >
           Open SLNews
-          <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          <span className="material-symbols-outlined text-[18px]">
+            arrow_forward
+          </span>
         </Link>
       </div>
     );
@@ -51,7 +56,9 @@ export default function DownloadCTA() {
         href={playStoreUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => trackCustomMetaEvent("PlayStoreClick", { placement: "download_page" })}
+        onClick={() =>
+          trackCustomMetaEvent("PlayStoreClick", { placement: "download_page" })
+        }
         className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-primary-container/20 text-on-primary border border-on-primary/30 font-bold px-6 py-3.5 rounded-full hover:bg-primary-container/30 active:scale-95 transition-all"
       >
         <span className="material-symbols-outlined">android</span>
