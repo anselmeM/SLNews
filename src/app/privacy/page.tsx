@@ -96,6 +96,15 @@ export default function PrivacyPolicyPage() {
               anonymous performance traces (app start, navigation and network
               timings) is sent for the same diagnostic purpose.
             </li>
+
+            <li>
+              <strong>&quot;Read original&quot; pages:</strong> when you tap
+              Read original, the publisher&apos;s article opens in an in-app
+              browser view inside SLNews. That view does not share your SLNews
+              sign-in, but while the page is open the publisher may set its own
+              cookies or use its own trackers under its own privacy policy. We
+              do not receive or store that data.
+            </li>
           </ul>
           <p className="mt-3">
             <strong>The apps do not collect</strong> your location (the weather

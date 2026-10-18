@@ -59,6 +59,17 @@ describe("PrivacyPolicyPage Component", () => {
     ).toBeInTheDocument();
   });
 
+  it("discloses the in-app publisher page and its cookies", () => {
+    render(<PrivacyPolicyPage />);
+
+    expect(screen.getAllByText(/Read original/i).length).toBeGreaterThanOrEqual(
+      1
+    );
+    expect(
+      screen.getByText(/publisher may set its own cookies/i)
+    ).toBeInTheDocument();
+  });
+
   it("links deletion and contact paths", () => {
     render(<PrivacyPolicyPage />);
 
