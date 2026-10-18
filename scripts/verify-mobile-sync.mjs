@@ -191,6 +191,13 @@ async function main() {
   console.log(`\n${failures.length === 0 ? 'ALL CHECKS PASSED' : `${failures.length} CHECK(S) FAILED`}`);
 }
 
+/**
+ * Deletes the probe's Clerk user and its row in the database this machine can
+ * reach. Production is deliberately out of scope: Vercel redacts
+ * `DATABASE_URL`, so a run against the deployed app leaves its Postgres row
+ * behind — which is why the `cascaded 0 row` line now says so instead of
+ * reading like a complete cleanup.
+ */
 async function cleanup() {
   if (!clerkUserId) return;
   try {
@@ -203,10 +210,36 @@ async function cleanup() {
     // Delete through the Prisma client that is already connected: shelling out to
     // `npx` is unreliable on Windows and this cascades to the sync rows.
     const deleted = await prisma?.user.deleteMany({ where: { id: clerkUserId } });
-    console.log(`cleaned up the probe Postgres user (cascaded ${deleted?.count ?? 0} row)`);
+    console.log(
+      `cleaned up the local probe Postgres user (cascaded ${deleted?.count ?? 0} row); the deployed environment's rows are not reachable from this machine`
+    );
   } catch (error) {
     console.log(`WARNING: could not delete the probe Postgres row: ${error.message}`);
   }
+}
+
+/**
+ * The leftover the local cleanup cannot remove.
+ *
+ * `User.id` IS the Clerk user id here (see `resolve-mobile-user.ts`), so this
+ * statement removes exactly the row the run created in the environment it
+ * actually drove. It is printed on every run, pass or fail, because the row
+ * exists whenever the first sync reached the server and the operator should not
+ * have to infer the id or the SQL from a log line.
+ */
+function printRemoteCleanup() {
+  console.log('\n--- remote cleanup statement --------------------------------------------');
+  console.log(`Environment: ${BASE}`);
+  if (clerkUserId) {
+    console.log('This run created a User row (and its cascade rows) in that environment.');
+    console.log('The DATABASE_URL on this machine points elsewhere, so it cannot delete it.');
+    console.log("Run this against that environment's database to remove the probe:");
+    console.log('');
+    console.log(`  DELETE FROM "User" WHERE id = '${clerkUserId}';`);
+  } else {
+    console.log('No probe user was created, so there is no remote row to clean up.');
+  }
+  console.log('--------------------------------------------------------------------------');
 }
 
 // A Prisma client is created only to prove the tables are reachable; the probe
@@ -221,6 +254,7 @@ main()
   })
   .finally(async () => {
     await cleanup();
+    printRemoteCleanup();
     await prisma?.$disconnect().catch(() => {});
     // Set the code rather than calling process.exit(): exiting while keep-alive
     // sockets are still closing trips a libuv assertion on Windows.
