@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Auth-resolution tests: bearer first, cookie session second, and the
  * `User`-row bootstrap that lets a reader sync from a phone that has never
  * opened the website.
@@ -9,7 +9,7 @@
  */
 import { verifyToken } from "@clerk/backend";
 import { auth as cookieAuth, currentUser } from "@clerk/nextjs/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   isBearerHeader,
   readBearerToken,
@@ -36,6 +36,7 @@ const create = db.user.create as unknown as AsyncMock;
 const verify = verifyToken as unknown as AsyncMock;
 const clerkUser = currentUser as unknown as AsyncMock;
 const cookieSession = cookieAuth as unknown as AsyncMock;
+const fetchMock = vi.fn();
 
 const CLERK_ID = "user_2RfWKJREkjKbHZy0Wqa5qrHeAnb";
 const EMAIL = "probe@example.test";
@@ -55,10 +56,43 @@ function headers(init: Record<string, string> = {}): Headers {
   return new Headers(init);
 }
 
+/**
+ * The Backend API shape the resolver reads. The addresses are deliberately out
+ * of order: the primary id must win over "first in the array".
+ */
+function clerkProfile(overrides: Record<string, unknown> = {}): Response {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      id: CLERK_ID,
+      first_name: "Probe",
+      last_name: "Reader",
+      username: null,
+      primary_email_address_id: "idn_primary",
+      email_addresses: [
+        { id: "idn_secondary", email_address: "secondary@example.test" },
+        { id: "idn_primary", email_address: EMAIL },
+      ],
+      ...overrides,
+    }),
+  } as unknown as Response;
+}
+
+function clerkFailure(status = 503): Response {
+  return { ok: false, status, json: async () => ({}) } as unknown as Response;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.CLERK_SECRET_KEY = "sk_test_secret";
   delete process.env.CLERK_AUTHORIZED_PARTIES;
+
+  // Thin-claim tests hit the Backend API; default to a failed lookup so a test
+  // that does not opt in keeps the claims instead of opening a socket.
+  vi.stubGlobal("fetch", fetchMock);
+  fetchMock.mockResolvedValue(clerkFailure());
+  vi.spyOn(console, "warn").mockImplementation(() => {});
 
   // `@clerk/backend` v3 resolves with the claims themselves and throws on any
   // failure, so the mock mirrors that contract (see the note on
@@ -75,6 +109,11 @@ beforeEach(() => {
   findUnique.mockResolvedValue(null);
   update.mockResolvedValue(userRow());
   create.mockResolvedValue(userRow());
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("readBearerToken", () => {
@@ -224,7 +263,7 @@ describe("User bootstrap", () => {
   it("reuses an Auth.js-era row found by email instead of creating a duplicate", async () => {
     findUnique
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(userRow({ id: "cuid_authjs", name: "Old Name" }));
+      .mockResolvedValueOnce(userRow({ id: "cuid_authjs", name: "SLNews User" }));
     update.mockResolvedValue(userRow({ id: "cuid_authjs", name: "Probe Reader" }));
 
     const user = await resolveMobileUser(headers({ authorization: "Bearer probe.jwt.token" }));
@@ -295,6 +334,133 @@ describe("User bootstrap", () => {
     await expect(
       resolveMobileUser(headers({ authorization: "Bearer probe.jwt.token" }))
     ).resolves.toBeNull();
+  });
+});
+
+describe("User identity enrichment", () => {
+  it("fetches the Clerk profile once when the claims carry no email or name", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID });
+    fetchMock.mockResolvedValue(clerkProfile());
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `https://api.clerk.com/v1/users/${CLERK_ID}`,
+      expect.objectContaining({
+        headers: { Authorization: "Bearer sk_test_secret" },
+        signal: expect.any(AbortSignal),
+      })
+    );
+    // The primary address wins even though it is second in the payload.
+    expect(create).toHaveBeenCalledWith({
+      data: { id: CLERK_ID, email: EMAIL, name: "Probe Reader", image: null, role: "USER" },
+    });
+    expect(user?.email).toBe(EMAIL);
+    expect(user?.name).toBe("Probe Reader");
+  });
+
+  it("falls back to the Clerk username when the profile has no first/last name", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID });
+    fetchMock.mockResolvedValue(
+      clerkProfile({ first_name: null, last_name: null, username: "probe_reader" })
+    );
+
+    await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ name: "probe_reader" }) })
+    );
+  });
+
+  it("does not fetch when the claims are already complete", async () => {
+    await resolveMobileUser(headers({ authorization: "Bearer probe.jwt.token" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("does not fetch again once the stored row has a real email", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID });
+    findUnique.mockResolvedValue(userRow());
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(user?.email).toBe(EMAIL);
+  });
+
+  it("backfills an existing row whose email is NULL", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID });
+    findUnique.mockResolvedValue(userRow({ email: null, name: "SLNews User" }));
+    fetchMock.mockResolvedValue(clerkProfile());
+    update.mockResolvedValue(userRow());
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(update).toHaveBeenCalledWith({
+      where: { id: CLERK_ID },
+      data: { email: EMAIL, name: "Probe Reader" },
+    });
+    expect(user?.email).toBe(EMAIL);
+    expect(user?.name).toBe("Probe Reader");
+  });
+
+  it("never replaces a name the reader set on the web", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID });
+    findUnique.mockResolvedValue(userRow({ email: null, name: "Web Chosen" }));
+    fetchMock.mockResolvedValue(clerkProfile());
+    update.mockResolvedValue(userRow({ email: EMAIL, name: "Web Chosen" }));
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(update).toHaveBeenCalledWith({
+      where: { id: CLERK_ID },
+      data: { email: EMAIL },
+    });
+    expect(user?.name).toBe("Web Chosen");
+  });
+
+  it("creates the row from claims when the Clerk API answers with an error", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID, username: "probe" });
+    fetchMock.mockResolvedValue(clerkFailure(500));
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith({
+      data: { id: CLERK_ID, email: null, name: "probe", image: null, role: "USER" },
+    });
+    expect(user?.id).toBe(CLERK_ID);
+  });
+
+  it("creates the row from claims when the Clerk API is unreachable", async () => {
+    verify.mockResolvedValue({ sub: CLERK_ID, username: "probe" });
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+
+    const user = await resolveMobileUser(headers({ authorization: "Bearer thin.jwt.token" }));
+
+    expect(user?.id).toBe(CLERK_ID);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ email: null, name: "probe" }) })
+    );
+  });
+
+  it("keeps the claims when CLERK_SECRET_KEY is unset", async () => {
+    delete process.env.CLERK_SECRET_KEY;
+    clerkUser.mockResolvedValue(null);
+    cookieSession.mockResolvedValue({ userId: CLERK_ID });
+
+    const user = await resolveMobileUser(headers());
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(user?.id).toBe(CLERK_ID);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ email: null, name: "SLNews User" }),
+      })
+    );
   });
 });
 
