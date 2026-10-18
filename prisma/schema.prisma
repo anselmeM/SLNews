@@ -98,6 +98,16 @@ model Article {
   content       String
   summary       String?
   imageUrl      String?
+  /// Canonical link of the story this row mirrors, when it has one.
+  ///
+  /// Scraped articles record the outlet's URL here so the importer can match on
+  /// the story's identity instead of its headline, and so a bookmark saved in
+  /// the mobile app (`MobileBookmark.sourceUrl`) can be reconciled with the
+  /// article stored by the web app. Nullable: rows that predate the column and
+  /// drafts written in the editor have no external URL. Unique: two rows for the
+  /// same link are exactly the duplicate this column exists to prevent (Postgres
+  /// permits many NULLs in a unique index).
+  sourceUrl     String?        @unique
   published     Boolean        @default(false)
   status        Status         @default(DRAFT)
   province      String?

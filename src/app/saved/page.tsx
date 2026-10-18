@@ -1,9 +1,11 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { m } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import OfflineArticleModal from "./_components/OfflineArticleModal";
+import { getPhoneSavedArticles } from "@/app/actions/user-actions";
 import ArticleCard from "@/components/ArticleCard";
 import type { NewsArticle } from "@/lib/news-service";
 import { useAppStore } from "@/store/useAppStore";
@@ -13,12 +15,29 @@ export default function SavedStoriesPage() {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [filterText, setFilterText] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [phoneSaved, setPhoneSaved] = useState<NewsArticle[]>([]);
   const savedArticles = useAppStore((state) => state.savedArticles);
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsHydrated(true);
   }, []);
+
+  // Bookmarks made in the mobile app, matched to web articles by canonical URL.
+  // Failure is silent: the web saved list below is the primary content here.
+  useEffect(() => {
+    if (!isSignedIn) return;
+    let active = true;
+    getPhoneSavedArticles()
+      .then((articles) => {
+        if (active) setPhoneSaved(articles);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [isSignedIn]);
 
   const filteredAndSorted = useMemo(() => {
     const filtered = filterText
@@ -173,6 +192,29 @@ export default function SavedStoriesPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* Stories bookmarked in the SLNews app, resolved to web articles by URL */}
+      {phoneSaved.length > 0 && (
+        <section className="flex flex-col gap-3 border-t border-outline-variant pt-6">
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-xl sm:text-2xl font-black text-on-surface tracking-tight">
+              Saved on your phone
+            </h2>
+            <span className="text-xs font-semibold text-on-surface-variant">
+              {phoneSaved.length} matched
+            </span>
+          </div>
+          <p className="text-sm font-medium text-gray-500 max-w-2xl">
+            Bookmarks synced from the SLNews app, matched to stories on the web by their
+            original link.
+          </p>
+          <div className="flex flex-col gap-4">
+            {phoneSaved.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Offline Reader Modal */}

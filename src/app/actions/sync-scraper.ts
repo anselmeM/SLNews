@@ -46,9 +46,19 @@ export async function syncFromScraper() {
       };
     }
 
-    const validArticles = articles.filter(
+    const withIdentity = articles.filter(
       (a) => a.title?.trim() && a.link?.trim()
     );
+
+    // A story's identity is its canonical link. The scraper repeats a story
+    // across category feeds, and before Article.sourceUrl existed the importer
+    // had no way to tell those repeats from different stories, so collapse them
+    // here before anything is written.
+    const byLink = new Map<string, ScraperArticle>();
+    for (const article of withIdentity) {
+      byLink.set(article.link!.trim(), article);
+    }
+    const validArticles = [...byLink.values()];
 
     if (validArticles.length === 0) {
       return { success: true, count: 0 };
@@ -82,16 +92,20 @@ export async function syncFromScraper() {
       })
     );
 
-    // 2. Batch-check existing articles by title in a single query
+    // 2. Batch-check existing articles by canonical link and, for rows that
+    //    predate Article.sourceUrl, by title as a fallback.
     const titles = validArticles.map((a) => a.title!.trim());
+    const links = validArticles.map((a) => a.link!.trim());
     const existingArticles = await db.article.findMany({
-      where: { title: { in: titles } },
+      where: { OR: [{ title: { in: titles } }, { sourceUrl: { in: links } }] },
       include: { categories: true },
     });
 
     const existingByTitle = new Map<string, (typeof existingArticles)[0]>();
+    const existingBySourceUrl = new Map<string, (typeof existingArticles)[0]>();
     for (const item of existingArticles) {
       existingByTitle.set(item.title, item);
+      if (item.sourceUrl) existingBySourceUrl.set(item.sourceUrl, item);
     }
 
     let totalCount = 0;
@@ -127,7 +141,17 @@ export async function syncFromScraper() {
         ),
       ].filter((id): id is string => Boolean(id));
 
-      const existing = existingByTitle.get(title);
+      const matchesByLink = existingBySourceUrl.get(link);
+      const matchesByTitle = existingByTitle.get(title);
+      // A title match only counts while we have nothing better: once a row
+      // claims a different link, the headlines colliding means two outlets
+      // published the same words, so this is a distinct story.
+      const existing =
+        matchesByLink ??
+        (matchesByTitle &&
+        (!matchesByTitle.sourceUrl || matchesByTitle.sourceUrl === link)
+          ? matchesByTitle
+          : undefined);
 
       if (existing) {
         const missingIds = resolvedCategoryIds.filter(
@@ -147,6 +171,9 @@ export async function syncFromScraper() {
         }
         if (needsImage) updateData.imageUrl = a.imageUrl!.trim();
         if (needsSummary) updateData.summary = summary;
+        // Rows that predate the column pick up their link on the next scrape,
+        // which is also how the existing archive backfills itself.
+        if (!existing.sourceUrl) updateData.sourceUrl = link;
 
         if (Object.keys(updateData).length > 0) {
           await db.article.update({
@@ -164,6 +191,7 @@ export async function syncFromScraper() {
           summary,
           content,
           imageUrl: a.imageUrl?.trim() || "/globe.svg",
+          sourceUrl: link,
           published: true,
           status: "PUBLISHED",
           province: null,
