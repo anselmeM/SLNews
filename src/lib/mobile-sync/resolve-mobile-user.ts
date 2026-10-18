@@ -30,6 +30,15 @@ interface Identity {
 }
 
 const BEARER_PREFIX = "bearer ";
+const CLERK_API_BASE = "https://api.clerk.com/v1";
+/** A slow Clerk response must never hold the sync route open. */
+const CLERK_PROFILE_TIMEOUT_MS = 3_500;
+/**
+ * The literal this resolver stores when it has no usable name. It is also the
+ * marker the backfill treats as "unset": a row carrying it may be updated from
+ * Clerk, while any other stored name is a value the reader (or the web app) set.
+ */
+const FALLBACK_NAME = "SLNews User";
 
 /**
  * Extracts the token from an `Authorization` header. A bare token (no scheme) is
@@ -75,7 +84,7 @@ function displayName(payload: Record<string, unknown>): string {
   if (full) return full;
   if (typeof payload.name === "string" && payload.name) return payload.name;
   if (typeof payload.username === "string" && payload.username) return payload.username;
-  return "SLNews User";
+  return FALLBACK_NAME;
 }
 
 function primaryEmail(payload: Record<string, unknown>): string | null {
@@ -84,6 +93,148 @@ function primaryEmail(payload: Record<string, unknown>): string | null {
     return payload.email_address;
   }
   return null;
+}
+
+function hasRealEmail(email: string | null | undefined): boolean {
+  return typeof email === "string" && email.trim().length > 0;
+}
+
+/** `null`, `""` and the literal fallback all mean "the reader has no name yet". */
+function isUsableName(name: string | null | undefined): boolean {
+  return typeof name === "string" && name.trim().length > 0 && name.trim() !== FALLBACK_NAME;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+/** `primary_email_address_id`, else the first address Clerk returns. */
+function profileEmail(payload: Record<string, unknown>): string | null {
+  const addresses = Array.isArray(payload.email_addresses)
+    ? payload.email_addresses.map(asRecord).filter((entry): entry is Record<string, unknown> => !!entry)
+    : [];
+  const primaryId =
+    typeof payload.primary_email_address_id === "string" ? payload.primary_email_address_id : null;
+  const preferred = primaryId ? addresses.find((entry) => entry.id === primaryId) : undefined;
+  const chosen = preferred ?? addresses[0];
+  return typeof chosen?.email_address === "string" ? chosen.email_address : null;
+}
+
+/** `first_name` + `last_name`, else `username`, else nothing usable. */
+function profileName(payload: Record<string, unknown>): string | null {
+  const given = typeof payload.first_name === "string" ? payload.first_name.trim() : "";
+  const family = typeof payload.last_name === "string" ? payload.last_name.trim() : "";
+  const full = [given, family].filter(Boolean).join(" ");
+  if (full) return full;
+  const username = typeof payload.username === "string" ? payload.username.trim() : "";
+  return username || null;
+}
+
+interface ClerkProfile {
+  email: string | null;
+  name: string | null;
+}
+
+/**
+ * One `GET /v1/users/{sub}` for a token whose claims carry no email or name.
+ *
+ * Mobile session tokens are deliberately thin — Clerk trusts them for `sub` and
+ * not much else — so the claims alone cannot fill the `User` row. This is the
+ * only place that reads the Backend API for identity, and it is fail-open: a
+ * missing secret, a timeout, a non-2xx answer or unparseable JSON all return
+ * `null`, and the caller keeps the claims. Sync must never fail because this
+ * enrichment failed.
+ *
+ * The warning is non-secret on purpose: no token, no URL containing the key,
+ * no response body — just the failure class.
+ */
+async function fetchClerkProfile(clerkUserId: string): Promise<ClerkProfile | null> {
+  const secretKey = process.env.CLERK_SECRET_KEY;
+  if (!secretKey) {
+    console.warn("mobile-sync: CLERK_SECRET_KEY is unset; keeping the thin token claims");
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${CLERK_API_BASE}/users/${encodeURIComponent(clerkUserId)}`, {
+      headers: { Authorization: `Bearer ${secretKey}` },
+      signal: AbortSignal.timeout(CLERK_PROFILE_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      console.warn(`mobile-sync: Clerk user lookup answered ${response.status}; keeping the thin token claims`);
+      return null;
+    }
+
+    const payload = asRecord(await response.json());
+    if (!payload) return null;
+    return { email: profileEmail(payload), name: profileName(payload) };
+  } catch (error) {
+    const reason = error instanceof Error ? error.name : "unknown error";
+    console.warn(`mobile-sync: Clerk user lookup failed (${reason}); keeping the thin token claims`);
+    return null;
+  }
+}
+
+/**
+ * Enriches a claim-derived identity only when it is thin AND the stored row has
+ * no address yet. The second half is the idempotency guard: the first sync that
+ * succeeds backfills a real email, so every later thin token skips the API call
+ * instead of paying for a lookup on every request (and instead of retrying
+ * forever for a Clerk user who simply has no display name).
+ */
+async function resolveStoredIdentity(
+  identity: Identity,
+  storedEmail: string | null
+): Promise<Identity> {
+  if (hasRealEmail(identity.email) && isUsableName(identity.name)) return identity;
+  if (hasRealEmail(storedEmail)) return identity;
+
+  const profile = await fetchClerkProfile(identity.clerkUserId);
+  if (!profile) return identity;
+
+  return {
+    ...identity,
+    email: profile.email ?? identity.email,
+    name: profile.name ?? identity.name,
+  };
+}
+
+interface StoredUser {
+  id: string;
+  email: string | null;
+  name: string | null;
+  image: string | null;
+  role: string;
+}
+
+/**
+ * The only fields this resolver may write: an email that is missing and a name
+ * that is missing or still the fallback. A name a reader chose on the web is
+ * never replaced by a token claim or a Clerk profile.
+ */
+function identityBackfill(
+  row: Pick<StoredUser, "email" | "name">,
+  identity: Identity
+): { email?: string; name?: string; image?: string } {
+  const data: { email?: string; name?: string; image?: string } = {};
+  const email = normalizeEmail(identity.email);
+  if (email && !hasRealEmail(row.email)) data.email = email;
+  if (isUsableName(identity.name) && !isUsableName(row.name)) data.name = identity.name;
+  return data;
+}
+
+async function backfillStoredUser(
+  id: string,
+  data: { email?: string; name?: string; image?: string }
+): Promise<StoredUser | null> {
+  try {
+    return await db.user.update({ where: { id }, data });
+  } catch {
+    // A unique-email collision (the address already belongs to another row) must
+    // not turn a valid sync into a 401: keep the row as it was.
+    console.warn("mobile-sync: could not backfill the stored User row; keeping it as is");
+    return null;
+  }
 }
 
 /**
@@ -145,7 +296,7 @@ export async function resolveSessionIdentity(): Promise<Identity | null> {
       const name =
         [user.firstName, user.lastName].filter(Boolean).join(" ") ||
         user.username ||
-        "SLNews User";
+        FALLBACK_NAME;
       return {
         clerkUserId: user.id,
         email,
@@ -159,7 +310,7 @@ export async function resolveSessionIdentity(): Promise<Identity | null> {
     return {
       clerkUserId: session.userId,
       email: null,
-      name: "SLNews User",
+      name: FALLBACK_NAME,
       image: null,
     };
   } catch {
@@ -179,25 +330,35 @@ function normalizeEmail(email: string | null): string | null {
  * (Auth.js era) has a cuid `User.id` and a unique email. Creating a row keyed by
  * the Clerk id would violate `User.email @unique`, so the existing row is reused
  * and the sync rows hang off its id.
+ *
+ * A thin identity (no email, or only the `"SLNews User"` placeholder name) is
+ * enriched from the Clerk Backend API once, but only while the stored row has no
+ * real email — see `resolveStoredIdentity`. Everything here is fail-open: a
+ * failed lookup still creates/updates the row from the claims.
  */
 export async function ensureMobileUser(identity: Identity): Promise<MobileUser | null> {
-  const email = normalizeEmail(identity.email);
-
   try {
     const byId = await db.user.findUnique({ where: { id: identity.clerkUserId } });
-    if (byId) return toMobileUser(byId, identity);
+    if (byId) {
+      const resolved = await resolveStoredIdentity(identity, byId.email);
+      const data = identityBackfill(byId, resolved);
+      if (Object.keys(data).length === 0) return toMobileUser(byId, resolved);
+
+      const updated = await backfillStoredUser(byId.id, data);
+      return toMobileUser(updated ?? byId, resolved);
+    }
+
+    const resolved = await resolveStoredIdentity(identity, null);
+    const email = normalizeEmail(resolved.email);
 
     if (email) {
       const byEmail = await db.user.findUnique({ where: { email } });
       if (byEmail) {
-        const updated = await db.user.update({
-          where: { id: byEmail.id },
-          data: {
-            name: identity.name,
-            ...(identity.image ? { image: identity.image } : {}),
-          },
-        });
-        return toMobileUser(updated, identity);
+        const data = identityBackfill(byEmail, resolved);
+        if (resolved.image) data.image = resolved.image;
+        const updated =
+          Object.keys(data).length > 0 ? await backfillStoredUser(byEmail.id, data) : null;
+        return toMobileUser(updated ?? byEmail, resolved);
       }
     }
 
@@ -208,12 +369,12 @@ export async function ensureMobileUser(identity: Identity): Promise<MobileUser |
       data: {
         id: identity.clerkUserId,
         email,
-        name: identity.name,
-        image: identity.image,
+        name: resolved.name,
+        image: resolved.image,
         role: isAdmin ? "ADMIN" : "USER",
       },
     });
-    return toMobileUser(created, identity);
+    return toMobileUser(created, resolved);
   } catch {
     return null;
   }
