@@ -21,7 +21,7 @@ export default function AdminLayout({
           href="/"
         >
           Public site
-        </a>
+        </Link>
       </header>
       {children}
     </div>
