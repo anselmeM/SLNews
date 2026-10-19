@@ -3,16 +3,24 @@ import { test, expect, type Page } from "@playwright/test";
 test.describe("Market actions", () => {
   test("market page shows alert and report actions", async ({ page }) => {
     await page.goto("/market");
-    await expect(page.getByRole("button", { name: /Set Price Alerts/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Report Price Change/ })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Set Price Alerts/ })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Report Price Change/ })
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: /Set Alert/ })).toBeVisible();
   });
 
-  test("signed-out users are prompted to sign in when setting an alert", async ({ page }) => {
+  test("signed-out users are prompted to sign in when setting an alert", async ({
+    page,
+  }) => {
     await page.goto("/market");
     await page.getByRole("button", { name: /Set Price Alerts/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Get Real-Time Price Alerts/ })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Get Real-Time Price Alerts/ })
+    ).toBeVisible();
     await page.getByRole("link", { name: /Sign In/ }).click();
     await expect(page).toHaveURL(/(\/sign-in|\/login)/);
   });
@@ -21,7 +29,9 @@ test.describe("Market actions", () => {
     await page.goto("/market");
     await page.getByRole("tab", { name: "Bo Market" }).click();
     await expect(page).toHaveURL(/market=Bo%20Market/);
-    await expect(page.getByRole("heading", { name: "Market Prices" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Market Prices" })
+    ).toBeVisible();
   });
 });
 
@@ -29,10 +39,10 @@ test.describe("Contributor following", () => {
   // The home page streams several sections (briefing, latest, editors' picks,
   // feed). Locating and clicking a link straight away races that stream: under
   // CI load the "first" article link can be replaced mid-click, so the
-  // navigation never commits. Go to "/" (not "/home", which just redirects),
-  // let the stream settle, then click and wait for the navigation explicitly.
+  // navigation never commits. The reader home lives at "/home" (the root is the
+  // marketing site now); let the stream settle, then click and wait explicitly.
   async function openFirstArticle(page: Page) {
-    await page.goto("/");
+    await page.goto("/home");
     await page.waitForLoadState("networkidle");
     const articleLink = page.locator('main a[href^="/article/"]').first();
     await articleLink.scrollIntoViewIfNeeded();
@@ -51,7 +61,9 @@ test.describe("Contributor following", () => {
     await expect(page.getByRole("button", { name: /Follow/ })).toBeVisible();
   });
 
-  test("signed-out users are redirected to login when following", async ({ page }) => {
+  test("signed-out users are redirected to login when following", async ({
+    page,
+  }) => {
     await openFirstArticle(page);
     await openFirstAuthor(page);
     await page.getByRole("button", { name: /Follow/ }).click();
@@ -79,16 +91,26 @@ test.describe("Announcements", () => {
     const cardLink = page.locator(noticeCard).first();
     await cardLink.click();
     await expect(page.getByRole("heading", { name: /Comments/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Sign in", exact: true })
+    ).toBeVisible();
   });
 });
 
 test.describe("Search filters", () => {
-  test("search results expose category, province, and date filters", async ({ page }) => {
+  test("search results expose category, province, and date filters", async ({
+    page,
+  }) => {
     await page.goto("/search?q=market");
-    await expect(page.getByRole("group", { name: "Filter by category" })).toBeVisible();
-    await expect(page.getByRole("group", { name: "Filter by province" })).toBeVisible();
-    await expect(page.getByRole("group", { name: "Filter by date" })).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "Filter by category" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "Filter by province" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "Filter by date" })
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: "Last 7 days" })).toBeVisible();
   });
 
@@ -96,12 +118,16 @@ test.describe("Search filters", () => {
   // Matched on a fragment because the result title highlights the query.
   const southStory = /New Solar Grid Project/;
 
-  test("the province filter finds a story filed under that province", async ({ page }) => {
+  test("the province filter finds a story filed under that province", async ({
+    page,
+  }) => {
     await page.goto("/search?q=solar&province=Southern+Province");
     await expect(page.getByText(southStory).first()).toBeVisible();
   });
 
-  test("the province filter still finds it under the spelling the old dashboard wrote", async ({ page }) => {
+  test("the province filter still finds it under the spelling the old dashboard wrote", async ({
+    page,
+  }) => {
     await page.goto("/search?q=solar&province=Southern");
     await expect(page.getByText(southStory).first()).toBeVisible();
   });

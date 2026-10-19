@@ -4,7 +4,6 @@ import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { auth } from "@/auth";
-import { AdSenseScript } from "@/components/AdSense";
 import CampaignAttributionTracker from "@/components/CampaignAttributionTracker";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 import MetaPixel from "@/components/MetaPixel";
@@ -27,13 +26,17 @@ export const viewport: Viewport = {
 export const maxDuration = 60;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  ),
   title: "SLNews | Sierra Leone News",
-  description: "Community journalism and global news aggregation for Sierra Leone.",
+  description:
+    "Community journalism and global news aggregation for Sierra Leone.",
   manifest: "/manifest.json",
   openGraph: {
     title: "SLNews | Sierra Leone News",
-    description: "Community journalism and global news aggregation for Sierra Leone.",
+    description:
+      "Community journalism and global news aggregation for Sierra Leone.",
     type: "website",
     siteName: "SLNews",
     images: ["/og-image.png"],
@@ -41,7 +44,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SLNews | Sierra Leone News",
-    description: "Community journalism and global news aggregation for Sierra Leone.",
+    description:
+      "Community journalism and global news aggregation for Sierra Leone.",
     images: ["/og-image.png"],
   },
 };
@@ -82,16 +86,22 @@ export default async function RootLayout({
             }}
           />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossOrigin="anonymous"
+          />
           <link
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
             rel="stylesheet"
           />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+          />
           <meta name="apple-mobile-web-app-title" content="SLNews" />
-          <AdSenseScript />
           {process.env.NODE_ENV === "production" && (
             <Script
               id="sw-register"
@@ -108,7 +118,10 @@ export default async function RootLayout({
             />
           )}
         </head>
-        <body className="bg-surface text-on-surface font-body-md min-h-screen" id="top">
+        <body
+          className="bg-surface text-on-surface font-body-md min-h-screen"
+          id="top"
+        >
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-full focus:outline-none"
@@ -121,12 +134,9 @@ export default async function RootLayout({
             <MetaPixel />
             <CampaignAttributionTracker />
           </Suspense>
-          <AppLayoutWrapper session={session}>
-            {children}
-          </AppLayoutWrapper>
+          <AppLayoutWrapper session={session}>{children}</AppLayoutWrapper>
         </body>
       </html>
     </ClerkProvider>
   );
 }
-

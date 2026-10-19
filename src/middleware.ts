@@ -1,5 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextRequest,
+} from "next/server";
 import { logger } from "@/lib/logger";
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/profile(.*)"]);
@@ -15,18 +19,19 @@ const clerkHandler = hasClerkKeys
         // returns a bare 404 for signed-out users instead of sending them to log
         // in (see Clerk: "protect() in middleware redirects to signInUrl if signed
         // out" — it 404s when that URL is unset).
-        await auth.protect({ unauthenticatedUrl: new URL("/sign-in", req.url).toString() });
-      }
-
-      if (req.nextUrl.pathname === "/home") {
-        return NextResponse.redirect(new URL("/", req.url));
+        await auth.protect({
+          unauthenticatedUrl: new URL("/sign-in", req.url).toString(),
+        });
       }
 
       return NextResponse.next();
     })
   : null;
 
-export default async function middleware(req: NextRequest, evt: NextFetchEvent) {
+export default async function middleware(
+  req: NextRequest,
+  evt: NextFetchEvent
+) {
   if (clerkHandler) {
     try {
       return await clerkHandler(req, evt);
@@ -39,10 +44,6 @@ export default async function middleware(req: NextRequest, evt: NextFetchEvent) 
         path: req.nextUrl.pathname,
       });
     }
-  }
-
-  if (req.nextUrl.pathname === "/home") {
-    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
