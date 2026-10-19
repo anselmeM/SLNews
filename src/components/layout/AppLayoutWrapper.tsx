@@ -6,27 +6,49 @@ import { useEffect, useRef } from "react";
 import BottomNavBar from "./BottomNavBar";
 import MotionProvider from "./MotionProvider";
 import TopAppBar from "./TopAppBar";
-import { getSavedArticleIds, loadPreferences } from "@/app/actions/user-actions";
+import {
+  getSavedArticleIds,
+  loadPreferences,
+} from "@/app/actions/user-actions";
 import type { AppSession } from "@/auth";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
+import MarketingHeader from "@/components/marketing/MarketingHeader";
 import EdgeSwipeBack from "@/components/navigation/EdgeSwipeBack";
 import NetworkStatusBar from "@/components/NetworkStatusBar";
 import ThemeSync from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
-import { readInboxRecords, subscribeToInboxMessages } from "@/lib/notification-inbox";
+import {
+  readInboxRecords,
+  subscribeToInboxMessages,
+} from "@/lib/notification-inbox";
 import { useAppStore } from "@/store/useAppStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 
 // Non-critical widgets that sit below the fold or stay hidden until interaction.
 // Loading them client-side keeps them out of the first-load bundle so the shell
 // becomes interactive sooner.
-const AudioPlayerBar = dynamic(() => import("@/components/AudioPlayerBar"), { ssr: false });
-const BackToTop = dynamic(() => import("@/components/BackToTop"), { ssr: false });
-const AuthGateModal = dynamic(() => import("@/components/gates/AuthGateModal"), { ssr: false });
-const InstallBanner = dynamic(() => import("@/components/InstallBanner"), { ssr: false });
-const InstallModal = dynamic(() => import("@/components/InstallModal"), { ssr: false });
-const PostReadInstallSheet = dynamic(() => import("@/components/pwa/PostReadInstallSheet"), {
+const AudioPlayerBar = dynamic(() => import("@/components/AudioPlayerBar"), {
   ssr: false,
 });
+const BackToTop = dynamic(() => import("@/components/BackToTop"), {
+  ssr: false,
+});
+const AuthGateModal = dynamic(
+  () => import("@/components/gates/AuthGateModal"),
+  { ssr: false }
+);
+const InstallBanner = dynamic(() => import("@/components/InstallBanner"), {
+  ssr: false,
+});
+const InstallModal = dynamic(() => import("@/components/InstallModal"), {
+  ssr: false,
+});
+const PostReadInstallSheet = dynamic(
+  () => import("@/components/pwa/PostReadInstallSheet"),
+  {
+    ssr: false,
+  }
+);
 
 export default function AppLayoutWrapper({
   children,
@@ -38,7 +60,9 @@ export default function AppLayoutWrapper({
   const pathname = usePathname();
   const setSavedIds = useAppStore((s) => s.setSavedIds);
   const setPreferences = useAppStore((s) => s.setPreferences);
-  const ingestNotifications = useNotificationStore((s) => s.ingestNotifications);
+  const ingestNotifications = useNotificationStore(
+    (s) => s.ingestNotifications
+  );
   const syncedRef = useRef(false);
 
   useEffect(() => {
@@ -68,17 +92,36 @@ export default function AppLayoutWrapper({
 
     if (session?.user?.id && !syncedRef.current) {
       syncedRef.current = true;
-      Promise.all([getSavedArticleIds(), loadPreferences()]).then(
-        ([ids, prefs]) => {
+      Promise.all([getSavedArticleIds(), loadPreferences()])
+        .then(([ids, prefs]) => {
           setSavedIds(ids);
           setPreferences(prefs.preferredTopics);
-        }
-      ).catch(() => {});
+        })
+        .catch(() => {});
     }
     if (!session?.user?.id) {
       syncedRef.current = false;
     }
   }, [session?.user?.id, setSavedIds, setPreferences]);
+
+  const isMarketingPage =
+    pathname === "/" ||
+    pathname === "/features" ||
+    pathname === "/faq" ||
+    pathname === "/download";
+
+  if (isMarketingPage) {
+    return (
+      <ToastProvider>
+        <ThemeSync />
+        <div className="min-h-screen bg-surface">
+          <MarketingHeader />
+          <main id="main-content">{children}</main>
+          <MarketingFooter />
+        </div>
+      </ToastProvider>
+    );
+  }
 
   const isAuthPage =
     pathname === "/login" ||
@@ -102,7 +145,10 @@ export default function AppLayoutWrapper({
         <div className="pt-[80px] pb-[100px] md:pb-16 min-h-screen bg-surface">
           <NetworkStatusBar />
           <TopAppBar session={session} />
-          <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <main
+            id="main-content"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full"
+          >
             {children}
           </main>
           <BottomNavBar />
