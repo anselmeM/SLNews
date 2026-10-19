@@ -188,10 +188,6 @@ export default function PrivacyPolicyPage() {
               <strong>open.er-api.com</strong>: market data requested by the
               app.
             </li>
-            <li>
-              <strong>Meta</strong> and <strong>Google AdSense:</strong>{" "}
-              website-only attribution and advertising.
-            </li>
           </ul>
           <p className="mt-2">
             These providers may process data outside Sierra Leone, including in
@@ -213,8 +209,7 @@ export default function PrivacyPolicyPage() {
             <strong> Ad</strong>. The apps contain no third-party ad SDK and do
             not send your data to advertisers. If you tap a sponsored card, the
             advertiser&apos;s site opens in your browser and its own policy
-            applies. On the website, AdSense may set its own cookies; see
-            Google&apos;s policy.
+            applies.
           </p>
         </section>
 
