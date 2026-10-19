@@ -385,3 +385,32 @@ model MobileDevice {
 
   @@index([userId])
 }
+
+/// A directly sold sponsorship unit served to the mobile apps.
+///
+/// House ads are seeded in the app today; this table lets editorial insert a
+/// sold creative per placement without shipping a release. The mobile API
+/// returns only active units inside their date window, in the same shape as the
+/// seeded `AdUnit`, so the app renders both with one widget.
+model Sponsorship {
+  id             String    @id @default(cuid())
+  /// Ad surface: "feed", "sports_stream", "article_end".
+  placement      String
+  advertiser     String
+  headline       String
+  body           String
+  ctaLabel       String
+  ctaUrl         String
+  brandHex       String    @default("#0B6FD1")
+  brandAccentHex String    @default("#2E9BF5")
+  assetLabel     String?
+  disclosure     String?
+  imageUrl       String?
+  startsAt       DateTime  @default(now())
+  endsAt         DateTime?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([placement, active, startsAt, endsAt])
+}

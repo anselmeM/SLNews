@@ -145,3 +145,27 @@ BEGIN
             FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
     END IF;
 END $$;
+
+-- Direct sponsorships (additive). Served by /api/mobile/v1/sponsorships and
+-- rendered by the app's existing AdUnit widget.
+CREATE TABLE IF NOT EXISTS "Sponsorship" (
+  "id" TEXT PRIMARY KEY,
+  "placement" TEXT NOT NULL,
+  "advertiser" TEXT NOT NULL,
+  "headline" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "ctaLabel" TEXT NOT NULL,
+  "ctaUrl" TEXT NOT NULL,
+  "brandHex" TEXT NOT NULL DEFAULT '#0B6FD1',
+  "brandAccentHex" TEXT NOT NULL DEFAULT '#2E9BF5',
+  "assetLabel" TEXT,
+  "disclosure" TEXT,
+  "imageUrl" TEXT,
+  "startsAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "endsAt" TIMESTAMP(3),
+  "active" BOOLEAN NOT NULL DEFAULT TRUE,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "Sponsorship_placement_active_startsAt_endsAt_idx"
+  ON "Sponsorship" ("placement", "active", "startsAt", "endsAt");
