@@ -4,7 +4,9 @@ test.describe("Home & Navigation", () => {
   test("home page loads and shows articles", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
-    await expect(page.locator("main h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
+    await expect(page.locator("main h1")).toContainText(
+      /Good (Morning|Afternoon|Evening)/
+    );
     await expect(page.locator("nav").last()).toBeVisible(); // bottom nav
   });
 
@@ -40,13 +42,18 @@ test.describe("Article header layout", () => {
     // Read the link and navigate directly: clicking a feed card means depending
     // on overlays, sticky bars and whether the card opens in a new tab, none of
     // which this test is about.
-    const href = await page.locator('main a[href^="/article/"]').first().getAttribute("href");
+    const href = await page
+      .locator('main a[href^="/article/"]')
+      .first()
+      .getAttribute("href");
     expect(href).toBeTruthy();
     await page.goto(href!);
     await expect(page.getByTestId("article-byline")).toBeVisible();
   }
 
-  test("the byline sits above the action buttons on a phone", async ({ page }) => {
+  test("the byline sits above the action buttons on a phone", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openFirstArticle(page);
 
@@ -56,10 +63,14 @@ test.describe("Article header layout", () => {
     expect(bylineBox).not.toBeNull();
     expect(actionsBox).not.toBeNull();
     // Whole byline above the action row, not beside it.
-    expect(bylineBox!.y + bylineBox!.height).toBeLessThanOrEqual(actionsBox!.y + 1);
+    expect(bylineBox!.y + bylineBox!.height).toBeLessThanOrEqual(
+      actionsBox!.y + 1
+    );
   });
 
-  test("the byline and the action buttons share a row on desktop", async ({ page }) => {
+  test("the byline and the action buttons share a row on desktop", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await openFirstArticle(page);
 
@@ -82,7 +93,7 @@ test.describe("Search", () => {
   });
 
   test("search with query returns results", async ({ page }) => {
-    await page.goto('/search?q=Sierra%20Leone');
+    await page.goto("/search?q=Sierra%20Leone");
     await expect(page.locator("main h1")).toContainText("Search Results");
   });
 });

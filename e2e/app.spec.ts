@@ -4,28 +4,38 @@ import { clerkFrontendApiOrigin } from "../src/lib/clerk-csp";
 test.describe("SLNews E2E", () => {
   test("front page loads with live feed", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("main h1")).toContainText(/Good (Morning|Afternoon|Evening)/);
+    await expect(page.locator("main h1")).toContainText(
+      /Sierra Leone news, in your pocket/i
+    );
   });
 
   test("login page loads with visible form", async ({ page }) => {
     await page.goto("/sign-in");
     await expect(page.locator("main")).toBeVisible();
-    await expect(page.locator(".cl-rootBox, .cl-signIn-root, form, main")).toBeVisible();
+    await expect(
+      page.locator(".cl-rootBox, .cl-signIn-root, form, main")
+    ).toBeVisible();
   });
 
   test("about page loads", async ({ page }) => {
     await page.goto("/about");
-    await expect(page.getByRole("heading", { name: "The Voice of the Nation" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "The Voice of the Nation" })
+    ).toBeVisible();
   });
 
   test("market page loads with title", async ({ page }) => {
     await page.goto("/market");
-    await expect(page.getByRole("heading", { name: "Market Prices" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Market Prices" })
+    ).toBeVisible();
   });
 
   test("market can switch tabs", async ({ page }) => {
     await page.goto("/market");
-    await expect(page.getByRole("heading", { name: "Market Prices" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Market Prices" })
+    ).toBeVisible();
   });
 
   test.describe("Content-Security-Policy", () => {
@@ -44,11 +54,15 @@ test.describe("SLNews E2E", () => {
       if (expectedOrigin) expect(csp).toContain(expectedOrigin);
     });
 
-    test("the home page loads with no CSP violations in the console", async ({ page }) => {
+    test("the home page loads with no CSP violations in the console", async ({
+      page,
+    }) => {
       expect(await collectCspViolations(page, "/")).toEqual([]);
     });
 
-    test("sign-in loads with no CSP violations in the console", async ({ page }) => {
+    test("sign-in loads with no CSP violations in the console", async ({
+      page,
+    }) => {
       expect(await collectCspViolations(page, "/sign-in")).toEqual([]);
     });
   });
@@ -88,7 +102,10 @@ test.describe("SLNews E2E", () => {
  * Loads a route in a real browser and returns the CSP violations Chromium
  * reported. The policy is only as good as the pages it actually serves.
  */
-async function collectCspViolations(page: Page, path: string): Promise<string[]> {
+async function collectCspViolations(
+  page: Page,
+  path: string
+): Promise<string[]> {
   const violations: string[] = [];
   page.on("console", (message) => {
     if (/content security policy/i.test(message.text())) {
