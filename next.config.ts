@@ -25,7 +25,8 @@ const CLERK_FRAMES = "https://*.protect.clerk.com";
 // app source calls eval or `new Function`, Next's production runtime ships
 // precompiled output, and Clerk's own guidance treats `'unsafe-eval'` as
 // development-only in Next.js.
-const ALLOW_EVAL = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+const ALLOW_EVAL =
+  process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
 
 // There is deliberately no AdSense domain allowlist here. Google's supported
 // AdSense policy is nonce + 'strict-dynamic' and still lists 'unsafe-eval', and
@@ -46,7 +47,11 @@ const nextConfig: NextConfig = {
       { source: "/local", destination: "/local-news", permanent: true },
       { source: "/local/:path*", destination: "/local-news", permanent: true },
       { source: "/national", destination: "/local-news", permanent: true },
-      { source: "/national/:path*", destination: "/local-news", permanent: true },
+      {
+        source: "/national/:path*",
+        destination: "/local-news",
+        permanent: true,
+      },
     ];
   },
   images: {

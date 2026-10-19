@@ -135,29 +135,17 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc list-inside space-y-2 mt-2">
             <li>
-              <strong>Local storage:</strong> saved stories, theme and reading
-              preferences are kept in your browser to enable offline reading.
+              <strong>Local storage:</strong> your theme preference is kept in
+              your browser.
             </li>
             <li>
-              <strong>Web-push subscription:</strong> if you enable browser
-              alerts, we store the subscription endpoint so alerts can be
-              delivered.
+              <strong>No advertising or tracking:</strong> the website loads no
+              advertising SDK, no social pixel and no analytics script, and
+              creates no tracking cookie.
             </li>
             <li>
-              <strong>Anonymous visit counts:</strong> we keep a per-day count
-              of first visits versus return visits. It is a number per day: no
-              cookie, account, device or session identifier is created or kept,
-              so a visit cannot be traced back to you.
-            </li>
-            <li>
-              <strong>Meta (Facebook) Pixel:</strong> anonymous event
-              attribution for downloads and audience reach. Loaded only on the
-              website.
-            </li>
-            <li>
-              <strong>Google AdSense:</strong> contextual advertising on web
-              pages, which funds independent reporting. Loaded only on the
-              website.
+              <strong>Contact email:</strong> if you email us, your message and
+              address are used only to answer you.
             </li>
           </ul>
         </section>
@@ -171,8 +159,8 @@ export default function PrivacyPolicyPage() {
           </h2>
           <ul className="list-disc list-inside space-y-2">
             <li>
-              <strong>Clerk:</strong> authentication and session management
-              (apps and website).
+              <strong>Clerk:</strong> authentication and session management in
+              the apps.
             </li>
             <li>
               <strong>Sentry:</strong> crash and error diagnostics for the apps
