@@ -84,7 +84,9 @@ describe("formatDistanceToNow", () => {
     const fiveMinAgo = ago(5 * 60_000);
     expect(formatDistanceToNow(fiveMinAgo)).toBe("5m ago");
     expect(formatDistanceToNow(new Date(fiveMinAgo))).toBe("5m ago");
-    expect(formatDistanceToNow(new Date(fiveMinAgo).toISOString())).toBe("5m ago");
+    expect(formatDistanceToNow(new Date(fiveMinAgo).toISOString())).toBe(
+      "5m ago"
+    );
   });
 
   it("returns an empty string for an unparseable input", () => {

@@ -26,7 +26,8 @@ export async function auth(): Promise<AppSession | null> {
     if (!user) return null;
 
     const email =
-      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ||
+      user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+        ?.emailAddress ||
       user.emailAddresses[0]?.emailAddress ||
       null;
 
@@ -57,7 +58,9 @@ export async function auth(): Promise<AppSession | null> {
       });
 
       const safeRole =
-        dbUser.role === "ADMIN" && !isAdmin ? "EDITOR" : (dbUser.role as SessionUser["role"]);
+        dbUser.role === "ADMIN" && !isAdmin
+          ? "EDITOR"
+          : (dbUser.role as SessionUser["role"]);
 
       return {
         user: {

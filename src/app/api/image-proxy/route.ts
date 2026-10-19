@@ -13,7 +13,10 @@ const ALLOWED_FORMATS = new Set(["webp", "jpeg", "avif"]);
 const fallback = () =>
   new NextResponse(FALLBACK_SVG, {
     status: 200,
-    headers: { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400" },
+    headers: {
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=86400",
+    },
   });
 
 function isSafeUrl(rawUrl: string): boolean {
@@ -63,7 +66,8 @@ export async function GET(request: Request) {
 
   const width = Number(searchParams.get("w") || 800);
   const format = searchParams.get("f") || "webp";
-  if (!ALLOWED_WIDTHS.has(width) || !ALLOWED_FORMATS.has(format)) return fallback();
+  if (!ALLOWED_WIDTHS.has(width) || !ALLOWED_FORMATS.has(format))
+    return fallback();
 
   try {
     const controller = new AbortController();
@@ -89,13 +93,17 @@ export async function GET(request: Request) {
     try {
       output = await sharp(buffer)
         .resize({ width, withoutEnlargement: true })
-        .toFormat(format === "jpeg" ? "jpeg" : format === "avif" ? "avif" : "webp", { quality: format === "avif" ? 55 : 80 })
+        .toFormat(
+          format === "jpeg" ? "jpeg" : format === "avif" ? "avif" : "webp",
+          { quality: format === "avif" ? 55 : 80 }
+        )
         .toBuffer();
     } catch {
       return new NextResponse(new Uint8Array(buffer), {
         headers: {
           "Content-Type": contentType,
-          "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+          "Cache-Control":
+            "public, max-age=86400, stale-while-revalidate=604800",
         },
       });
     }

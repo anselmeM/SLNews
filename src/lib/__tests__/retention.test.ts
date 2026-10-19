@@ -9,7 +9,10 @@ import {
   type VisitDay,
 } from "../retention";
 
-const day = (value: string, reported = true): VisitDay => ({ day: value, reported });
+const day = (value: string, reported = true): VisitDay => ({
+  day: value,
+  reported,
+});
 
 describe("toDayKey", () => {
   it("formats a UTC day key", () => {
@@ -27,9 +30,9 @@ describe("parseVisitDays", () => {
   });
 
   it("accepts both the wrapped object and a bare array", () => {
-    expect(parseVisitDays(JSON.stringify({ days: [day("2026-10-04")] }))).toEqual([
-      day("2026-10-04"),
-    ]);
+    expect(
+      parseVisitDays(JSON.stringify({ days: [day("2026-10-04")] }))
+    ).toEqual([day("2026-10-04")]);
     expect(parseVisitDays(JSON.stringify([day("2026-10-04")]))).toEqual([
       day("2026-10-04"),
     ]);
@@ -45,13 +48,22 @@ describe("parseVisitDays", () => {
 
   it("keeps an explicitly unreported day pending", () => {
     expect(
-      parseVisitDays(JSON.stringify({ days: [{ day: "2026-10-04", reported: false }] }))
+      parseVisitDays(
+        JSON.stringify({ days: [{ day: "2026-10-04", reported: false }] })
+      )
     ).toEqual([day("2026-10-04", false)]);
   });
 
   it("drops entries that are not day keys", () => {
     const raw = JSON.stringify({
-      days: ["2026-10-04", 7, "yesterday", "2026-10-05T10:00:00Z", null, { day: "nope" }],
+      days: [
+        "2026-10-04",
+        7,
+        "yesterday",
+        "2026-10-05T10:00:00Z",
+        null,
+        { day: "nope" },
+      ],
     });
 
     expect(parseVisitDays(raw)).toEqual([day("2026-10-04")]);
@@ -101,7 +113,10 @@ describe("recordVisitDay", () => {
 
   it("does not re-report a day the server already confirmed", () => {
     const confirmed = recordVisitDay([], "2026-10-05");
-    const reported = { ...confirmed, days: markReported(confirmed.days, "2026-10-05") };
+    const reported = {
+      ...confirmed,
+      days: markReported(confirmed.days, "2026-10-05"),
+    };
 
     const second = recordVisitDay(reported.days, "2026-10-05");
 
@@ -122,7 +137,10 @@ describe("recordVisitDay", () => {
   it("abandons an older day that can no longer be attributed", () => {
     // The endpoint stamps its own UTC day, so yesterday's ping sent today would
     // be counted today: it is dropped rather than left pending forever.
-    const record = recordVisitDay([day("2026-10-03", false), day("2026-10-04", false)], "2026-10-05");
+    const record = recordVisitDay(
+      [day("2026-10-03", false), day("2026-10-04", false)],
+      "2026-10-05"
+    );
 
     expect(record.days).toEqual([
       day("2026-10-03", true),
@@ -139,7 +157,9 @@ describe("recordVisitDay", () => {
   });
 
   it("caps the log at the remembered limit", () => {
-    const days = Array.from({ length: VISIT_DAYS_LIMIT }, (_, i) => day(`2026-01-01+${i}`));
+    const days = Array.from({ length: VISIT_DAYS_LIMIT }, (_, i) =>
+      day(`2026-01-01+${i}`)
+    );
 
     const record = recordVisitDay(days, "2026-10-05");
 

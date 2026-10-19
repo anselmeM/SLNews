@@ -15,7 +15,9 @@ vi.mock("@/lib/cache", () => ({
 const findMany = vi.mocked(db.article.findMany);
 
 function whereOf(call = 0): Record<string, unknown> {
-  const args = findMany.mock.calls[call]?.[0] as { where: Record<string, unknown> };
+  const args = findMany.mock.calls[call]?.[0] as {
+    where: Record<string, unknown>;
+  };
   return args.where;
 }
 

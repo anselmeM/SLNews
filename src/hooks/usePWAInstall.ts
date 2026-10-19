@@ -22,7 +22,9 @@ interface PWAState {
   setIsAndroid: (v: boolean) => void;
   openInstallModal: () => void;
   closeInstallModal: () => void;
-  promptInstall: () => Promise<{ outcome: "accepted" | "dismissed" | "modal_opened" }>;
+  promptInstall: () => Promise<{
+    outcome: "accepted" | "dismissed" | "modal_opened";
+  }>;
 }
 
 export const usePWAStore = create<PWAState>((set, get) => ({

@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clerkFrontendApiOrigin } from "@/lib/clerk-csp";
 
 // The real CI/dev publishable key encodes this host.
-const DEV_KEY = "pk_test_b3B0aW1hbC1zaGVwaGVyZC01OTE5LmNsZXJrLmFjY291bnRzLmRldiQ";
+const DEV_KEY =
+  "pk_test_b3B0aW1hbC1zaGVwaGVyZC01OTE5LmNsZXJrLmFjY291bnRzLmRldiQ";
 
 const liveKeyFor = (host: string) =>
   `pk_live_${Buffer.from(`${host}$`).toString("base64")}`;
@@ -62,13 +63,20 @@ describe("clerkFrontendApiOrigin", () => {
   it("rejects a decoded value that is not a hostname", () => {
     // Guards the policy: a malformed key must not be able to inject an entry
     // containing wildcards, spaces or paths.
-    for (const injected of ["example.com; script-src *", "*", "https://evil.com", "a b.com"]) {
+    for (const injected of [
+      "example.com; script-src *",
+      "*",
+      "https://evil.com",
+      "a b.com",
+    ]) {
       expect(clerkFrontendApiOrigin(liveKeyFor(injected))).toBeNull();
     }
   });
 
   it("tolerates a decoded host without the trailing terminator", () => {
     const withoutTerminator = `pk_live_${Buffer.from("clerk.example.com").toString("base64")}`;
-    expect(clerkFrontendApiOrigin(withoutTerminator)).toBe("https://clerk.example.com");
+    expect(clerkFrontendApiOrigin(withoutTerminator)).toBe(
+      "https://clerk.example.com"
+    );
   });
 });

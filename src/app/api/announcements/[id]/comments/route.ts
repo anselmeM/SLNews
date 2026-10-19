@@ -35,18 +35,30 @@ export async function POST(
   const content = (body.content || "").trim();
 
   if (!content) {
-    return NextResponse.json({ error: "Comment cannot be empty" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Comment cannot be empty" },
+      { status: 400 }
+    );
   }
   if (content.length > 2000) {
-    return NextResponse.json({ error: "Comment is too long (max 2000 characters)" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Comment is too long (max 2000 characters)" },
+      { status: 400 }
+    );
   }
 
-  const rate = await checkDbRateLimit(`announcement-comment:${session.user.id}`, {
-    maxRequests: 20,
-    windowMs: 60 * 60 * 1000,
-  });
+  const rate = await checkDbRateLimit(
+    `announcement-comment:${session.user.id}`,
+    {
+      maxRequests: 20,
+      windowMs: 60 * 60 * 1000,
+    }
+  );
   if (!rate.allowed) {
-    return NextResponse.json({ error: "Too many comments. Please try again later." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many comments. Please try again later." },
+      { status: 429 }
+    );
   }
 
   const notice = await db.announcement.findUnique({
@@ -54,7 +66,10 @@ export async function POST(
     select: { id: true, published: true },
   });
   if (!notice || !notice.published) {
-    return NextResponse.json({ error: "Announcement not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Announcement not found" },
+      { status: 404 }
+    );
   }
 
   const comment = await db.announcementComment.create({

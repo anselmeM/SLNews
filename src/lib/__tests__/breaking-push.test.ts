@@ -11,7 +11,9 @@ describe("Breaking Push & Morning Briefing formatting", () => {
     });
 
     expect(payload.title).toContain("BREAKING");
-    expect(payload.body).toBe("President Declares New Education Initiative in Kenema");
+    expect(payload.body).toBe(
+      "President Declares New Education Initiative in Kenema"
+    );
     expect(payload.url).toBe("/article/art-123");
     expect(payload.tag).toBe("slnews-breaking-art-123");
     expect(payload.actions).toHaveLength(1);
@@ -33,7 +35,9 @@ describe("Breaking Push & Morning Briefing formatting", () => {
     );
 
     expect(payload.title).toContain("Economy");
-    expect(payload.body).toContain("Bo District Mining Revenues Reach New High");
+    expect(payload.body).toContain(
+      "Bo District Mining Revenues Reach New High"
+    );
     expect(payload.body).toContain("+3 stories");
     expect(payload.body).toContain("4 min read");
     expect(payload.url).toBe("/digest");

@@ -7,10 +7,13 @@ import { sendPasswordResetEmail } from "@/lib/mailer";
 import { checkDbRateLimit } from "@/lib/rate-limiter";
 import { siteUrl } from "@/lib/site-url";
 
-export async function requestReset(email: string): Promise<
-  { success: boolean; error?: string; token?: string }
-> {
-  const rateLimit = await checkDbRateLimit(`reset-request:${email.toLowerCase()}`, { maxRequests: 3, windowMs: 15 * 60_000 });
+export async function requestReset(
+  email: string
+): Promise<{ success: boolean; error?: string; token?: string }> {
+  const rateLimit = await checkDbRateLimit(
+    `reset-request:${email.toLowerCase()}`,
+    { maxRequests: 3, windowMs: 15 * 60_000 }
+  );
   if (!rateLimit.allowed) {
     return { success: false, error: "Too many requests. Try again later." };
   }
@@ -50,8 +53,14 @@ export async function resetPassword(token: string, password: string) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   await db.$transaction([
-    db.user.update({ where: { email: record.email }, data: { password: hashedPassword } }),
-    db.passwordResetToken.update({ where: { id: record.id }, data: { used: true } }),
+    db.user.update({
+      where: { email: record.email },
+      data: { password: hashedPassword },
+    }),
+    db.passwordResetToken.update({
+      where: { id: record.id },
+      data: { used: true },
+    }),
   ]);
 
   return { success: true };

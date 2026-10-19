@@ -15,8 +15,10 @@ vi.mock("@/lib/logger", () => ({
 }));
 
 const LEGACY = "https://slnewsapiscapper.onrender.com/api/news";
-const VIDEOS_ENDPOINT = "https://slnewsapiscapper.onrender.com/api/videos?limit=20&page=1";
-const SYNC_VIDEOS_ENDPOINT = "https://slnewsapiscapper.onrender.com/api/videos/sync";
+const VIDEOS_ENDPOINT =
+  "https://slnewsapiscapper.onrender.com/api/videos?limit=20&page=1";
+const SYNC_VIDEOS_ENDPOINT =
+  "https://slnewsapiscapper.onrender.com/api/videos/sync";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -37,7 +39,9 @@ describe("fetchScraperNews", () => {
   });
 
   it("uses the legacy /api/news endpoint (full text for the app)", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([{ title: "A", paragraphs: ["p1"] }]));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse([{ title: "A", paragraphs: ["p1"] }]));
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await fetchScraperNews();
@@ -50,13 +54,17 @@ describe("fetchScraperNews", () => {
   });
 
   it("accepts a raw array from the legacy endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([{ title: "Raw" }]));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse([{ title: "Raw" }]));
     vi.stubGlobal("fetch", fetchMock);
     expect(await fetchScraperNews()).toEqual([{ title: "Raw" }]);
   });
 
   it("throws when the legacy endpoint returns 401", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ error: "unauthorized" }, 401));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ error: "unauthorized" }, 401));
     vi.stubGlobal("fetch", fetchMock);
     await expect(fetchScraperNews()).rejects.toThrow("Scraper responded 401");
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -65,18 +73,24 @@ describe("fetchScraperNews", () => {
   it("throws ScraperUnreachableError on network failure", async () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
     vi.stubGlobal("fetch", fetchMock);
-    await expect(fetchScraperNews()).rejects.toBeInstanceOf(ScraperUnreachableError);
+    await expect(fetchScraperNews()).rejects.toBeInstanceOf(
+      ScraperUnreachableError
+    );
   });
 
   it("throws when the API key is missing", async () => {
     delete process.env.SCRAPER_API_KEY;
-    await expect(fetchScraperNews()).rejects.toThrow("SCRAPER_API_KEY is not set");
+    await expect(fetchScraperNews()).rejects.toThrow(
+      "SCRAPER_API_KEY is not set"
+    );
   });
 
   it("throws on an unexpected payload shape", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ nope: true }));
     vi.stubGlobal("fetch", fetchMock);
-    await expect(fetchScraperNews()).rejects.toThrow("Unexpected scraper payload");
+    await expect(fetchScraperNews()).rejects.toThrow(
+      "Unexpected scraper payload"
+    );
   });
 });
 
@@ -133,7 +147,9 @@ describe("fetchScraperVideos", () => {
         category: ["National"],
       },
     ];
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ data: mockVideos }));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: mockVideos }));
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await fetchScraperVideos(10, 2);
@@ -144,15 +160,21 @@ describe("fetchScraperVideos", () => {
   });
 
   it("throws on 401 unauthorized", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ error: "unauthorized" }, 401));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ error: "unauthorized" }, 401));
     vi.stubGlobal("fetch", fetchMock);
     await expect(fetchScraperVideos()).rejects.toThrow("Scraper responded 401");
   });
 
   it("throws ScraperUnreachableError on fetch rejection", async () => {
-    const fetchMock = vi.fn().mockRejectedValue(new TypeError("network failed"));
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValue(new TypeError("network failed"));
     vi.stubGlobal("fetch", fetchMock);
-    await expect(fetchScraperVideos()).rejects.toBeInstanceOf(ScraperUnreachableError);
+    await expect(fetchScraperVideos()).rejects.toBeInstanceOf(
+      ScraperUnreachableError
+    );
   });
 
   /**
@@ -166,7 +188,11 @@ describe("fetchScraperVideos", () => {
         (_url: string, init: RequestInit) =>
           new Promise((_resolve, reject) => {
             init.signal?.addEventListener("abort", () =>
-              reject(Object.assign(new Error("The operation was aborted"), { name: "TimeoutError" }))
+              reject(
+                Object.assign(new Error("The operation was aborted"), {
+                  name: "TimeoutError",
+                })
+              )
             );
           })
       );
@@ -221,7 +247,9 @@ describe("fetchScraperVideos", () => {
       ];
       const fetchMock = vi.fn(
         () =>
-          new Promise((resolve) => setTimeout(() => resolve(jsonResponse(videos)), 15))
+          new Promise((resolve) =>
+            setTimeout(() => resolve(jsonResponse(videos)), 15)
+          )
       );
       vi.stubGlobal("fetch", fetchMock);
 
@@ -249,7 +277,12 @@ describe("fetchScraperVideos", () => {
 
       expect(logger.info).toHaveBeenCalledWith(
         "scraper videos fetched",
-        expect.objectContaining({ count: 0, limit: 10, page: 2, ms: expect.any(Number) })
+        expect.objectContaining({
+          count: 0,
+          limit: 10,
+          page: 2,
+          ms: expect.any(Number),
+        })
       );
     });
   });
@@ -284,8 +317,12 @@ describe("triggerScraperVideoSync", () => {
   });
 
   it("throws ScraperUnreachableError on network failure", async () => {
-    const fetchMock = vi.fn().mockRejectedValue(new TypeError("network failed"));
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValue(new TypeError("network failed"));
     vi.stubGlobal("fetch", fetchMock);
-    await expect(triggerScraperVideoSync()).rejects.toBeInstanceOf(ScraperUnreachableError);
+    await expect(triggerScraperVideoSync()).rejects.toBeInstanceOf(
+      ScraperUnreachableError
+    );
   });
 });

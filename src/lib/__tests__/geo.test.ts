@@ -36,7 +36,9 @@ describe("normalizeProvince", () => {
   });
 
   it("ignores case and surrounding whitespace", () => {
-    expect(normalizeProvince("  southern province  ")).toBe("Southern Province");
+    expect(normalizeProvince("  southern province  ")).toBe(
+      "Southern Province"
+    );
     expect(normalizeProvince("WESTERN AREA")).toBe("Western Area");
   });
 
@@ -73,11 +75,15 @@ describe("provinceMatchTerms", () => {
   });
 
   it("resolves a legacy spelling to the same terms", () => {
-    expect(provinceMatchTerms("Southern")).toEqual(provinceMatchTerms("Southern Province"));
+    expect(provinceMatchTerms("Southern")).toEqual(
+      provinceMatchTerms("Southern Province")
+    );
   });
 
   it("accepts a district as the filter value", () => {
-    expect(provinceMatchTerms("Bo")).toEqual(provinceMatchTerms("Southern Province"));
+    expect(provinceMatchTerms("Bo")).toEqual(
+      provinceMatchTerms("Southern Province")
+    );
   });
 
   it("accepts a district alias as the filter value", () => {
@@ -140,7 +146,9 @@ describe("normalizeDistrict", () => {
   it("keeps canonical district names and resolves the old spellings", () => {
     expect(normalizeDistrict("Bo")).toBe("Bo");
     expect(normalizeDistrict("Makeni (Bombali)")).toBe("Bombali");
-    expect(normalizeDistrict("Freetown (Western Urban)")).toBe("Western Area Urban");
+    expect(normalizeDistrict("Freetown (Western Urban)")).toBe(
+      "Western Area Urban"
+    );
     expect(normalizeDistrict("Western Rural")).toBe("Western Area Rural");
   });
 
@@ -168,7 +176,10 @@ describe("splitLocation", () => {
   });
 
   it("never puts an unrecognised value in the province column", () => {
-    expect(splitLocation("National")).toEqual({ province: null, district: "National" });
+    expect(splitLocation("National")).toEqual({
+      province: null,
+      district: "National",
+    });
     expect(splitLocation("  Some venue  ")).toEqual({
       province: null,
       district: "Some venue",

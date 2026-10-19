@@ -11,7 +11,12 @@ const isProduction = process.env.NODE_ENV === "production";
 
 /* eslint-disable no-console -- logger utility */
 function log(level: LogLevel, message: string, meta?: Record<string, unknown>) {
-  const entry: LogEntry = { timestamp: new Date().toISOString(), level, message, ...meta };
+  const entry: LogEntry = {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    ...meta,
+  };
   if (isProduction) {
     console[level === "error" ? "error" : "log"](JSON.stringify(entry));
   } else {
@@ -26,8 +31,12 @@ function log(level: LogLevel, message: string, meta?: Record<string, unknown>) {
 /* eslint-enable no-console */
 
 export const logger = {
-  debug: (message: string, meta?: Record<string, unknown>) => log("debug", message, meta),
-  info: (message: string, meta?: Record<string, unknown>) => log("info", message, meta),
-  warn: (message: string, meta?: Record<string, unknown>) => log("warn", message, meta),
-  error: (message: string, meta?: Record<string, unknown>) => log("error", message, meta),
+  debug: (message: string, meta?: Record<string, unknown>) =>
+    log("debug", message, meta),
+  info: (message: string, meta?: Record<string, unknown>) =>
+    log("info", message, meta),
+  warn: (message: string, meta?: Record<string, unknown>) =>
+    log("warn", message, meta),
+  error: (message: string, meta?: Record<string, unknown>) =>
+    log("error", message, meta),
 };

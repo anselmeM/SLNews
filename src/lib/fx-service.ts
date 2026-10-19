@@ -78,14 +78,17 @@ export function convertCurrency(
   useCommercial = true
 ): { result: number; rate: number } {
   if (amount <= 0 || isNaN(amount)) return { result: 0, rate: 1 };
-  if (from.toUpperCase() === to.toUpperCase()) return { result: amount, rate: 1 };
+  if (from.toUpperCase() === to.toUpperCase())
+    return { result: amount, rate: 1 };
 
   // Convert to NLe (SLE) base
   let amountInNle = amount;
   if (from.toUpperCase() !== "SLE" && from.toUpperCase() !== "NLE") {
     const fromRate = getFxRate(from);
     if (!fromRate) return { result: 0, rate: 1 };
-    const rateVal = useCommercial ? fromRate.commercialBuy : fromRate.officialBuy;
+    const rateVal = useCommercial
+      ? fromRate.commercialBuy
+      : fromRate.officialBuy;
     amountInNle = amount * rateVal;
   }
 
@@ -97,7 +100,9 @@ export function convertCurrency(
 
   const toRate = getFxRate(to);
   if (!toRate) return { result: 0, rate: 1 };
-  const targetRateVal = useCommercial ? toRate.commercialSell : toRate.officialSell;
+  const targetRateVal = useCommercial
+    ? toRate.commercialSell
+    : toRate.officialSell;
   const finalResult = amountInNle / targetRateVal;
   const effectiveRate = finalResult / amount;
 

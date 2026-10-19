@@ -5,7 +5,11 @@ import { invalidate } from "@/lib/cache";
 import { normalizeCategory } from "@/lib/category-constants";
 import { db } from "@/lib/db";
 import { reportError } from "@/lib/error-reporting";
-import { fetchScraperNews, ScraperUnreachableError, type ScraperArticle } from "@/lib/scraper-client";
+import {
+  fetchScraperNews,
+  ScraperUnreachableError,
+  type ScraperArticle,
+} from "@/lib/scraper-client";
 
 async function getBotUser() {
   let botUser = await db.user.findFirst({
@@ -155,8 +159,7 @@ export async function syncFromScraper() {
 
       if (existing) {
         const missingIds = resolvedCategoryIds.filter(
-          (id) =>
-            !existing.categories.some((c: { id: string }) => c.id === id)
+          (id) => !existing.categories.some((c: { id: string }) => c.id === id)
         );
         const needsImage =
           (!existing.imageUrl || existing.imageUrl === "/globe.svg") &&

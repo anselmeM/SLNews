@@ -29,7 +29,13 @@ export async function broadcastBreakingArticle(
   try {
     const article = await db.article.findUnique({
       where: { id: articleId },
-      select: { id: true, title: true, summary: true, published: true, breaking: true },
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        published: true,
+        breaking: true,
+      },
     });
 
     if (!article) {
@@ -52,7 +58,10 @@ export async function broadcastBreakingArticle(
   } catch (error) {
     return {
       sent: 0,
-      error: error instanceof Error ? error.message : "Failed to broadcast breaking news",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to broadcast breaking news",
     };
   }
 }

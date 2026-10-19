@@ -18,7 +18,7 @@ export interface SponsorCampaign {
   badge?: string;
   category?: string; // Optional: match specific article category
   startDate?: string; // ISO date string
-  endDate?: string;   // ISO date string
+  endDate?: string; // ISO date string
   active: boolean;
 }
 
@@ -31,7 +31,8 @@ export const DIRECT_SPONSOR_CAMPAIGNS: SponsorCampaign[] = [
     id: "sl-remit-sendwave",
     slotId: "market_fx_sponsor",
     title: "Send Money to Sierra Leone with Zero Fee",
-    description: "Instant delivery to Orange Money, Afrimoney & local bank accounts at the best daily rates.",
+    description:
+      "Instant delivery to Orange Money, Afrimoney & local bank accounts at the best daily rates.",
     href: "https://www.sendwave.com",
     ctaText: "Send Money Now",
     badge: "Official FX Partner",
@@ -41,7 +42,8 @@ export const DIRECT_SPONSOR_CAMPAIGNS: SponsorCampaign[] = [
     id: "rokel-digital-banking",
     slotId: "article_mid",
     title: "Rokel SimKorpor — Bank on the Go",
-    description: "Open an account, pay bills, and transfer funds nationwide from your mobile phone with Rokel Commercial Bank.",
+    description:
+      "Open an account, pay bills, and transfer funds nationwide from your mobile phone with Rokel Commercial Bank.",
     href: "https://rokelbank.sl",
     ctaText: "Get Started",
     badge: "Sponsored",
@@ -52,7 +54,8 @@ export const DIRECT_SPONSOR_CAMPAIGNS: SponsorCampaign[] = [
     id: "orange-data-bundles",
     slotId: "article_bottom",
     title: "Stay Connected Across Sierra Leone",
-    description: "Get lightning-fast 4G+ data bundles and seamless streaming with Orange Sierra Leone.",
+    description:
+      "Get lightning-fast 4G+ data bundles and seamless streaming with Orange Sierra Leone.",
     href: "https://www.orange.sl",
     ctaText: "View Bundles",
     badge: "Partner",
@@ -62,7 +65,8 @@ export const DIRECT_SPONSOR_CAMPAIGNS: SponsorCampaign[] = [
     id: "firstmile-dev-mvp",
     slotId: "feed_native",
     title: "Launch Your Digital Product in Sierra Leone & Beyond",
-    description: "Rapid mobile apps, fintech integrations, and custom web platforms built for scale by FirstMileDev.",
+    description:
+      "Rapid mobile apps, fintech integrations, and custom web platforms built for scale by FirstMileDev.",
     href: "https://firstmiledev.ca",
     ctaText: "Learn More",
     badge: "Sponsored",
@@ -86,7 +90,11 @@ export function getActiveSponsorCampaign(
     if (c.startDate && new Date(c.startDate) > now) return false;
     if (c.endDate && new Date(c.endDate) < now) return false;
     // If campaign specifies category, prioritize matching it
-    if (c.category && category && c.category.toLowerCase() !== category.toLowerCase()) {
+    if (
+      c.category &&
+      category &&
+      c.category.toLowerCase() !== category.toLowerCase()
+    ) {
       return false;
     }
     return true;

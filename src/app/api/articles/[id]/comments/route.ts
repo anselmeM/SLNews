@@ -37,7 +37,10 @@ export async function POST(
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Too many comments submitted. Please wait a moment before trying again." },
+      {
+        error:
+          "Too many comments submitted. Please wait a moment before trying again.",
+      },
       { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter) } }
     );
   }
@@ -47,13 +50,22 @@ export async function POST(
   const content = (body.content || "").trim();
 
   if (!content) {
-    return NextResponse.json({ error: "Comment cannot be empty" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Comment cannot be empty" },
+      { status: 400 }
+    );
   }
   if (content.length > 2000) {
-    return NextResponse.json({ error: "Comment is too long (max 2000 characters)" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Comment is too long (max 2000 characters)" },
+      { status: 400 }
+    );
   }
 
-  const article = await db.article.findUnique({ where: { id }, select: { id: true } });
+  const article = await db.article.findUnique({
+    where: { id },
+    select: { id: true },
+  });
   if (!article) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }

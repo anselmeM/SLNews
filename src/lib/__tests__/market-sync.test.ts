@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { syncMarketPrices, SIERRA_LEONE_MARKET_COMMODITIES } from "../market-sync-service";
+import {
+  syncMarketPrices,
+  SIERRA_LEONE_MARKET_COMMODITIES,
+} from "../market-sync-service";
 import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
 
@@ -42,12 +45,16 @@ describe("Market Price Sync Service", () => {
 
     expect(result.success).toBe(true);
     expect(result.count).toBe(SIERRA_LEONE_MARKET_COMMODITIES.length);
-    expect(db.marketPrice.upsert).toHaveBeenCalledTimes(SIERRA_LEONE_MARKET_COMMODITIES.length);
+    expect(db.marketPrice.upsert).toHaveBeenCalledTimes(
+      SIERRA_LEONE_MARKET_COMMODITIES.length
+    );
     expect(invalidate).toHaveBeenCalledWith("market:");
   });
 
   it("handles database upsert failures gracefully", async () => {
-    vi.mocked(db.marketPrice.upsert).mockRejectedValueOnce(new Error("Database connection lost"));
+    vi.mocked(db.marketPrice.upsert).mockRejectedValueOnce(
+      new Error("Database connection lost")
+    );
 
     const result = await syncMarketPrices();
 

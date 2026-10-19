@@ -28,7 +28,11 @@ function setEntry<T>(key: string, data: T, ttlSeconds: number) {
  * Runs the fetcher at most once per key while a request is in flight, caching
  * the result. Concurrent callers for the same key await the same promise.
  */
-function fetchOnce<T>(key: string, fetcher: () => Promise<T>, ttlSeconds: number): Promise<T> {
+function fetchOnce<T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttlSeconds: number
+): Promise<T> {
   const existing = inflight.get(key) as Promise<T> | undefined;
   if (existing) return existing;
 
@@ -93,7 +97,10 @@ export function staleWhileRevalidate<T>(
 }
 
 export function invalidate(pattern?: string) {
-  if (!pattern) { store.clear(); return; }
+  if (!pattern) {
+    store.clear();
+    return;
+  }
   for (const key of store.keys()) {
     if (key.includes(pattern)) store.delete(key);
   }

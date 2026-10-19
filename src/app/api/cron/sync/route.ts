@@ -29,23 +29,30 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [sl, world, market, priceAlerts, briefing, videos] = await Promise.allSettled([
-    syncFromScraper(),
-    syncWorldNews(),
-    syncMarketPrices(),
-    processPriceAlerts(),
-    sendMorningBriefing(),
-    // Videos had no scheduled ingestion at all: the scraper's own sync was only
-    // reachable from the dashboard, so the feed could sit empty indefinitely.
-    syncScraperVideos({ trigger: true }),
-  ]);
+  const [sl, world, market, priceAlerts, briefing, videos] =
+    await Promise.allSettled([
+      syncFromScraper(),
+      syncWorldNews(),
+      syncMarketPrices(),
+      processPriceAlerts(),
+      sendMorningBriefing(),
+      // Videos had no scheduled ingestion at all: the scraper's own sync was only
+      // reachable from the dashboard, so the feed could sit empty indefinitely.
+      syncScraperVideos({ trigger: true }),
+    ]);
 
   const slResult =
-    sl.status === "fulfilled" ? sl.value : { success: false, error: "rejected", count: 0 };
+    sl.status === "fulfilled"
+      ? sl.value
+      : { success: false, error: "rejected", count: 0 };
   const worldResult =
-    world.status === "fulfilled" ? world.value : { success: false, error: "rejected", count: 0 };
+    world.status === "fulfilled"
+      ? world.value
+      : { success: false, error: "rejected", count: 0 };
   const marketResult =
-    market.status === "fulfilled" ? market.value : { success: false, error: "rejected", count: 0 };
+    market.status === "fulfilled"
+      ? market.value
+      : { success: false, error: "rejected", count: 0 };
   const priceAlertResult =
     priceAlerts.status === "fulfilled"
       ? priceAlerts.value
@@ -82,9 +89,12 @@ export async function GET(request: Request) {
     marketPrices: marketResult,
     priceAlerts: priceAlertResult,
     briefing: briefingResult,
-    videos: { count: videosResult.count, triggerError: videosResult.triggerError, readError: videosResult.readError },
+    videos: {
+      count: videosResult.count,
+      triggerError: videosResult.triggerError,
+      readError: videosResult.readError,
+    },
     count: total,
     push: pushResult,
   });
 }
-

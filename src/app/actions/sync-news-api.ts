@@ -35,13 +35,41 @@ export async function syncWorldNews() {
     // Africa uses the /search endpoint with keywords, and Environment was
     // removed (it returned junk for an invalid category value).
     const worldEndpoints: SyncEndpoint[] = [
-      { name: "International", endpoint: "latest-news", params: { category: "world", language: "en", page_size: "3" } },
-      { name: "Africa", endpoint: "search", params: { keywords: "Africa", language: "en", page_size: "3" } },
-      { name: "Business", endpoint: "latest-news", params: { category: "business", language: "en", page_size: "3" } },
-      { name: "Sports", endpoint: "latest-news", params: { category: "sports", language: "en", page_size: "3" } },
-      { name: "Tech", endpoint: "latest-news", params: { category: "technology", language: "en", page_size: "3" } },
-      { name: "Health", endpoint: "latest-news", params: { category: "health", language: "en", page_size: "3" } },
-      { name: "Culture", endpoint: "latest-news", params: { category: "entertainment", language: "en", page_size: "3" } },
+      {
+        name: "International",
+        endpoint: "latest-news",
+        params: { category: "world", language: "en", page_size: "3" },
+      },
+      {
+        name: "Africa",
+        endpoint: "search",
+        params: { keywords: "Africa", language: "en", page_size: "3" },
+      },
+      {
+        name: "Business",
+        endpoint: "latest-news",
+        params: { category: "business", language: "en", page_size: "3" },
+      },
+      {
+        name: "Sports",
+        endpoint: "latest-news",
+        params: { category: "sports", language: "en", page_size: "3" },
+      },
+      {
+        name: "Tech",
+        endpoint: "latest-news",
+        params: { category: "technology", language: "en", page_size: "3" },
+      },
+      {
+        name: "Health",
+        endpoint: "latest-news",
+        params: { category: "health", language: "en", page_size: "3" },
+      },
+      {
+        name: "Culture",
+        endpoint: "latest-news",
+        params: { category: "entertainment", language: "en", page_size: "3" },
+      },
     ];
 
     let totalCount = 0;
@@ -113,10 +141,13 @@ export async function syncWorldNews() {
               status: "PUBLISHED",
               province: null,
               district: null,
-              publishedAt: new Date(a.published?.replace(" +0000", "Z").replace(" ", "T") || new Date()),
+              publishedAt: new Date(
+                a.published?.replace(" +0000", "Z").replace(" ", "T") ||
+                  new Date()
+              ),
               // Global articles are unattributed to the SL bot user pool is not
               // required; fall back to the news-bot author.
-              authorId: (await getBotAuthorId()),
+              authorId: await getBotAuthorId(),
               categories: { connect: { id: category.id } },
             },
           });
@@ -130,12 +161,17 @@ export async function syncWorldNews() {
     return { success: true, count: totalCount };
   } catch (error: unknown) {
     reportError(error, { where: "syncWorldNews" });
-    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
 async function getBotAuthorId(): Promise<string> {
-  const botUser = await db.user.findFirst({ where: { email: "news-bot@slnews.local" } });
+  const botUser = await db.user.findFirst({
+    where: { email: "news-bot@slnews.local" },
+  });
   if (!botUser) {
     const { db: _db } = await import("@/lib/db");
     const created = await _db.user.create({
@@ -143,7 +179,9 @@ async function getBotAuthorId(): Promise<string> {
         email: "news-bot@slnews.local",
         name: "News Bot",
         role: "WRITER",
-        password: await import("bcryptjs").then((b) => b.default.hash(Math.random().toString(36), 10)),
+        password: await import("bcryptjs").then((b) =>
+          b.default.hash(Math.random().toString(36), 10)
+        ),
       },
     });
     return created.id;

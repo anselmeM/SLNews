@@ -91,7 +91,9 @@ export async function GET(request: Request) {
     ? Math.min(Math.max(requested, 1), MAX_WINDOW_DAYS)
     : DEFAULT_WINDOW_DAYS;
 
-  const since = new Date(`${toDayKey(new Date(Date.now() - (windowDays - 1) * DAY_MS))}T00:00:00.000Z`);
+  const since = new Date(
+    `${toDayKey(new Date(Date.now() - (windowDays - 1) * DAY_MS))}T00:00:00.000Z`
+  );
 
   try {
     const rows = await db.retentionDay.findMany({

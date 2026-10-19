@@ -24,7 +24,8 @@ export type CampaignAttribution = {
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem">;
 
-type CampaignField = "source" | "medium" | "campaign" | "content" | "term" | "fbclid";
+type CampaignField =
+  "source" | "medium" | "campaign" | "content" | "term" | "fbclid";
 
 const PARAM_MAP: Record<string, CampaignField> = {
   utm_source: "source",
@@ -51,7 +52,9 @@ function defaultStorage(): StorageLike | null {
 }
 
 /** Extracts campaign fields from a query string; returns null when none are present. */
-export function parseCampaignParams(params: URLSearchParams): Partial<CampaignAttribution> | null {
+export function parseCampaignParams(
+  params: URLSearchParams
+): Partial<CampaignAttribution> | null {
   const result: Partial<CampaignAttribution> = {};
   let found = false;
   for (const [param, field] of Object.entries(PARAM_MAP)) {
@@ -102,12 +105,15 @@ export function captureFirstTouchAttribution(options: {
   now?: Date;
   storage?: StorageLike | null;
 }): CampaignAttribution | null {
-  const storage = options.storage === undefined ? defaultStorage() : options.storage;
+  const storage =
+    options.storage === undefined ? defaultStorage() : options.storage;
   const existing = getStoredAttribution(storage);
   if (existing) return existing;
 
   const params =
-    typeof options.search === "string" ? new URLSearchParams(options.search) : options.search;
+    typeof options.search === "string"
+      ? new URLSearchParams(options.search)
+      : options.search;
   const parsed = parseCampaignParams(params);
   if (!parsed) return null;
 
@@ -122,7 +128,9 @@ export function captureFirstTouchAttribution(options: {
 }
 
 /** Query string that re-applies stored campaign fields to internal share links. */
-export function attributionQueryString(attribution: CampaignAttribution | null): string {
+export function attributionQueryString(
+  attribution: CampaignAttribution | null
+): string {
   if (!attribution) return "";
   const params = new URLSearchParams();
   for (const [param, field] of Object.entries(PARAM_MAP)) {

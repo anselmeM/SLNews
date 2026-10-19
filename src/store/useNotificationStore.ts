@@ -7,7 +7,8 @@ import {
 } from "@/lib/notification-inbox";
 import { browserStorage } from "@/lib/persist-storage";
 
-export type NotificationType = "breaking" | "briefing" | "market" | "announcement" | "system";
+export type NotificationType =
+  "breaking" | "briefing" | "market" | "announcement" | "system";
 
 export type AppNotification = {
   id: string;
@@ -27,7 +28,12 @@ interface NotificationState {
    * user deleted is not resurrected by the next sync from IndexedDB.
    */
   ingestedIds: string[];
-  addNotification: (notif: Omit<AppNotification, "id" | "createdAt" | "read"> & { id?: string; createdAt?: number }) => void;
+  addNotification: (
+    notif: Omit<AppNotification, "id" | "createdAt" | "read"> & {
+      id?: string;
+      createdAt?: number;
+    }
+  ) => void;
   /** Merges pushes the service worker recorded. Safe to call repeatedly. */
   ingestNotifications: (records: InboxRecord[]) => void;
   markAsRead: (id: string) => void;
@@ -50,7 +56,9 @@ export const useNotificationStore = create<NotificationState>()(
       ingestedIds: [],
       addNotification: (notif) => {
         const item: AppNotification = {
-          id: notif.id ?? `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          id:
+            notif.id ??
+            `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           title: notif.title,
           body: notif.body,
           url: notif.url,
@@ -60,7 +68,10 @@ export const useNotificationStore = create<NotificationState>()(
           icon: notif.icon,
         };
         set((state) => ({
-          notifications: [item, ...state.notifications.filter((n) => n.id !== item.id)].slice(0, 50),
+          notifications: [
+            item,
+            ...state.notifications.filter((n) => n.id !== item.id),
+          ].slice(0, 50),
         }));
       },
       ingestNotifications: (records) => {
@@ -70,11 +81,15 @@ export const useNotificationStore = create<NotificationState>()(
         set((state) => ({
           notifications: [
             ...fresh.map(toAppNotification),
-            ...state.notifications.filter((n) => !fresh.some((f) => f.id === n.id)),
+            ...state.notifications.filter(
+              (n) => !fresh.some((f) => f.id === n.id)
+            ),
           ].slice(0, 50),
           // Capped so this cannot grow without bound; 200 is far more than the
           // 50 the inbox can display.
-          ingestedIds: [...state.ingestedIds, ...fresh.map((r) => r.id)].slice(-200),
+          ingestedIds: [...state.ingestedIds, ...fresh.map((r) => r.id)].slice(
+            -200
+          ),
         }));
       },
       markAsRead: (id: string) => {

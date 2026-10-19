@@ -38,12 +38,27 @@ export interface SizeViolation {
 
 export type ValidationResult<T> =
   | { ok: true; value: T }
-  | { ok: false; status: 400 | 413; issues: ValidationIssue[]; size?: SizeViolation };
+  | {
+      ok: false;
+      status: 400 | 413;
+      issues: ValidationIssue[];
+      size?: SizeViolation;
+    };
 
-export const FOLLOW_KINDS = ["team", "league", "location", "topic", "publisher"] as const;
+export const FOLLOW_KINDS = [
+  "team",
+  "league",
+  "location",
+  "topic",
+  "publisher",
+] as const;
 export const REACTION_KINDS = ["like"] as const;
 
-export function issue(field: string, message: string, index?: number): ValidationIssue {
+export function issue(
+  field: string,
+  message: string,
+  index?: number
+): ValidationIssue {
   return index === undefined ? { field, message } : { field, message, index };
 }
 
@@ -52,7 +67,9 @@ function invalid<T>(
   issues: ValidationIssue[],
   size?: SizeViolation
 ): ValidationResult<T> {
-  return size ? { ok: false, status, issues, size } : { ok: false, status, issues };
+  return size
+    ? { ok: false, status, issues, size }
+    : { ok: false, status, issues };
 }
 
 /**
@@ -63,7 +80,11 @@ function invalid<T>(
  */
 export function parseIsoInstant(input: unknown): Date | null {
   if (typeof input !== "string") return null;
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:?\d{2})$/.test(input)) {
+  if (
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:?\d{2})$/.test(
+      input
+    )
+  ) {
     return null;
   }
   const millis = Date.parse(input);
@@ -112,7 +133,10 @@ function readOptionalString(
   max: number,
   add: (field: string, message: string) => void
 ): string | null {
-  return readString(row, field, max, add, { required: false, allowEmpty: true });
+  return readString(row, field, max, add, {
+    required: false,
+    allowEmpty: true,
+  });
 }
 
 function readKind(
@@ -171,12 +195,31 @@ function resolveSavedAt(updatedAt: Date, explicit: Date | null): Date {
 }
 
 const bookmarkReader: FieldReader<BookmarkSnapshot> = (row, add) => {
-  const itemId = readString(row, "itemId", SYNC_LIMITS.maxIdLength, add, { required: true });
-  const title = readString(row, "title", SYNC_LIMITS.maxTitleLength, add, { required: true });
+  const itemId = readString(row, "itemId", SYNC_LIMITS.maxIdLength, add, {
+    required: true,
+  });
+  const title = readString(row, "title", SYNC_LIMITS.maxTitleLength, add, {
+    required: true,
+  });
   const updatedAt = readInstant(row, "updatedAt", add, { required: true });
-  const sourceUrl = readOptionalString(row, "sourceUrl", SYNC_LIMITS.maxUrlLength, add);
-  const imageUrl = readOptionalString(row, "imageUrl", SYNC_LIMITS.maxUrlLength, add);
-  const publisher = readOptionalString(row, "publisher", SYNC_LIMITS.maxLabelLength, add);
+  const sourceUrl = readOptionalString(
+    row,
+    "sourceUrl",
+    SYNC_LIMITS.maxUrlLength,
+    add
+  );
+  const imageUrl = readOptionalString(
+    row,
+    "imageUrl",
+    SYNC_LIMITS.maxUrlLength,
+    add
+  );
+  const publisher = readOptionalString(
+    row,
+    "publisher",
+    SYNC_LIMITS.maxLabelLength,
+    add
+  );
   const publishedAt = readInstant(row, "publishedAt", add, { required: false });
   const savedAt = readInstant(row, "savedAt", add, { required: false });
   const deleted = readDeleted(row, add);
@@ -196,7 +239,9 @@ const bookmarkReader: FieldReader<BookmarkSnapshot> = (row, add) => {
 };
 
 const reactionReader: FieldReader<ReactionSnapshot> = (row, add) => {
-  const itemId = readString(row, "itemId", SYNC_LIMITS.maxIdLength, add, { required: true });
+  const itemId = readString(row, "itemId", SYNC_LIMITS.maxIdLength, add, {
+    required: true,
+  });
   const kind = readKind(row, REACTION_KINDS, add);
   const updatedAt = readInstant(row, "updatedAt", add, { required: true });
   const deleted = readDeleted(row, add);
@@ -206,10 +251,17 @@ const reactionReader: FieldReader<ReactionSnapshot> = (row, add) => {
 };
 
 const followReader: FieldReader<FollowSnapshot> = (row, add) => {
-  const targetId = readString(row, "targetId", SYNC_LIMITS.maxIdLength, add, { required: true });
+  const targetId = readString(row, "targetId", SYNC_LIMITS.maxIdLength, add, {
+    required: true,
+  });
   const kind = readKind(row, FOLLOW_KINDS, add);
   const updatedAt = readInstant(row, "updatedAt", add, { required: true });
-  const label = readOptionalString(row, "label", SYNC_LIMITS.maxLabelLength, add);
+  const label = readOptionalString(
+    row,
+    "label",
+    SYNC_LIMITS.maxLabelLength,
+    add
+  );
   const deleted = readDeleted(row, add);
 
   if (!targetId || !kind || !updatedAt) return null;
@@ -247,7 +299,12 @@ function readCollection<T>(
   const rows: T[] = [];
   raw.forEach((entry, index) => {
     if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
-      issues.push({ collection, field: collection, index, message: "must be an object" });
+      issues.push({
+        collection,
+        field: collection,
+        index,
+        message: "must be an object",
+      });
       return;
     }
     const add = (field: string, message: string) =>
@@ -262,12 +319,19 @@ function readCollection<T>(
  * Validates a raw request body. `rawBody` is the decoded text so the byte cap is
  * measured on what the client actually sent, before any parsing.
  */
-export function parsePushBody(rawBody: string): ValidationResult<SyncPushPayload> {
+export function parsePushBody(
+  rawBody: string
+): ValidationResult<SyncPushPayload> {
   const bytes = new TextEncoder().encode(rawBody).length;
   if (bytes > SYNC_LIMITS.maxBodyBytes) {
     return invalid(
       413,
-      [issue("body", `must be at most ${SYNC_LIMITS.maxBodyBytes} bytes (received ${bytes})`)],
+      [
+        issue(
+          "body",
+          `must be at most ${SYNC_LIMITS.maxBodyBytes} bytes (received ${bytes})`
+        ),
+      ],
       { limit: "bytes", received: bytes }
     );
   }
@@ -279,14 +343,28 @@ export function parsePushBody(rawBody: string): ValidationResult<SyncPushPayload
     return invalid(400, [issue("body", "must be valid JSON")]);
   }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return invalid(400, [issue("body", "must be a JSON object of collections")]);
+    return invalid(400, [
+      issue("body", "must be a JSON object of collections"),
+    ]);
   }
 
   const body = parsed as Record<string, unknown>;
   const issues: ValidationIssue[] = [];
   const sizes: SizeViolation[] = [];
-  const bookmarks = readCollection(body, "bookmarks", bookmarkReader, issues, sizes);
-  const reactions = readCollection(body, "reactions", reactionReader, issues, sizes);
+  const bookmarks = readCollection(
+    body,
+    "bookmarks",
+    bookmarkReader,
+    issues,
+    sizes
+  );
+  const reactions = readCollection(
+    body,
+    "reactions",
+    reactionReader,
+    issues,
+    sizes
+  );
   const follows = readCollection(body, "follows", followReader, issues, sizes);
 
   if (issues.length > 0) {
@@ -298,7 +376,9 @@ export function parsePushBody(rawBody: string): ValidationResult<SyncPushPayload
 }
 
 /** Validates `?since=` / `?limit=`; a malformed value is a 400, not a default. */
-export function parsePullQuery(params: URLSearchParams): ValidationResult<PullQuery> {
+export function parsePullQuery(
+  params: URLSearchParams
+): ValidationResult<PullQuery> {
   const issues: ValidationIssue[] = [];
 
   let since: Date | null = null;
@@ -306,7 +386,9 @@ export function parsePullQuery(params: URLSearchParams): ValidationResult<PullQu
   if (rawSince !== null && rawSince !== "") {
     since = parseIsoInstant(rawSince);
     if (!since) {
-      issues.push(issue("since", "must be an ISO-8601 UTC timestamp with milliseconds"));
+      issues.push(
+        issue("since", "must be an ISO-8601 UTC timestamp with milliseconds")
+      );
     }
   }
 
@@ -314,7 +396,11 @@ export function parsePullQuery(params: URLSearchParams): ValidationResult<PullQu
   const rawLimit = params.get("limit");
   if (rawLimit !== null && rawLimit !== "") {
     const parsed = Number(rawLimit);
-    if (!Number.isInteger(parsed) || parsed < SYNC_LIMITS.minPullLimit || parsed > SYNC_LIMITS.maxPullLimit) {
+    if (
+      !Number.isInteger(parsed) ||
+      parsed < SYNC_LIMITS.minPullLimit ||
+      parsed > SYNC_LIMITS.maxPullLimit
+    ) {
       issues.push(
         issue(
           "limit",

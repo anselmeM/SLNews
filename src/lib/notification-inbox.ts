@@ -1,4 +1,7 @@
-import type { AppNotification, NotificationType } from "@/store/useNotificationStore";
+import type {
+  AppNotification,
+  NotificationType,
+} from "@/store/useNotificationStore";
 
 /**
  * Bridges the service worker's record of received pushes into the in-app inbox.
@@ -109,7 +112,8 @@ export async function readInboxRecords(): Promise<InboxRecord[]> {
       return await new Promise<InboxRecord[]>((resolve) => {
         const tx = db.transaction(INBOX_STORE_NAME, "readonly");
         const request = tx.objectStore(INBOX_STORE_NAME).getAll();
-        request.onsuccess = () => resolve((request.result ?? []) as InboxRecord[]);
+        request.onsuccess = () =>
+          resolve((request.result ?? []) as InboxRecord[]);
         request.onerror = () => resolve([]);
       });
     } finally {

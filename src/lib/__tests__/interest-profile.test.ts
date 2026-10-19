@@ -49,11 +49,16 @@ describe("interestCategoriesFromArticleIds", () => {
   });
 
   it("deduplicates ids and caps how many saved stories shape the profile", async () => {
-    const ids = Array.from({ length: MAX_INTEREST_SOURCES + 10 }, (_, i) => `a${i}`);
+    const ids = Array.from(
+      { length: MAX_INTEREST_SOURCES + 10 },
+      (_, i) => `a${i}`
+    );
 
     await interestCategoriesFromArticleIds(["a0", "a0", ...ids]);
 
-    const [{ where }] = articleFindMany.mock.calls[0] as [{ where: { id: { in: string[] } } }];
+    const [{ where }] = articleFindMany.mock.calls[0] as [
+      { where: { id: { in: string[] } } },
+    ];
     expect(where.id.in).toHaveLength(MAX_INTEREST_SOURCES);
     expect(new Set(where.id.in).size).toBe(MAX_INTEREST_SOURCES);
   });
@@ -82,7 +87,9 @@ describe("savedInterestCategories", () => {
       { articleId: "a1" },
       { articleId: "a2" },
     ] as never);
-    articleFindMany.mockResolvedValue([{ categories: [{ name: "Sports" }] }] as never);
+    articleFindMany.mockResolvedValue([
+      { categories: [{ name: "Sports" }] },
+    ] as never);
 
     const categories = await savedInterestCategories("user-1");
 
@@ -127,9 +134,13 @@ describe("feedInterestCategories", () => {
   });
 
   it("unions the followed topics with the saved-story categories", async () => {
-    userFindUnique.mockResolvedValue({ preferredTopics: ["Technology"] } as never);
+    userFindUnique.mockResolvedValue({
+      preferredTopics: ["Technology"],
+    } as never);
     savedFindMany.mockResolvedValue([{ articleId: "a1" }] as never);
-    articleFindMany.mockResolvedValue([{ categories: [{ name: "Sports" }] }] as never);
+    articleFindMany.mockResolvedValue([
+      { categories: [{ name: "Sports" }] },
+    ] as never);
 
     const categories = await feedInterestCategories("user-1");
 

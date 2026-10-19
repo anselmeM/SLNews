@@ -8,7 +8,9 @@ import { syncMarketPrices } from "@/lib/market-sync-service";
 import { processPriceAlerts } from "@/lib/price-alert-service";
 import { syncScraperVideos } from "@/lib/video-sync";
 
-vi.mock("@/app/actions/push-actions", () => ({ sendPushNotifications: vi.fn() }));
+vi.mock("@/app/actions/push-actions", () => ({
+  sendPushNotifications: vi.fn(),
+}));
 vi.mock("@/app/actions/sync-news-api", () => ({ syncWorldNews: vi.fn() }));
 vi.mock("@/app/actions/sync-scraper", () => ({ syncFromScraper: vi.fn() }));
 vi.mock("@/lib/briefing-service", () => ({ sendMorningBriefing: vi.fn() }));
@@ -31,10 +33,19 @@ function get(secret?: string): Request {
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.CRON_SECRET = "test-secret";
-  vi.mocked(syncFromScraper).mockResolvedValue({ success: true, count: 2 } as never);
-  vi.mocked(syncWorldNews).mockResolvedValue({ success: true, count: 0 } as never);
+  vi.mocked(syncFromScraper).mockResolvedValue({
+    success: true,
+    count: 2,
+  } as never);
+  vi.mocked(syncWorldNews).mockResolvedValue({
+    success: true,
+    count: 0,
+  } as never);
   vi.mocked(syncMarketPrices).mockResolvedValue({ success: true } as never);
-  vi.mocked(processPriceAlerts).mockResolvedValue({ notified: 0, hits: 0 } as never);
+  vi.mocked(processPriceAlerts).mockResolvedValue({
+    notified: 0,
+    hits: 0,
+  } as never);
   vi.mocked(sendMorningBriefing).mockResolvedValue({ sent: 0 } as never);
   vi.mocked(push).mockResolvedValue({ sent: 0 } as never);
   videos.mockResolvedValue({
@@ -79,7 +90,11 @@ describe("GET /api/cron/sync", () => {
   it("reports the video count without letting it inflate the news push", async () => {
     const body = await (await GET(get("test-secret"))).json();
 
-    expect(body.videos).toMatchObject({ count: 7, triggerError: null, readError: null });
+    expect(body.videos).toMatchObject({
+      count: 7,
+      triggerError: null,
+      readError: null,
+    });
     // Two articles synced, seven videos read: the push is about the articles.
     expect(body.count).toBe(2);
     expect(push).toHaveBeenCalledWith(

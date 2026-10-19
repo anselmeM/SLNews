@@ -50,9 +50,15 @@ describe("toAppNotification", () => {
   });
 
   it("picks an icon per category and falls back for unknown ones", () => {
-    expect(toAppNotification(record({ category: "market" })).icon).toBe("trending_up");
-    expect(toAppNotification(record({ category: "briefing" })).icon).toBe("newspaper");
-    expect(toAppNotification(record({ category: "who-knows" })).icon).toBe("notifications");
+    expect(toAppNotification(record({ category: "market" })).icon).toBe(
+      "trending_up"
+    );
+    expect(toAppNotification(record({ category: "briefing" })).icon).toBe(
+      "newspaper"
+    );
+    expect(toAppNotification(record({ category: "who-knows" })).icon).toBe(
+      "notifications"
+    );
   });
 
   it("always starts unread", () => {

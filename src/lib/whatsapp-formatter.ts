@@ -29,7 +29,10 @@ export interface BriefingSharePayload {
   }>;
 }
 
-function extractKeyPoints(summary: string | null | undefined, content: string): string[] {
+function extractKeyPoints(
+  summary: string | null | undefined,
+  content: string
+): string[] {
   const points: string[] = [];
 
   if (summary && summary.trim().length > 20) {
@@ -47,9 +50,13 @@ function extractKeyPoints(summary: string | null | undefined, content: string): 
     if (
       firstSentence &&
       firstSentence.length > 30 &&
-      !points.some((p) => p.includes(firstSentence) || firstSentence.includes(p))
+      !points.some(
+        (p) => p.includes(firstSentence) || firstSentence.includes(p)
+      )
     ) {
-      points.push(firstSentence.endsWith(".") ? firstSentence : `${firstSentence}.`);
+      points.push(
+        firstSentence.endsWith(".") ? firstSentence : `${firstSentence}.`
+      );
     }
   }
 
@@ -62,7 +69,9 @@ export function formatArticleWhatsAppDigest(
 ): string {
   const keyPoints = extractKeyPoints(article.summary, article.content);
   const articleUrl = `${siteUrl.replace(/\/$/, "")}/article/${article.id}`;
-  const locationTag = article.location ? `📍 *Region:* ${article.location}` : "📍 *Coverage:* Sierra Leone";
+  const locationTag = article.location
+    ? `📍 *Region:* ${article.location}`
+    : "📍 *Coverage:* Sierra Leone";
 
   const lines: string[] = [
     "🇸🇱 *SLNews Exclusive*",

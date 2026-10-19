@@ -7,7 +7,11 @@ import { db } from "@/lib/db";
 import { CURATED_SL_REELS, type ReelVideo } from "@/lib/fixtures/curated-reels";
 import { splitLocation } from "@/lib/geo";
 import { logger } from "@/lib/logger";
-import { fetchScraperVideos, triggerScraperVideoSync, type ScraperVideo } from "@/lib/scraper-client";
+import {
+  fetchScraperVideos,
+  triggerScraperVideoSync,
+  type ScraperVideo,
+} from "@/lib/scraper-client";
 
 export type { ReelVideo };
 
@@ -34,7 +38,10 @@ function mapScraperVideoToReel(v: ScraperVideo): ReelVideo {
 // ours.
 const SCRAPER_REELS_TTL_SECONDS = 120;
 
-export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> {
+export async function fetchReelsFeed(
+  skip = 0,
+  take = 10
+): Promise<ReelVideo[]> {
   // 1. Fetch scraped videos from Render Scraper API
   let scraperReels: ReelVideo[] = [];
   try {
@@ -99,7 +106,9 @@ export async function fetchReelsFeed(skip = 0, take = 10): Promise<ReelVideo[]> 
           sourceImage: a.author?.image || undefined,
           category: a.categories?.[0]?.name || "National",
           location: a.district || a.province || undefined,
-          publishedAt: a.publishedAt ? a.publishedAt.toISOString() : a.createdAt.toISOString(),
+          publishedAt: a.publishedAt
+            ? a.publishedAt.toISOString()
+            : a.createdAt.toISOString(),
           authorId: a.authorId,
           commentsCount: a._count?.comments || 0,
           status: a.status,
@@ -169,7 +178,9 @@ export async function getReelById(id: string): Promise<ReelVideo | null> {
       sourceImage: a.author?.image || undefined,
       category: a.categories?.[0]?.name || "National",
       location: a.district || a.province || undefined,
-      publishedAt: a.publishedAt ? a.publishedAt.toISOString() : a.createdAt.toISOString(),
+      publishedAt: a.publishedAt
+        ? a.publishedAt.toISOString()
+        : a.createdAt.toISOString(),
       authorId: a.authorId,
       commentsCount: a._count?.comments || 0,
       status: a.status,
@@ -185,19 +196,36 @@ export async function submitCommunityReel(data: {
   videoUrl: string;
   category?: string;
   location?: string;
-}): Promise<{ success: boolean; isLive: boolean; message: string; id?: string }> {
+}): Promise<{
+  success: boolean;
+  isLive: boolean;
+  message: string;
+  id?: string;
+}> {
   const session = await auth();
   if (!session?.user?.id) {
-    return { success: false, isLive: false, message: "Please sign in to submit a video clip." };
+    return {
+      success: false,
+      isLive: false,
+      message: "Please sign in to submit a video clip.",
+    };
   }
 
   const title = data.title.trim();
   const videoUrl = data.videoUrl.trim();
   if (!title || title.length < 5) {
-    return { success: false, isLive: false, message: "Please enter a descriptive headline (at least 5 characters)." };
+    return {
+      success: false,
+      isLive: false,
+      message: "Please enter a descriptive headline (at least 5 characters).",
+    };
   }
   if (!videoUrl.startsWith("http")) {
-    return { success: false, isLive: false, message: "Please enter a valid video link." };
+    return {
+      success: false,
+      isLive: false,
+      message: "Please enter a valid video link.",
+    };
   }
 
   const isPrivileged =
@@ -247,14 +275,18 @@ export async function submitCommunityReel(data: {
     return {
       success: false,
       isLive: false,
-      message: err instanceof Error ? err.message : "Failed to submit video clip.",
+      message:
+        err instanceof Error ? err.message : "Failed to submit video clip.",
     };
   }
 }
 
 export async function getPendingCommunityReels(): Promise<ReelVideo[]> {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")
+  ) {
     return [];
   }
 
@@ -302,9 +334,14 @@ export async function getPendingCommunityReels(): Promise<ReelVideo[]> {
   }
 }
 
-export async function approveCommunityReel(articleId: string): Promise<{ success: boolean; message: string }> {
+export async function approveCommunityReel(
+  articleId: string
+): Promise<{ success: boolean; message: string }> {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")
+  ) {
     return { success: false, message: "Unauthorized." };
   }
 
@@ -317,15 +354,23 @@ export async function approveCommunityReel(articleId: string): Promise<{ success
         publishedAt: new Date(),
       },
     });
-    return { success: true, message: "Video approved and published to Shorts!" };
+    return {
+      success: true,
+      message: "Video approved and published to Shorts!",
+    };
   } catch {
     return { success: false, message: "Failed to approve video." };
   }
 }
 
-export async function rejectCommunityReel(articleId: string): Promise<{ success: boolean; message: string }> {
+export async function rejectCommunityReel(
+  articleId: string
+): Promise<{ success: boolean; message: string }> {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")
+  ) {
     return { success: false, message: "Unauthorized." };
   }
 
@@ -340,10 +385,15 @@ export async function rejectCommunityReel(articleId: string): Promise<{ success:
   }
 }
 
-export async function promoteUserToCreator(userId: string): Promise<{ success: boolean; message: string }> {
+export async function promoteUserToCreator(
+  userId: string
+): Promise<{ success: boolean; message: string }> {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") {
-    return { success: false, message: "Only admins can promote users to Verified Creators." };
+    return {
+      success: false,
+      message: "Only admins can promote users to Verified Creators.",
+    };
   }
 
   try {
@@ -351,15 +401,25 @@ export async function promoteUserToCreator(userId: string): Promise<{ success: b
       where: { id: userId },
       data: { role: "WRITER" },
     });
-    return { success: true, message: "User promoted to Verified Creator (WRITER)! Future submissions will publish instantly." };
+    return {
+      success: true,
+      message:
+        "User promoted to Verified Creator (WRITER)! Future submissions will publish instantly.",
+    };
   } catch {
     return { success: false, message: "Failed to promote user." };
   }
 }
 
-export async function triggerVideoSyncAction(): Promise<{ success: boolean; message: string }> {
+export async function triggerVideoSyncAction(): Promise<{
+  success: boolean;
+  message: string;
+}> {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")
+  ) {
     return { success: false, message: "Unauthorized." };
   }
 
@@ -373,7 +433,8 @@ export async function triggerVideoSyncAction(): Promise<{ success: boolean; mess
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Failed to trigger video sync.",
+      message:
+        err instanceof Error ? err.message : "Failed to trigger video sync.",
     };
   }
 }

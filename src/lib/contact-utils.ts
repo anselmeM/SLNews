@@ -3,7 +3,9 @@
  * for Sierra Leone phone and WhatsApp numbers.
  */
 
-export function normalizePhoneNumber(phone: string | null | undefined): string | null {
+export function normalizePhoneNumber(
+  phone: string | null | undefined
+): string | null {
   if (!phone || typeof phone !== "string") return null;
 
   // Remove spaces, dashes, parentheses, dots
@@ -39,7 +41,10 @@ export function normalizePhoneNumber(phone: string | null | undefined): string |
   return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
 }
 
-export function getWhatsAppUrl(phone: string | null | undefined, message?: string): string | null {
+export function getWhatsAppUrl(
+  phone: string | null | undefined,
+  message?: string
+): string | null {
   const normalized = normalizePhoneNumber(phone);
   if (!normalized) return null;
 
@@ -60,18 +65,24 @@ export function getTelUrl(phone: string | null | undefined): string | null {
   return `tel:${normalized}`;
 }
 
-export function extractContactPhone(body: string | null | undefined): string | null {
+export function extractContactPhone(
+  body: string | null | undefined
+): string | null {
   if (!body || typeof body !== "string") return null;
 
   // Match explicit "Contact: ...", "WhatsApp: ...", "Call: ..."
-  const contactMatch = body.match(/(?:contact|whatsapp|phone|tel|call|reach us at|inquiries)[\s/:]+([+0-9\s\-()]{8,20})/i);
+  const contactMatch = body.match(
+    /(?:contact|whatsapp|phone|tel|call|reach us at|inquiries)[\s/:]+([+0-9\s\-()]{8,20})/i
+  );
   if (contactMatch && contactMatch[1]) {
     const norm = normalizePhoneNumber(contactMatch[1]);
     if (norm) return norm;
   }
 
   // Match direct Sierra Leone phone formats (+232 76 123456 or 076 123456)
-  const directMatch = body.match(/(?:\+232[\s\-]?\d{2}[\s\-]?\d{6}|0[3789]\d[\s\-]?\d{6})/);
+  const directMatch = body.match(
+    /(?:\+232[\s\-]?\d{2}[\s\-]?\d{6}|0[3789]\d[\s\-]?\d{6})/
+  );
   if (directMatch && directMatch[0]) {
     return normalizePhoneNumber(directMatch[0]);
   }

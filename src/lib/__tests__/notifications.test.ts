@@ -51,7 +51,9 @@ describe("Notification Store Management", () => {
 
   it("marks a specific notification as read", () => {
     useNotificationStore.getState().markAsRead("test-1");
-    const notif = useNotificationStore.getState().notifications.find((n) => n.id === "test-1");
+    const notif = useNotificationStore
+      .getState()
+      .notifications.find((n) => n.id === "test-1");
     expect(notif?.read).toBe(true);
     expect(useNotificationStore.getState().unreadCount()).toBe(0);
   });
@@ -67,7 +69,9 @@ describe("Notification Store Management", () => {
 
     useNotificationStore.getState().markAllAsRead();
     expect(useNotificationStore.getState().unreadCount()).toBe(0);
-    expect(useNotificationStore.getState().notifications.every((n) => n.read)).toBe(true);
+    expect(
+      useNotificationStore.getState().notifications.every((n) => n.read)
+    ).toBe(true);
   });
 
   it("removes a notification by id", () => {
@@ -144,15 +148,16 @@ describe("Notification ingestion (pushes the device actually received)", () => {
   });
 
   it("orders a batch newest first and ignores an empty batch", () => {
-    useNotificationStore.getState().ingestNotifications([
-      record({ id: "older", createdAt: 1 }),
-      record({ id: "newer", createdAt: 9 }),
-    ]);
+    useNotificationStore
+      .getState()
+      .ingestNotifications([
+        record({ id: "older", createdAt: 1 }),
+        record({ id: "newer", createdAt: 9 }),
+      ]);
 
-    expect(useNotificationStore.getState().notifications.map((n) => n.id)).toEqual([
-      "newer",
-      "older",
-    ]);
+    expect(
+      useNotificationStore.getState().notifications.map((n) => n.id)
+    ).toEqual(["newer", "older"]);
 
     useNotificationStore.getState().ingestNotifications([]);
     expect(useNotificationStore.getState().notifications).toHaveLength(2);

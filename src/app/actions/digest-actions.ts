@@ -2,7 +2,10 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { buildPersonalizedDigest, type PersonalizedDigest } from "@/lib/digest-generator";
+import {
+  buildPersonalizedDigest,
+  type PersonalizedDigest,
+} from "@/lib/digest-generator";
 import { fetchMixedHomeFeed, HOME_FEED_SIZE } from "@/lib/news-service";
 
 export async function getPersonalizedDigest(): Promise<PersonalizedDigest> {

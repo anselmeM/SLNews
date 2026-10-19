@@ -3,9 +3,21 @@ import { calculateReadingTime } from "@/lib/reading-time";
 
 describe("calculateReadingTime", () => {
   it("returns 1 min read for empty or null text", () => {
-    expect(calculateReadingTime(null)).toEqual({ minutes: 1, text: "1 min read", words: 0 });
-    expect(calculateReadingTime("")).toEqual({ minutes: 1, text: "1 min read", words: 0 });
-    expect(calculateReadingTime("   ")).toEqual({ minutes: 1, text: "1 min read", words: 0 });
+    expect(calculateReadingTime(null)).toEqual({
+      minutes: 1,
+      text: "1 min read",
+      words: 0,
+    });
+    expect(calculateReadingTime("")).toEqual({
+      minutes: 1,
+      text: "1 min read",
+      words: 0,
+    });
+    expect(calculateReadingTime("   ")).toEqual({
+      minutes: 1,
+      text: "1 min read",
+      words: 0,
+    });
   });
 
   it("calculates 1 min read for short snippets under 200 words", () => {

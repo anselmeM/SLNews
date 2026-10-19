@@ -4,8 +4,18 @@
 // always return the same strings on both sides.
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ] as const;
 
 /** "Aug 5, 2026" */
@@ -24,7 +34,8 @@ export function formatShortDate(iso: string): string {
 
 /** "5m ago", "2h ago", "3d ago", or "Just now" */
 export function formatDistanceToNow(timestamp: number | Date | string): string {
-  const time = typeof timestamp === "number" ? timestamp : new Date(timestamp).getTime();
+  const time =
+    typeof timestamp === "number" ? timestamp : new Date(timestamp).getTime();
   if (Number.isNaN(time)) return "";
   const diffSec = Math.floor((Date.now() - time) / 1000);
   if (diffSec < 60) return "Just now";

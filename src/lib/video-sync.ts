@@ -38,7 +38,10 @@ export interface ScraperVideoReport {
   count: number;
   readMs: number;
   readError: string | null;
-  sample: Pick<ScraperVideo, "videoId" | "title" | "channelTitle" | "publishedAt" | "url">[];
+  sample: Pick<
+    ScraperVideo,
+    "videoId" | "title" | "channelTitle" | "publishedAt" | "url"
+  >[];
 }
 
 export interface ScraperVideoOptions {
@@ -65,7 +68,9 @@ export async function syncScraperVideos({
     } catch (error) {
       // A failed ingestion is an answer, not a reason to skip the measurement.
       triggerError = error instanceof Error ? error.message : String(error);
-      logger.warn("videos: scraper ingestion trigger failed", { error: triggerError });
+      logger.warn("videos: scraper ingestion trigger failed", {
+        error: triggerError,
+      });
     }
   }
 
@@ -76,7 +81,9 @@ export async function syncScraperVideos({
     videos = await fetchScraperVideos(limit, 1, readTimeoutMs);
   } catch (error) {
     readError = error instanceof Error ? error.message : String(error);
-    logger.warn("videos: reading the scraper video list failed", { error: readError });
+    logger.warn("videos: reading the scraper video list failed", {
+      error: readError,
+    });
   }
   const readMs = Date.now() - startedAt;
 

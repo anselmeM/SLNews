@@ -11,9 +11,9 @@ export const ADMIN_EMAILS = [
 export function isOwnerOrAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const cleanEmail = email.toLowerCase().trim();
-  
+
   if (ADMIN_EMAILS.includes(cleanEmail)) return true;
-  
+
   // Handle Gmail dot-insensitivity on local-part
   const [localPart, domain] = cleanEmail.split("@");
   if (domain === "gmail.com" || domain === "googlemail.com") {
@@ -29,7 +29,10 @@ export function isOwnerOrAdminEmail(email?: string | null): boolean {
     }
   }
 
-  if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.toLowerCase().trim() === cleanEmail) {
+  if (
+    process.env.ADMIN_EMAIL &&
+    process.env.ADMIN_EMAIL.toLowerCase().trim() === cleanEmail
+  ) {
     return true;
   }
   return false;

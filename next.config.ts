@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
         destination: "/local-news",
         permanent: true,
       },
+      { source: "/about", destination: "/features", permanent: true },
       { source: "/home", destination: "/", permanent: true },
       { source: "/local-news", destination: "/", permanent: true },
       { source: "/world", destination: "/", permanent: true },

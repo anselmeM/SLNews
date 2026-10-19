@@ -46,7 +46,9 @@ const FALLBACK_NAME = "SLNews User";
  * gratuitous 401 — but any other scheme (`Basic`, `Negotiate`) is not a session
  * token, so it is treated as "no bearer" and falls back to the cookie session.
  */
-export function readBearerToken(header: string | null | undefined): string | null {
+export function readBearerToken(
+  header: string | null | undefined
+): string | null {
   if (!header) return null;
   const value = header.trim();
   if (value.length === 0) return null;
@@ -69,7 +71,9 @@ function authorizedParties(): string[] | undefined {
   return parties.length > 0 ? parties : undefined;
 }
 
-function clerkUserIdFromClaims(payload: Record<string, unknown>): string | null {
+function clerkUserIdFromClaims(
+  payload: Record<string, unknown>
+): string | null {
   const candidates = [payload.sub, payload.userId, payload.user_id];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && candidate.length > 0) return candidate;
@@ -78,18 +82,25 @@ function clerkUserIdFromClaims(payload: Record<string, unknown>): string | null 
 }
 
 function displayName(payload: Record<string, unknown>): string {
-  const given = typeof payload.given_name === "string" ? payload.given_name : "";
-  const family = typeof payload.family_name === "string" ? payload.family_name : "";
+  const given =
+    typeof payload.given_name === "string" ? payload.given_name : "";
+  const family =
+    typeof payload.family_name === "string" ? payload.family_name : "";
   const full = [given, family].filter(Boolean).join(" ");
   if (full) return full;
   if (typeof payload.name === "string" && payload.name) return payload.name;
-  if (typeof payload.username === "string" && payload.username) return payload.username;
+  if (typeof payload.username === "string" && payload.username)
+    return payload.username;
   return FALLBACK_NAME;
 }
 
 function primaryEmail(payload: Record<string, unknown>): string | null {
-  if (typeof payload.email === "string" && payload.email.includes("@")) return payload.email;
-  if (typeof payload.email_address === "string" && payload.email_address.includes("@")) {
+  if (typeof payload.email === "string" && payload.email.includes("@"))
+    return payload.email;
+  if (
+    typeof payload.email_address === "string" &&
+    payload.email_address.includes("@")
+  ) {
     return payload.email_address;
   }
   return null;
@@ -101,32 +112,49 @@ function hasRealEmail(email: string | null | undefined): boolean {
 
 /** `null`, `""` and the literal fallback all mean "the reader has no name yet". */
 function isUsableName(name: string | null | undefined): boolean {
-  return typeof name === "string" && name.trim().length > 0 && name.trim() !== FALLBACK_NAME;
+  return (
+    typeof name === "string" &&
+    name.trim().length > 0 &&
+    name.trim() !== FALLBACK_NAME
+  );
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 /** `primary_email_address_id`, else the first address Clerk returns. */
 function profileEmail(payload: Record<string, unknown>): string | null {
   const addresses = Array.isArray(payload.email_addresses)
-    ? payload.email_addresses.map(asRecord).filter((entry): entry is Record<string, unknown> => !!entry)
+    ? payload.email_addresses
+        .map(asRecord)
+        .filter((entry): entry is Record<string, unknown> => !!entry)
     : [];
   const primaryId =
-    typeof payload.primary_email_address_id === "string" ? payload.primary_email_address_id : null;
-  const preferred = primaryId ? addresses.find((entry) => entry.id === primaryId) : undefined;
+    typeof payload.primary_email_address_id === "string"
+      ? payload.primary_email_address_id
+      : null;
+  const preferred = primaryId
+    ? addresses.find((entry) => entry.id === primaryId)
+    : undefined;
   const chosen = preferred ?? addresses[0];
-  return typeof chosen?.email_address === "string" ? chosen.email_address : null;
+  return typeof chosen?.email_address === "string"
+    ? chosen.email_address
+    : null;
 }
 
 /** `first_name` + `last_name`, else `username`, else nothing usable. */
 function profileName(payload: Record<string, unknown>): string | null {
-  const given = typeof payload.first_name === "string" ? payload.first_name.trim() : "";
-  const family = typeof payload.last_name === "string" ? payload.last_name.trim() : "";
+  const given =
+    typeof payload.first_name === "string" ? payload.first_name.trim() : "";
+  const family =
+    typeof payload.last_name === "string" ? payload.last_name.trim() : "";
   const full = [given, family].filter(Boolean).join(" ");
   if (full) return full;
-  const username = typeof payload.username === "string" ? payload.username.trim() : "";
+  const username =
+    typeof payload.username === "string" ? payload.username.trim() : "";
   return username || null;
 }
 
@@ -148,20 +176,29 @@ interface ClerkProfile {
  * The warning is non-secret on purpose: no token, no URL containing the key,
  * no response body — just the failure class.
  */
-async function fetchClerkProfile(clerkUserId: string): Promise<ClerkProfile | null> {
+async function fetchClerkProfile(
+  clerkUserId: string
+): Promise<ClerkProfile | null> {
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
-    console.warn("mobile-sync: CLERK_SECRET_KEY is unset; keeping the thin token claims");
+    console.warn(
+      "mobile-sync: CLERK_SECRET_KEY is unset; keeping the thin token claims"
+    );
     return null;
   }
 
   try {
-    const response = await fetch(`${CLERK_API_BASE}/users/${encodeURIComponent(clerkUserId)}`, {
-      headers: { Authorization: `Bearer ${secretKey}` },
-      signal: AbortSignal.timeout(CLERK_PROFILE_TIMEOUT_MS),
-    });
+    const response = await fetch(
+      `${CLERK_API_BASE}/users/${encodeURIComponent(clerkUserId)}`,
+      {
+        headers: { Authorization: `Bearer ${secretKey}` },
+        signal: AbortSignal.timeout(CLERK_PROFILE_TIMEOUT_MS),
+      }
+    );
     if (!response.ok) {
-      console.warn(`mobile-sync: Clerk user lookup answered ${response.status}; keeping the thin token claims`);
+      console.warn(
+        `mobile-sync: Clerk user lookup answered ${response.status}; keeping the thin token claims`
+      );
       return null;
     }
 
@@ -170,7 +207,9 @@ async function fetchClerkProfile(clerkUserId: string): Promise<ClerkProfile | nu
     return { email: profileEmail(payload), name: profileName(payload) };
   } catch (error) {
     const reason = error instanceof Error ? error.name : "unknown error";
-    console.warn(`mobile-sync: Clerk user lookup failed (${reason}); keeping the thin token claims`);
+    console.warn(
+      `mobile-sync: Clerk user lookup failed (${reason}); keeping the thin token claims`
+    );
     return null;
   }
 }
@@ -186,7 +225,8 @@ async function resolveStoredIdentity(
   identity: Identity,
   storedEmail: string | null
 ): Promise<Identity> {
-  if (hasRealEmail(identity.email) && isUsableName(identity.name)) return identity;
+  if (hasRealEmail(identity.email) && isUsableName(identity.name))
+    return identity;
   if (hasRealEmail(storedEmail)) return identity;
 
   const profile = await fetchClerkProfile(identity.clerkUserId);
@@ -219,7 +259,8 @@ function identityBackfill(
   const data: { email?: string; name?: string; image?: string } = {};
   const email = normalizeEmail(identity.email);
   if (email && !hasRealEmail(row.email)) data.email = email;
-  if (isUsableName(identity.name) && !isUsableName(row.name)) data.name = identity.name;
+  if (isUsableName(identity.name) && !isUsableName(row.name))
+    data.name = identity.name;
   return data;
 }
 
@@ -232,7 +273,9 @@ async function backfillStoredUser(
   } catch {
     // A unique-email collision (the address already belongs to another row) must
     // not turn a valid sync into a 401: keep the row as it was.
-    console.warn("mobile-sync: could not backfill the stored User row; keeping it as is");
+    console.warn(
+      "mobile-sync: could not backfill the stored User row; keeping it as is"
+    );
     return null;
   }
 }
@@ -249,7 +292,9 @@ async function backfillStoredUser(
  * the browser-free end-to-end check caught it — makes every valid token look
  * unverifiable and 401s every sync call.
  */
-export async function resolveBearerIdentity(token: string): Promise<Identity | null> {
+export async function resolveBearerIdentity(
+  token: string
+): Promise<Identity | null> {
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) return null;
 
@@ -289,8 +334,9 @@ export async function resolveSessionIdentity(): Promise<Identity | null> {
     const user = await currentUser();
     if (user) {
       const email =
-        user.emailAddresses.find((entry) => entry.id === user.primaryEmailAddressId)
-          ?.emailAddress ??
+        user.emailAddresses.find(
+          (entry) => entry.id === user.primaryEmailAddressId
+        )?.emailAddress ??
         user.emailAddresses[0]?.emailAddress ??
         null;
       const name =
@@ -336,9 +382,13 @@ function normalizeEmail(email: string | null): string | null {
  * real email — see `resolveStoredIdentity`. Everything here is fail-open: a
  * failed lookup still creates/updates the row from the claims.
  */
-export async function ensureMobileUser(identity: Identity): Promise<MobileUser | null> {
+export async function ensureMobileUser(
+  identity: Identity
+): Promise<MobileUser | null> {
   try {
-    const byId = await db.user.findUnique({ where: { id: identity.clerkUserId } });
+    const byId = await db.user.findUnique({
+      where: { id: identity.clerkUserId },
+    });
     if (byId) {
       const resolved = await resolveStoredIdentity(identity, byId.email);
       const data = identityBackfill(byId, resolved);
@@ -357,7 +407,9 @@ export async function ensureMobileUser(identity: Identity): Promise<MobileUser |
         const data = identityBackfill(byEmail, resolved);
         if (resolved.image) data.image = resolved.image;
         const updated =
-          Object.keys(data).length > 0 ? await backfillStoredUser(byEmail.id, data) : null;
+          Object.keys(data).length > 0
+            ? await backfillStoredUser(byEmail.id, data)
+            : null;
         return toMobileUser(updated ?? byEmail, resolved);
       }
     }
@@ -393,7 +445,10 @@ function toMobileUser(
   const isAdmin = isOwnerOrAdminEmail(row.email ?? identity.email);
   // `src/auth.ts` refuses to hand out ADMIN to anyone off the whitelist, even if
   // the stored row says otherwise; keep that rule here.
-  const role = row.role === "ADMIN" && !isAdmin ? "EDITOR" : (row.role as MobileUser["role"]);
+  const role =
+    row.role === "ADMIN" && !isAdmin
+      ? "EDITOR"
+      : (row.role as MobileUser["role"]);
   return {
     id: row.id,
     email: row.email,
@@ -413,7 +468,9 @@ function toMobileUser(
  * silently answer as somebody else. Only an absent (or non-bearer) header falls
  * back.
  */
-export async function resolveMobileUser(headers: Headers): Promise<MobileUser | null> {
+export async function resolveMobileUser(
+  headers: Headers
+): Promise<MobileUser | null> {
   const header = headers.get("authorization");
   if (isBearerHeader(header)) {
     const token = readBearerToken(header);

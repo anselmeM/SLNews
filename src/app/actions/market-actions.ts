@@ -26,15 +26,30 @@ export async function getMyPriceAlerts(): Promise<PriceAlertItem[]> {
   return alerts;
 }
 
-export async function togglePriceAlert(commodity: string, market: string): Promise<{ success: boolean; active: boolean; error?: string }> {
+export async function togglePriceAlert(
+  commodity: string,
+  market: string
+): Promise<{ success: boolean; active: boolean; error?: string }> {
   const session = await auth();
-  if (!session?.user?.id) return { success: false, active: false, error: "You must be signed in to set price alerts." };
+  if (!session?.user?.id)
+    return {
+      success: false,
+      active: false,
+      error: "You must be signed in to set price alerts.",
+    };
 
-  if (!commodity || !market) return { success: false, active: false, error: "Commodity and market are required." };
+  if (!commodity || !market)
+    return {
+      success: false,
+      active: false,
+      error: "Commodity and market are required.",
+    };
 
   try {
     const existing = await db.priceAlert.findUnique({
-      where: { userId_commodity_market: { userId: session.user.id, commodity, market } },
+      where: {
+        userId_commodity_market: { userId: session.user.id, commodity, market },
+      },
     });
 
     if (existing) {
@@ -47,7 +62,11 @@ export async function togglePriceAlert(commodity: string, market: string): Promi
     });
     return { success: true, active: true };
   } catch {
-    return { success: false, active: false, error: "Failed to update price alert. Please try again." };
+    return {
+      success: false,
+      active: false,
+      error: "Failed to update price alert. Please try again.",
+    };
   }
 }
 
@@ -58,17 +77,33 @@ export async function reportPriceChange(input: {
   notes?: string;
 }): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "You must be signed in to report a price change." };
+  if (!session?.user?.id)
+    return {
+      success: false,
+      error: "You must be signed in to report a price change.",
+    };
 
   const { commodity, market, reportedPrice, notes } = input;
 
-  if (!commodity || !market) return { success: false, error: "Commodity and market are required." };
-  if (!Number.isFinite(reportedPrice) || reportedPrice <= 0) return { success: false, error: "Please enter a valid price." };
-  if (notes && notes.length > 500) return { success: false, error: "Notes are too long (max 500 characters)." };
+  if (!commodity || !market)
+    return { success: false, error: "Commodity and market are required." };
+  if (!Number.isFinite(reportedPrice) || reportedPrice <= 0)
+    return { success: false, error: "Please enter a valid price." };
+  if (notes && notes.length > 500)
+    return {
+      success: false,
+      error: "Notes are too long (max 500 characters).",
+    };
 
-  const rate = await checkDbRateLimit(`price-report:${session.user.id}`, { maxRequests: 5, windowMs: 60 * 60 * 1000 });
+  const rate = await checkDbRateLimit(`price-report:${session.user.id}`, {
+    maxRequests: 5,
+    windowMs: 60 * 60 * 1000,
+  });
   if (!rate.allowed) {
-    return { success: false, error: "Too many price reports. Please try again later." };
+    return {
+      success: false,
+      error: "Too many price reports. Please try again later.",
+    };
   }
 
   try {
@@ -84,7 +119,10 @@ export async function reportPriceChange(input: {
     });
     return { success: true };
   } catch {
-    return { success: false, error: "Failed to submit price report. Please try again." };
+    return {
+      success: false,
+      error: "Failed to submit price report. Please try again.",
+    };
   }
 }
 
@@ -101,7 +139,8 @@ export type PriceReportItem = {
 export async function getPendingPriceReports(): Promise<PriceReportItem[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
-  if (session.user.role !== "EDITOR" && session.user.role !== "ADMIN") return [];
+  if (session.user.role !== "EDITOR" && session.user.role !== "ADMIN")
+    return [];
 
   const reports = await db.priceReport.findMany({
     where: { status: "PENDING" },
@@ -134,9 +173,13 @@ export async function reviewPriceReport(
   decision: "APPROVED" | "REJECTED"
 ): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "You must be signed in." };
+  if (!session?.user?.id)
+    return { success: false, error: "You must be signed in." };
   if (session.user.role !== "EDITOR" && session.user.role !== "ADMIN") {
-    return { success: false, error: "You do not have permission to review price reports." };
+    return {
+      success: false,
+      error: "You do not have permission to review price reports.",
+    };
   }
 
   const rate = await checkDbRateLimit(`price-review:${session.user.id}`, {
@@ -144,23 +187,37 @@ export async function reviewPriceReport(
     windowMs: 60 * 60 * 1000,
   });
   if (!rate.allowed) {
-    return { success: false, error: "Too many review actions. Please try again later." };
+    return {
+      success: false,
+      error: "Too many review actions. Please try again later.",
+    };
   }
 
   try {
     const report = await db.priceReport.findUnique({ where: { id: reportId } });
     if (!report) return { success: false, error: "Report not found." };
     if (report.status !== "PENDING") {
-      return { success: false, error: "This report has already been reviewed." };
+      return {
+        success: false,
+        error: "This report has already been reviewed.",
+      };
     }
 
     if (decision === "REJECTED") {
-      await db.priceReport.update({ where: { id: reportId }, data: { status: "REJECTED" } });
+      await db.priceReport.update({
+        where: { id: reportId },
+        data: { status: "REJECTED" },
+      });
       return { success: true };
     }
 
     const current = await db.marketPrice.findUnique({
-      where: { commodity_market: { commodity: report.commodity, market: report.market } },
+      where: {
+        commodity_market: {
+          commodity: report.commodity,
+          market: report.market,
+        },
+      },
     });
 
     let trend: string | null = null;
@@ -172,7 +229,10 @@ export async function reviewPriceReport(
       } else {
         trend = report.reportedPrice > current.price ? "up" : "down";
         trendPct = Number(
-          (((report.reportedPrice - current.price) / current.price) * 100).toFixed(2)
+          (
+            ((report.reportedPrice - current.price) / current.price) *
+            100
+          ).toFixed(2)
         );
       }
     }
@@ -180,7 +240,10 @@ export async function reviewPriceReport(
     await db.$transaction([
       db.marketPrice.upsert({
         where: {
-          commodity_market: { commodity: report.commodity, market: report.market },
+          commodity_market: {
+            commodity: report.commodity,
+            market: report.market,
+          },
         },
         update: { price: report.reportedPrice, trend, trendPct },
         create: {
@@ -191,18 +254,31 @@ export async function reviewPriceReport(
           trendPct,
         },
       }),
-      db.priceReport.update({ where: { id: reportId }, data: { status: "APPROVED" } }),
+      db.priceReport.update({
+        where: { id: reportId },
+        data: { status: "APPROVED" },
+      }),
     ]);
     invalidate("market:");
     return { success: true };
   } catch {
-    return { success: false, error: "Failed to review price report. Please try again." };
+    return {
+      success: false,
+      error: "Failed to review price report. Please try again.",
+    };
   }
 }
 
-export async function triggerMarketPriceSyncAction(): Promise<{ success: boolean; message: string; count?: number }> {
+export async function triggerMarketPriceSyncAction(): Promise<{
+  success: boolean;
+  message: string;
+  count?: number;
+}> {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "ADMIN" && session.user.role !== "EDITOR")
+  ) {
     return { success: false, message: "Unauthorized." };
   }
 
@@ -221,4 +297,3 @@ export async function triggerMarketPriceSyncAction(): Promise<{ success: boolean
     message: res.error || "Failed to update market prices.",
   };
 }
-

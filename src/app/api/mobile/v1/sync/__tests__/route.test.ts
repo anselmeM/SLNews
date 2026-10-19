@@ -91,7 +91,12 @@ function request(
   return new Request(`http://localhost/api/mobile/v1/sync${query}`, {
     method,
     headers: { "content-type": "application/json", ...headers },
-    body: body === undefined ? undefined : typeof body === "string" ? body : JSON.stringify(body),
+    body:
+      body === undefined
+        ? undefined
+        : typeof body === "string"
+          ? body
+          : JSON.stringify(body),
   });
 }
 
@@ -175,7 +180,9 @@ describe("POST /api/mobile/v1/sync — caller identity", () => {
 
     expect(response.status).toBe(200);
     expect(findBookmarks).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ userId: USER_ID }) })
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: USER_ID }),
+      })
     );
     expect(sqlCalls()[0]?.values).toContain(USER_ID);
   });
@@ -199,7 +206,9 @@ describe("POST /api/mobile/v1/sync — caller identity", () => {
 
     expect(response.status).toBe(200);
     expect(findBookmarks).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ userId: "cuid_authjs" }) })
+      expect.objectContaining({
+        where: expect.objectContaining({ userId: "cuid_authjs" }),
+      })
     );
     expect(sqlCalls()[0]?.values).toContain("cuid_authjs");
   });
@@ -227,7 +236,10 @@ describe("GET /api/mobile/v1/sync — delta pull", () => {
     expect(body.hasMore).toBe(false);
     expect(body.bookmarks).toHaveLength(2);
     expect(body.bookmarks[0]).toMatchObject({ itemId: ITEM, deleted: false });
-    expect(body.bookmarks[1]).toMatchObject({ itemId: "rss:deadbeef", deleted: true });
+    expect(body.bookmarks[1]).toMatchObject({
+      itemId: "rss:deadbeef",
+      deleted: true,
+    });
     expect(findBookmarks).toHaveBeenCalledWith(
       expect.objectContaining({ where: { userId: USER_ID }, take: 501 })
     );
@@ -235,7 +247,10 @@ describe("GET /api/mobile/v1/sync — delta pull", () => {
 
   it("filters by since and passes the limit through, per collection", async () => {
     const response = await GET(
-      request("GET", { headers: BEARER, query: `?since=${encodeURIComponent(T0)}&limit=10` })
+      request("GET", {
+        headers: BEARER,
+        query: `?since=${encodeURIComponent(T0)}&limit=10`,
+      })
     );
 
     expect(response.status).toBe(200);
@@ -260,7 +275,9 @@ describe("GET /api/mobile/v1/sync — delta pull", () => {
       }))
     );
 
-    const response = await GET(request("GET", { headers: BEARER, query: "?limit=2" }));
+    const response = await GET(
+      request("GET", { headers: BEARER, query: "?limit=2" })
+    );
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -269,16 +286,26 @@ describe("GET /api/mobile/v1/sync — delta pull", () => {
   });
 
   it("rejects a malformed since", async () => {
-    const response = await GET(request("GET", { headers: BEARER, query: "?since=yesterday" }));
+    const response = await GET(
+      request("GET", { headers: BEARER, query: "?since=yesterday" })
+    );
 
     expect(response.status).toBe(400);
     expect(findBookmarks).not.toHaveBeenCalled();
   });
 
   it("rejects a limit outside 1..500", async () => {
-    expect((await GET(request("GET", { headers: BEARER, query: "?limit=0" }))).status).toBe(400);
-    expect((await GET(request("GET", { headers: BEARER, query: "?limit=501" }))).status).toBe(400);
-    expect((await GET(request("GET", { headers: BEARER, query: "?limit=abc" }))).status).toBe(400);
+    expect(
+      (await GET(request("GET", { headers: BEARER, query: "?limit=0" }))).status
+    ).toBe(400);
+    expect(
+      (await GET(request("GET", { headers: BEARER, query: "?limit=501" })))
+        .status
+    ).toBe(400);
+    expect(
+      (await GET(request("GET", { headers: BEARER, query: "?limit=abc" })))
+        .status
+    ).toBe(400);
   });
 });
 
@@ -306,26 +333,37 @@ describe("POST /api/mobile/v1/sync — merge", () => {
     expect(body.applied).toEqual({ bookmarks: 1, reactions: 0, follows: 0 });
     expect(body.rejected).toEqual([]);
     expect(body.state.bookmarks).toHaveLength(1);
-    expect(body.state.bookmarks[0]).toMatchObject({ itemId: ITEM, deleted: false });
+    expect(body.state.bookmarks[0]).toMatchObject({
+      itemId: ITEM,
+      deleted: false,
+    });
     // One guarded insert + one guarded update per chunk.
     expect(executeRaw).toHaveBeenCalledTimes(2);
     expect(sqlCalls()[1]?.text).toContain('"updatedAt" > target."updatedAt"');
   });
 
   it("rejects an older row as stale and still returns the server's row", async () => {
-    findBookmarks.mockResolvedValue([bookmarkRow({ title: "v2", updatedAt: new Date(T1) })]);
+    findBookmarks.mockResolvedValue([
+      bookmarkRow({ title: "v2", updatedAt: new Date(T1) }),
+    ]);
 
     const response = await POST(
       request("POST", {
         headers: BEARER,
-        body: { bookmarks: [{ itemId: ITEM, title: "v1", updatedAt: T0, deleted: false }] },
+        body: {
+          bookmarks: [
+            { itemId: ITEM, title: "v1", updatedAt: T0, deleted: false },
+          ],
+        },
       })
     );
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.applied.bookmarks).toBe(0);
-    expect(body.rejected).toEqual([{ collection: "bookmarks", itemId: ITEM, reason: "stale" }]);
+    expect(body.rejected).toEqual([
+      { collection: "bookmarks", itemId: ITEM, reason: "stale" },
+    ]);
     expect(body.state.bookmarks[0].title).toBe("v2");
     expect(executeRaw).not.toHaveBeenCalled();
   });
@@ -338,7 +376,11 @@ describe("POST /api/mobile/v1/sync — merge", () => {
     const response = await POST(
       request("POST", {
         headers: BEARER,
-        body: { reactions: [{ itemId: ITEM, kind: "like", updatedAt: T0, deleted: false }] },
+        body: {
+          reactions: [
+            { itemId: ITEM, kind: "like", updatedAt: T0, deleted: false },
+          ],
+        },
       })
     );
     const body = await response.json();
@@ -351,14 +393,20 @@ describe("POST /api/mobile/v1/sync — merge", () => {
 
   it("keeps a tombstone when a stale non-deleted push arrives", async () => {
     findBookmarks.mockResolvedValue([
-      bookmarkRow({ title: "deleted", updatedAt: new Date(T1), deletedAt: new Date(T1) }),
+      bookmarkRow({
+        title: "deleted",
+        updatedAt: new Date(T1),
+        deletedAt: new Date(T1),
+      }),
     ]);
 
     const response = await POST(
       request("POST", {
         headers: BEARER,
         body: {
-          bookmarks: [{ itemId: ITEM, title: "resurrect", updatedAt: T0, deleted: false }],
+          bookmarks: [
+            { itemId: ITEM, title: "resurrect", updatedAt: T0, deleted: false },
+          ],
         },
       })
     );
@@ -375,7 +423,11 @@ describe("POST /api/mobile/v1/sync — merge", () => {
     const response = await POST(
       request("POST", {
         headers: BEARER,
-        body: { bookmarks: [{ itemId: ITEM, title: "gone", updatedAt: T1, deleted: true }] },
+        body: {
+          bookmarks: [
+            { itemId: ITEM, title: "gone", updatedAt: T1, deleted: true },
+          ],
+        },
       })
     );
     const body = await response.json();
@@ -394,7 +446,14 @@ describe("POST /api/mobile/v1/sync — merge", () => {
         body: {
           bookmarks: [{ itemId: ITEM, title: "saved", updatedAt: T0 }],
           reactions: [{ itemId: ITEM, kind: "like", updatedAt: T0 }],
-          follows: [{ targetId: "team:lal", kind: "team", label: "Lakers", updatedAt: T0 }],
+          follows: [
+            {
+              targetId: "team:lal",
+              kind: "team",
+              label: "Lakers",
+              updatedAt: T0,
+            },
+          ],
         },
       })
     );
@@ -402,7 +461,10 @@ describe("POST /api/mobile/v1/sync — merge", () => {
 
     expect(response.status).toBe(200);
     expect(body.applied).toEqual({ bookmarks: 1, reactions: 1, follows: 1 });
-    expect(body.state.follows[0]).toMatchObject({ targetId: "team:lal", kind: "team" });
+    expect(body.state.follows[0]).toMatchObject({
+      targetId: "team:lal",
+      kind: "team",
+    });
     expect(executeRaw).toHaveBeenCalledTimes(6);
   });
 });
@@ -410,7 +472,10 @@ describe("POST /api/mobile/v1/sync — merge", () => {
 describe("POST /api/mobile/v1/sync — validation", () => {
   it("answers 400 for a missing required field", async () => {
     const response = await POST(
-      request("POST", { headers: BEARER, body: { bookmarks: [{ itemId: ITEM }] } })
+      request("POST", {
+        headers: BEARER,
+        body: { bookmarks: [{ itemId: ITEM }] },
+      })
     );
 
     expect(response.status).toBe(400);
@@ -421,7 +486,9 @@ describe("POST /api/mobile/v1/sync — validation", () => {
     const response = await POST(
       request("POST", {
         headers: BEARER,
-        body: { bookmarks: [{ itemId: ITEM, title: "x", updatedAt: "16/10/2026" }] },
+        body: {
+          bookmarks: [{ itemId: ITEM, title: "x", updatedAt: "16/10/2026" }],
+        },
       })
     );
 
@@ -432,7 +499,9 @@ describe("POST /api/mobile/v1/sync — validation", () => {
     const follow = await POST(
       request("POST", {
         headers: BEARER,
-        body: { follows: [{ targetId: "team:lal", kind: "sport", updatedAt: T0 }] },
+        body: {
+          follows: [{ targetId: "team:lal", kind: "sport", updatedAt: T0 }],
+        },
       })
     );
     const reaction = await POST(
@@ -447,7 +516,9 @@ describe("POST /api/mobile/v1/sync — validation", () => {
   });
 
   it("answers 400 for malformed JSON", async () => {
-    const response = await POST(request("POST", { headers: BEARER, body: "{not json" }));
+    const response = await POST(
+      request("POST", { headers: BEARER, body: "{not json" })
+    );
 
     expect(response.status).toBe(400);
   });
@@ -459,7 +530,9 @@ describe("POST /api/mobile/v1/sync — validation", () => {
       updatedAt: T0,
     }));
 
-    const response = await POST(request("POST", { headers: BEARER, body: { follows } }));
+    const response = await POST(
+      request("POST", { headers: BEARER, body: { follows } })
+    );
 
     expect(response.status).toBe(413);
     expect(executeRaw).not.toHaveBeenCalled();
@@ -473,7 +546,11 @@ describe("POST /api/mobile/v1/sync — validation", () => {
     const response = await POST(
       request("POST", {
         headers: BEARER,
-        body: { bookmarks: [{ itemId: ITEM, title: "big", updatedAt: T0, sourceUrl: padding }] },
+        body: {
+          bookmarks: [
+            { itemId: ITEM, title: "big", updatedAt: T0, sourceUrl: padding },
+          ],
+        },
       })
     );
 
@@ -495,9 +572,15 @@ describe("POST /api/mobile/v1/sync — validation", () => {
 
 describe("POST /api/mobile/v1/sync — limits and faults", () => {
   it("answers 429 with Retry-After when the per-user bucket is empty", async () => {
-    rateLimit.mockResolvedValue({ allowed: false, remaining: 0, retryAfter: 90 });
+    rateLimit.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfter: 90,
+    });
 
-    const response = await POST(request("POST", { headers: BEARER, body: { bookmarks: [] } }));
+    const response = await POST(
+      request("POST", { headers: BEARER, body: { bookmarks: [] } })
+    );
 
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("90");
@@ -519,7 +602,9 @@ describe("POST /api/mobile/v1/sync — limits and faults", () => {
     );
 
     expect(response.status).toBe(500);
-    expect(report).toHaveBeenCalledWith(expect.any(Error), { where: "api/mobile/v1/sync" });
+    expect(report).toHaveBeenCalledWith(expect.any(Error), {
+      where: "api/mobile/v1/sync",
+    });
   });
 
   it("answers 500 and reports the fault when the pull fails", async () => {
@@ -528,7 +613,9 @@ describe("POST /api/mobile/v1/sync — limits and faults", () => {
     const response = await GET(request("GET", { headers: BEARER }));
 
     expect(response.status).toBe(500);
-    expect(report).toHaveBeenCalledWith(expect.any(Error), { where: "api/mobile/v1/sync" });
+    expect(report).toHaveBeenCalledWith(expect.any(Error), {
+      where: "api/mobile/v1/sync",
+    });
   });
 
   it("sends no-store so no proxy caches per-user state", async () => {

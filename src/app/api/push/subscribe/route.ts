@@ -7,7 +7,10 @@ import { checkDbRateLimit, getClientIp } from "@/lib/rate-limiter";
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const rateLimit = await checkDbRateLimit(`push-sub:${ip}`, { maxRequests: 10, windowMs: 60_000 });
+    const rateLimit = await checkDbRateLimit(`push-sub:${ip}`, {
+      maxRequests: 10,
+      windowMs: 60_000,
+    });
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
@@ -19,7 +22,10 @@ export async function POST(request: Request) {
     const { endpoint, keys } = body;
 
     if (!endpoint || !keys) {
-      return NextResponse.json({ error: "Missing endpoint or keys" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing endpoint or keys" },
+        { status: 400 }
+      );
     }
 
     await db.pushSubscription.upsert({
@@ -56,6 +62,9 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     reportError(error, { where: "api/push/subscribe (DELETE)" });
-    return NextResponse.json({ error: "Failed to unsubscribe" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to unsubscribe" },
+      { status: 500 }
+    );
   }
 }

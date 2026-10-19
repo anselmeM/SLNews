@@ -1,6 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { logger } from "@/lib/logger";
-import { fetchScraperVideos, triggerScraperVideoSync } from "@/lib/scraper-client";
+import {
+  fetchScraperVideos,
+  triggerScraperVideoSync,
+} from "@/lib/scraper-client";
 import { syncScraperVideos } from "@/lib/video-sync";
 
 vi.mock("@/lib/logger", () => ({
@@ -40,7 +43,11 @@ describe("syncScraperVideos", () => {
     const report = await syncScraperVideos();
 
     expect(triggerSync).toHaveBeenCalledTimes(1);
-    expect(report).toMatchObject({ triggered: true, count: 1, triggerError: null });
+    expect(report).toMatchObject({
+      triggered: true,
+      count: 1,
+      triggerError: null,
+    });
     expect(report.readError).toBeNull();
     expect(report.sample).toEqual([
       {
@@ -79,7 +86,10 @@ describe("syncScraperVideos", () => {
 
     const report = await syncScraperVideos();
 
-    expect(report).toMatchObject({ triggerError: "Scraper unreachable", count: 1 });
+    expect(report).toMatchObject({
+      triggerError: "Scraper unreachable",
+      count: 1,
+    });
     expect(report.trigger).toBeNull();
     expect(logger.warn).toHaveBeenCalledWith(
       "videos: scraper ingestion trigger failed",
@@ -92,11 +102,18 @@ describe("syncScraperVideos", () => {
 
     const report = await syncScraperVideos({ trigger: false });
 
-    expect(report).toMatchObject({ count: 0, readError: "Scraper unreachable" });
+    expect(report).toMatchObject({
+      count: 0,
+      readError: "Scraper unreachable",
+    });
   });
 
   it("passes the caller's budget down to the scraper client", async () => {
-    await syncScraperVideos({ limit: 7, triggerTimeoutMs: 1_234, readTimeoutMs: 567 });
+    await syncScraperVideos({
+      limit: 7,
+      triggerTimeoutMs: 1_234,
+      readTimeoutMs: 567,
+    });
 
     expect(triggerSync).toHaveBeenCalledWith(1_234);
     expect(fetchVideos).toHaveBeenCalledWith(7, 1, 567);
@@ -104,7 +121,10 @@ describe("syncScraperVideos", () => {
 
   it("only samples the first few videos", async () => {
     fetchVideos.mockResolvedValue(
-      Array.from({ length: 12 }, (_, index) => ({ ...VIDEO, videoId: `v${index}` }))
+      Array.from({ length: 12 }, (_, index) => ({
+        ...VIDEO,
+        videoId: `v${index}`,
+      }))
     );
 
     const report = await syncScraperVideos({ trigger: false });

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { vibrate, vibrateLight, vibrateSuccess, vibrateWarning } from "@/lib/haptics";
+import {
+  vibrate,
+  vibrateLight,
+  vibrateSuccess,
+  vibrateWarning,
+} from "@/lib/haptics";
 
 afterEach(() => {
   vi.unstubAllGlobals();

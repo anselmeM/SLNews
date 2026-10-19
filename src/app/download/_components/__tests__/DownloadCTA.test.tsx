@@ -14,13 +14,19 @@ describe("DownloadCTA", () => {
 
   it("renders the install and Play Store actions", () => {
     render(<DownloadCTA />);
-    expect(screen.getByRole("button", { name: /install the app/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /get it on google play/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /install the app/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /get it on google play/i })
+    ).toBeInTheDocument();
   });
 
   it("tracks Play Store clicks", () => {
     render(<DownloadCTA />);
-    fireEvent.click(screen.getByRole("link", { name: /get it on google play/i }));
+    fireEvent.click(
+      screen.getByRole("link", { name: /get it on google play/i })
+    );
     expect(trackCustomMetaEvent).toHaveBeenCalledWith("PlayStoreClick", {
       placement: "download_page",
     });
@@ -29,7 +35,11 @@ describe("DownloadCTA", () => {
   it("shows the open action when the app is already installed", () => {
     usePWAStore.setState({ isStandalone: true });
     render(<DownloadCTA />);
-    expect(screen.getByRole("link", { name: /open slnews/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /install the app/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /open slnews/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /install the app/i })
+    ).not.toBeInTheDocument();
   });
 });

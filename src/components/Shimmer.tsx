@@ -2,7 +2,9 @@
 
 export function ShimmerBar({ className = "" }: { className?: string }) {
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-gray-200 dark:bg-gray-800 ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-xl bg-gray-200 dark:bg-gray-800 ${className}`}
+    >
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent" />
     </div>
   );
@@ -85,7 +87,10 @@ export function ShimmerDashboard() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-4 space-y-2">
+          <div
+            key={i}
+            className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-4 space-y-2"
+          >
             <ShimmerBar className="h-3 w-16" />
             <ShimmerBar className="h-7 w-20" />
           </div>

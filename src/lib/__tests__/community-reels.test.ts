@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchReelsFeed, submitCommunityReel } from "@/app/actions/reel-actions";
+import {
+  fetchReelsFeed,
+  submitCommunityReel,
+} from "@/app/actions/reel-actions";
 import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
@@ -38,10 +41,14 @@ vi.mock("@/lib/db", () => ({
         status: "IN_REVIEW",
       }),
       findMany: vi.fn().mockResolvedValue([]),
-      update: vi.fn().mockResolvedValue({ id: "article-test-123", status: "PUBLISHED" }),
+      update: vi
+        .fn()
+        .mockResolvedValue({ id: "article-test-123", status: "PUBLISHED" }),
     },
     user: {
-      update: vi.fn().mockResolvedValue({ id: "user-test-123", role: "WRITER" }),
+      update: vi
+        .fn()
+        .mockResolvedValue({ id: "user-test-123", role: "WRITER" }),
     },
   },
 }));
@@ -156,7 +163,9 @@ describe("fetchReelsFeed", () => {
 
     expect(reels.length).toBeGreaterThan(0);
     // Only curated clips and published community reels can be served.
-    expect(reels.every((reel) => reel.authorId !== "scraper-system")).toBe(true);
+    expect(reels.every((reel) => reel.authorId !== "scraper-system")).toBe(
+      true
+    );
   });
 
   it("logs a failure, because the feed looks the same either way", async () => {

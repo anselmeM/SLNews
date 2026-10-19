@@ -4,10 +4,12 @@ import { auth } from "@/auth";
 import { CATEGORY_ICON_MAP } from "@/lib/announcement-constants";
 import { db } from "@/lib/db";
 
-
-export async function postAnnouncement(formData: FormData): Promise<{ success: boolean; error?: string }> {
+export async function postAnnouncement(
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
-  if (!session?.user?.id) return { success: false, error: "You must be signed in to post a notice." };
+  if (!session?.user?.id)
+    return { success: false, error: "You must be signed in to post a notice." };
 
   const title = formData.get("title") as string;
   let body = formData.get("body") as string;
@@ -18,11 +20,16 @@ export async function postAnnouncement(formData: FormData): Promise<{ success: b
   const contact = (formData.get("contact") as string)?.trim() || null;
 
   if (!title || !body || !category || !organization || !location) {
-    return { success: false, error: "All fields except urgency and contact are required." };
+    return {
+      success: false,
+      error: "All fields except urgency and contact are required.",
+    };
   }
 
-  if (title.length > 200) return { success: false, error: "Title is too long (max 200 characters)." };
-  if (body.length > 5000) return { success: false, error: "Body is too long (max 5000 characters)." };
+  if (title.length > 200)
+    return { success: false, error: "Title is too long (max 200 characters)." };
+  if (body.length > 5000)
+    return { success: false, error: "Body is too long (max 5000 characters)." };
 
   if (contact && !body.includes(contact)) {
     body = `${body}\n\nContact / WhatsApp: ${contact}`;
@@ -49,6 +56,9 @@ export async function postAnnouncement(formData: FormData): Promise<{ success: b
     });
     return { success: true };
   } catch {
-    return { success: false, error: "Failed to post notice. Please try again." };
+    return {
+      success: false,
+      error: "Failed to post notice. Please try again.",
+    };
   }
 }

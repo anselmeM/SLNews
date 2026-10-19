@@ -37,11 +37,15 @@ describe("PWA Install & Device Download Store", () => {
   });
 
   it("triggers native prompt when deferredPrompt exists and handles acceptance", async () => {
-    const promptMock = vi.fn().mockResolvedValue({ outcome: "accepted" as const });
+    const promptMock = vi
+      .fn()
+      .mockResolvedValue({ outcome: "accepted" as const });
     const mockEvent = {
       prompt: promptMock,
       userChoice: Promise.resolve({ outcome: "accepted" as const }),
-    } as unknown as NonNullable<ReturnType<typeof usePWAStore.getState>["deferredPrompt"]>;
+    } as unknown as NonNullable<
+      ReturnType<typeof usePWAStore.getState>["deferredPrompt"]
+    >;
 
     usePWAStore.getState().setDeferredPrompt(mockEvent);
     expect(usePWAStore.getState().deferredPrompt).not.toBeNull();
@@ -55,11 +59,15 @@ describe("PWA Install & Device Download Store", () => {
   });
 
   it("triggers native prompt when deferredPrompt exists and handles dismissal", async () => {
-    const promptMock = vi.fn().mockResolvedValue({ outcome: "dismissed" as const });
+    const promptMock = vi
+      .fn()
+      .mockResolvedValue({ outcome: "dismissed" as const });
     const mockEvent = {
       prompt: promptMock,
       userChoice: Promise.resolve({ outcome: "dismissed" as const }),
-    } as unknown as NonNullable<ReturnType<typeof usePWAStore.getState>["deferredPrompt"]>;
+    } as unknown as NonNullable<
+      ReturnType<typeof usePWAStore.getState>["deferredPrompt"]
+    >;
 
     usePWAStore.getState().setDeferredPrompt(mockEvent);
 

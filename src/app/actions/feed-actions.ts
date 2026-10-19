@@ -5,7 +5,12 @@ import { db } from "@/lib/db";
 import { rankFeedByInterest } from "@/lib/feed-ranking";
 import { feedInterestCategories } from "@/lib/interest-profile";
 import type { NewsArticle } from "@/lib/news-service";
-import { fetchMixedNews, fetchLocalNews, fetchWorldNews, mapPrismaArticle } from "@/lib/news-service";
+import {
+  fetchMixedNews,
+  fetchLocalNews,
+  fetchWorldNews,
+  mapPrismaArticle,
+} from "@/lib/news-service";
 
 // The home feed is a fixed mix of international + national news for everyone:
 // topics rank it (see `getUnseenNews`), they never filter it.
@@ -22,7 +27,11 @@ export async function getLocalNewsPage(
   return fetchLocalNews(province, district, skip, take);
 }
 
-export async function getWorldNewsPage(topic: string, skip = 0, take = 10): Promise<NewsArticle[]> {
+export async function getWorldNewsPage(
+  topic: string,
+  skip = 0,
+  take = 10
+): Promise<NewsArticle[]> {
   return fetchWorldNews(topic, skip, take);
 }
 
@@ -47,7 +56,10 @@ async function currentInterestCategories(): Promise<Set<string>> {
   }
 }
 
-export async function getUnseenNews(seenIds: string[], take = 10): Promise<NewsArticle[]> {
+export async function getUnseenNews(
+  seenIds: string[],
+  take = 10
+): Promise<NewsArticle[]> {
   const where: Record<string, unknown> = {
     published: true,
     status: "PUBLISHED",
@@ -67,8 +79,13 @@ export async function getUnseenNews(seenIds: string[], take = 10): Promise<NewsA
       author: true,
       categories: true,
     },
-    take: interestCategories.size > 0 ? take * INTEREST_CANDIDATE_MULTIPLIER : take,
+    take:
+      interestCategories.size > 0 ? take * INTEREST_CANDIDATE_MULTIPLIER : take,
   });
 
-  return rankFeedByInterest(articles.map(mapPrismaArticle), interestCategories, take);
+  return rankFeedByInterest(
+    articles.map(mapPrismaArticle),
+    interestCategories,
+    take
+  );
 }

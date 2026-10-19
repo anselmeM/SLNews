@@ -43,8 +43,13 @@ describe("reportError", () => {
   it("handles a non-Error throwable", () => {
     reportError("just a string");
 
-    expect(logger.error).toHaveBeenCalledWith("just a string", expect.objectContaining({}));
-    expect(Sentry.captureException).toHaveBeenCalledWith("just a string", { extra: undefined });
+    expect(logger.error).toHaveBeenCalledWith(
+      "just a string",
+      expect.objectContaining({})
+    );
+    expect(Sentry.captureException).toHaveBeenCalledWith("just a string", {
+      extra: undefined,
+    });
   });
 });
 

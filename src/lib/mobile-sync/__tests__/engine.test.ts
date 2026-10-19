@@ -12,7 +12,11 @@ import type { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import { applySync, pullChanges, type MobileSyncDb } from "../engine";
 import type { BookmarkDbRow, FollowDbRow, ReactionDbRow } from "../engine";
-import type { BookmarkSnapshot, FollowSnapshot, ReactionSnapshot } from "../types";
+import type {
+  BookmarkSnapshot,
+  FollowSnapshot,
+  ReactionSnapshot,
+} from "../types";
 
 type Row = Record<string, unknown>;
 
@@ -41,7 +45,15 @@ const COLUMNS: Record<TableName, string[]> = {
     "deletedAt",
   ],
   mobileReaction: ["id", "userId", "itemId", "kind", "updatedAt", "deletedAt"],
-  mobileFollow: ["id", "userId", "targetId", "kind", "label", "updatedAt", "deletedAt"],
+  mobileFollow: [
+    "id",
+    "userId",
+    "targetId",
+    "kind",
+    "label",
+    "updatedAt",
+    "deletedAt",
+  ],
 };
 
 /**
@@ -75,7 +87,9 @@ function tuples(sql: string, values: unknown[]): unknown[][] {
   return groups
     .filter((group) => /^\s*\$\d+/.test(group))
     .map((group) =>
-      [...group.matchAll(/\$(\d+)/g)].map((token) => values[Number(token[1]) - 1])
+      [...group.matchAll(/\$(\d+)/g)].map(
+        (token) => values[Number(token[1]) - 1]
+      )
     );
 }
 
@@ -84,7 +98,9 @@ function tuples(sql: string, values: unknown[]): unknown[][] {
  * `AS source ("a", …)` alias for the guarded update.
  */
 function columnList(sql: string): string[] {
-  const match = /INSERT INTO "[^"]+" \(([^)]*)\)/.exec(sql) ?? /AS source \(([^)]*)\)/.exec(sql);
+  const match =
+    /INSERT INTO "[^"]+" \(([^)]*)\)/.exec(sql) ??
+    /AS source \(([^)]*)\)/.exec(sql);
   if (!match?.[1]) return [];
   return match[1]
     .split(",")
@@ -164,7 +180,10 @@ function fakeDb(seed: Partial<Record<TableName, Row[]>> = {}): FakeDb {
     const insert = sql.trimStart().startsWith("INSERT");
     // SQL names the table as Postgres does (`"MobileBookmark"`); the maps below
     // are keyed the way Prisma names the model (`mobileBookmark`).
-    const table = MODEL_OF_TABLE[sql.match(/"Mobile(Bookmark|Reaction|Follow)"/)?.[0] ?? ""];
+    const table =
+      MODEL_OF_TABLE[
+        sql.match(/"Mobile(Bookmark|Reaction|Follow)"/)?.[0] ?? ""
+      ];
     if (!table) return 0;
 
     if (insert) {
@@ -177,7 +196,8 @@ function fakeDb(seed: Partial<Record<TableName, Row[]>> = {}): FakeDb {
         const typed = typedRow(row);
         tables[table].set(`${typed.userId}|${keyOf(table, typed)}`, typed);
       }
-      return 1;    }
+      return 1;
+    }
 
     // UPDATE … SET "col" = excluded."col" … FROM (VALUES …) WHERE source."updatedAt" > target."updatedAt"
     const sourceColumns = COLUMNS[table];
@@ -190,7 +210,12 @@ function fakeDb(seed: Partial<Record<TableName, Row[]>> = {}): FakeDb {
       const key = `${source.userId}|${keyOf(table, source)}`;
       const target = tables[table].get(key);
       if (!target) continue;
-      if (!((source.updatedAt as Date).getTime() > (target.updatedAt as Date).getTime())) {
+      if (
+        !(
+          (source.updatedAt as Date).getTime() >
+          (target.updatedAt as Date).getTime()
+        )
+      ) {
         continue;
       }
       sourceColumns.forEach((column) => {
@@ -203,12 +228,18 @@ function fakeDb(seed: Partial<Record<TableName, Row[]>> = {}): FakeDb {
 
   // The engine declares its row shapes; this fake shadows one table at a time,
   // so the returned rows are whatever that table's columns are.
-  const asRows = <T,>(finder: (args: unknown) => Promise<Row[]>): ((args: unknown) => Promise<T[]>) =>
+  const asRows = <T>(
+    finder: (args: unknown) => Promise<Row[]>
+  ): ((args: unknown) => Promise<T[]>) =>
     finder as unknown as (args: unknown) => Promise<T[]>;
 
   const db: MobileSyncDb = {
-    mobileBookmark: { findMany: asRows<BookmarkDbRow>(findMany("mobileBookmark")) },
-    mobileReaction: { findMany: asRows<ReactionDbRow>(findMany("mobileReaction")) },
+    mobileBookmark: {
+      findMany: asRows<BookmarkDbRow>(findMany("mobileBookmark")),
+    },
+    mobileReaction: {
+      findMany: asRows<ReactionDbRow>(findMany("mobileReaction")),
+    },
     mobileFollow: { findMany: asRows<FollowDbRow>(findMany("mobileFollow")) },
     $executeRaw: executeRaw,
     $transaction: async (fn) => fn(db),
@@ -239,11 +270,24 @@ function bookmark(overrides: Partial<BookmarkSnapshot> = {}): BookmarkSnapshot {
 }
 
 function reaction(overrides: Partial<ReactionSnapshot> = {}): ReactionSnapshot {
-  return { itemId: "slnews-api:4821", kind: "like", updatedAt: at(0), deleted: false, ...overrides };
+  return {
+    itemId: "slnews-api:4821",
+    kind: "like",
+    updatedAt: at(0),
+    deleted: false,
+    ...overrides,
+  };
 }
 
 function follow(overrides: Partial<FollowSnapshot> = {}): FollowSnapshot {
-  return { targetId: "team:lal", kind: "team", label: "Lakers", updatedAt: at(0), deleted: false, ...overrides };
+  return {
+    targetId: "team:lal",
+    kind: "team",
+    label: "Lakers",
+    updatedAt: at(0),
+    deleted: false,
+    ...overrides,
+  };
 }
 
 function emptyPayload() {
@@ -347,7 +391,10 @@ describe("applySync — last write wins", () => {
 
     expect(result.applied.reactions).toBe(0);
     expect(result.rejected).toEqual([]);
-    expect(result.state.reactions[0]).toMatchObject({ itemId: "slnews-api:4821", deleted: false });
+    expect(result.state.reactions[0]).toMatchObject({
+      itemId: "slnews-api:4821",
+      deleted: false,
+    });
     expect(statements).toEqual([]);
   });
 
@@ -367,7 +414,10 @@ describe("applySync — last write wins", () => {
     expect(result.applied.bookmarks).toBe(1);
     expect(result.rejected).toHaveLength(1);
     expect(result.rejected[0]).toMatchObject({ itemId: "a", reason: "stale" });
-    expect(result.state.bookmarks.map((row) => row.itemId).sort()).toEqual(["a", "b"]);
+    expect(result.state.bookmarks.map((row) => row.itemId).sort()).toEqual([
+      "a",
+      "b",
+    ]);
   });
 });
 
@@ -395,7 +445,9 @@ describe("applySync — tombstones", () => {
       { collection: "bookmarks", itemId: "slnews-api:4821", reason: "stale" },
     ]);
     expect(resurrect.state.bookmarks[0]?.deleted).toBe(true);
-    expect(resurrect.state.bookmarks[0]?.title).toBe("Leone Stars level with Guinea");
+    expect(resurrect.state.bookmarks[0]?.title).toBe(
+      "Leone Stars level with Guinea"
+    );
   });
 
   it("lets a genuinely newer edit win after a delete", async () => {
@@ -421,7 +473,11 @@ describe("applySync — tombstones", () => {
     // smuggle `deleted: false` past a newer tombstone.
     const { db, tables } = fakeDb({
       mobileFollow: [
-        storedFollow({ label: null, updatedAt: at(60_000), deletedAt: at(60_000) }),
+        storedFollow({
+          label: null,
+          updatedAt: at(60_000),
+          deletedAt: at(60_000),
+        }),
       ],
     });
 
@@ -433,9 +489,11 @@ describe("applySync — tombstones", () => {
     expect(result.rejected).toEqual([]);
     expect(result.applied.follows).toBe(0);
     expect(result.state.follows[0]?.deleted).toBe(true);
-    expect((tables.mobileFollow.get(`${USER}|team:lal`)?.deletedAt as Date)?.getTime()).toBe(
-      at(60_000).getTime()
-    );
+    expect(
+      (
+        tables.mobileFollow.get(`${USER}|team:lal`)?.deletedAt as Date
+      )?.getTime()
+    ).toBe(at(60_000).getTime());
   });
 });
 
@@ -446,7 +504,10 @@ describe("applySync — batching and isolation", () => {
       follow({ targetId: `team:t${index}`, updatedAt: at(index) })
     );
 
-    const result = await applySync(db, USER, { ...emptyPayload(), follows: rows });
+    const result = await applySync(db, USER, {
+      ...emptyPayload(),
+      follows: rows,
+    });
 
     expect(result.applied.follows).toBe(700);
     expect(tables.mobileFollow.size).toBe(700);
@@ -456,7 +517,13 @@ describe("applySync — batching and isolation", () => {
 
   it("leaves other users' rows untouched", async () => {
     const { db, tables } = fakeDb({
-      mobileBookmark: [storedBookmark({ userId: "someone_else", itemId: "a", title: "theirs" })],
+      mobileBookmark: [
+        storedBookmark({
+          userId: "someone_else",
+          itemId: "a",
+          title: "theirs",
+        }),
+      ],
     });
 
     const result = await applySync(db, USER, {
@@ -488,14 +555,21 @@ describe("applySync — SQL against the real schema", () => {
   // The fake understands the statements structurally, so a column name typo would
   // slip past every test above and only surface against Neon. These assertions
   // pin the statements to `prisma/schema.prisma`.
-  const schema: Record<TableName, { table: string; key: string; nullable: string[] }> = {
+  const schema: Record<
+    TableName,
+    { table: string; key: string; nullable: string[] }
+  > = {
     mobileBookmark: {
       table: "MobileBookmark",
       key: "itemId",
       nullable: ["sourceUrl", "imageUrl", "publisher", "publishedAt"],
     },
     mobileReaction: { table: "MobileReaction", key: "itemId", nullable: [] },
-    mobileFollow: { table: "MobileFollow", key: "targetId", nullable: ["label"] },
+    mobileFollow: {
+      table: "MobileFollow",
+      key: "targetId",
+      nullable: ["label"],
+    },
   };
 
   it.each(TABLES)("writes %s with its own columns and key", async (table) => {
@@ -531,25 +605,28 @@ describe("applySync — SQL against the real schema", () => {
     }
   });
 
-  it.each(TABLES)("casts %s columns so a VALUES list is not all text", async (table) => {
-    const { db, statements } = fakeDb();
-    const payload = {
-      bookmarks: table === "mobileBookmark" ? [bookmark()] : [],
-      reactions: table === "mobileReaction" ? [reaction()] : [],
-      follows: table === "mobileFollow" ? [follow()] : [],
-    };
+  it.each(TABLES)(
+    "casts %s columns so a VALUES list is not all text",
+    async (table) => {
+      const { db, statements } = fakeDb();
+      const payload = {
+        bookmarks: table === "mobileBookmark" ? [bookmark()] : [],
+        reactions: table === "mobileReaction" ? [reaction()] : [],
+        follows: table === "mobileFollow" ? [follow()] : [],
+      };
 
-    await applySync(db, USER, payload);
+      await applySync(db, USER, payload);
 
-    const insert = statements[0] ?? "";
-    // Timestamps are the ones Postgres refuses as text (42804).
-    for (const column of ["savedAt", "updatedAt", "deletedAt"]) {
-      if (insert.includes(`"${column}"`)) {
-        expect(insert).toContain("::timestamp(3)");
+      const insert = statements[0] ?? "";
+      // Timestamps are the ones Postgres refuses as text (42804).
+      for (const column of ["savedAt", "updatedAt", "deletedAt"]) {
+        if (insert.includes(`"${column}"`)) {
+          expect(insert).toContain("::timestamp(3)");
+        }
       }
+      expect(insert).toContain("::text");
     }
-    expect(insert).toContain("::text");
-  });
+  );
 
   it("generates an id for each written row", async () => {
     const { db, tables } = fakeDb();
@@ -578,7 +655,12 @@ describe("pullChanges", () => {
   const seed: Partial<Record<TableName, Row[]>> = {
     mobileBookmark: [
       storedBookmark({ itemId: "old", title: "old", updatedAt: at(-60_000) }),
-      storedBookmark({ itemId: "new", title: "new", updatedAt: at(60_000), deletedAt: at(60_000) }),
+      storedBookmark({
+        itemId: "new",
+        title: "new",
+        updatedAt: at(60_000),
+        deletedAt: at(60_000),
+      }),
     ],
     mobileReaction: [storedReaction({ itemId: "new", updatedAt: at(120_000) })],
     mobileFollow: [],
@@ -590,7 +672,9 @@ describe("pullChanges", () => {
 
     expect(result.hasMore).toBe(false);
     expect(result.bookmarks).toHaveLength(2);
-    expect(result.bookmarks.find((row) => row.itemId === "new")?.deleted).toBe(true);
+    expect(result.bookmarks.find((row) => row.itemId === "new")?.deleted).toBe(
+      true
+    );
     expect(result.reactions).toHaveLength(1);
   });
 

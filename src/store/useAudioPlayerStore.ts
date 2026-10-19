@@ -10,7 +10,7 @@ interface AudioPlayerState {
   playbackRate: PlaybackRate;
   isSupported: boolean;
   minimized: boolean;
-  
+
   // Actions
   init: () => void;
   playArticle: (article: NewsArticle) => void;
@@ -83,7 +83,10 @@ function speakArticle(
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
   const sessionId = ++currentPlaybackSessionId;
-  const contentClean = (article.content || article.summary || "").replace(/\n+/g, ". ");
+  const contentClean = (article.content || article.summary || "").replace(
+    /\n+/g,
+    ". "
+  );
   const text = `${article.title}. ${contentClean}`;
   const chunks = chunkText(text);
 
@@ -170,7 +173,12 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
       nextIndex = 0;
     }
 
-    set({ queue: nextQueue, currentIndex: nextIndex, isPlaying: true, minimized: false });
+    set({
+      queue: nextQueue,
+      currentIndex: nextIndex,
+      isPlaying: true,
+      minimized: false,
+    });
 
     speakArticle(
       article,
@@ -188,7 +196,12 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
 
     if (!targetArticle) return;
 
-    set({ queue: articles, currentIndex: safeIndex, isPlaying: true, minimized: false });
+    set({
+      queue: articles,
+      currentIndex: safeIndex,
+      isPlaying: true,
+      minimized: false,
+    });
 
     speakArticle(
       targetArticle,

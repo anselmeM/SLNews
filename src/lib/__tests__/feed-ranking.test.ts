@@ -137,8 +137,16 @@ describe("rankFeedByInterest", () => {
 
     const ranked = rankFeedByInterest(candidates, interest, 6).map((c) => c.id);
 
-    expect(ranked.filter((id) => id.startsWith("m"))).toEqual(["m1", "m2", "m3"]);
-    expect(ranked.filter((id) => id.startsWith("n"))).toEqual(["n1", "n2", "n3"]);
+    expect(ranked.filter((id) => id.startsWith("m"))).toEqual([
+      "m1",
+      "m2",
+      "m3",
+    ]);
+    expect(ranked.filter((id) => id.startsWith("n"))).toEqual([
+      "n1",
+      "n2",
+      "n3",
+    ]);
   });
 
   it("fills the tail from the remaining group rather than returning a short page", () => {
@@ -152,12 +160,9 @@ describe("rankFeedByInterest", () => {
     // Only one general story exists, so it cannot fill its own slots — but the
     // page still ends with it rather than lifting the older general story to
     // the top ahead of newer matching stories.
-    expect(rankFeedByInterest(mostlyMatching, interest, 4).map((c) => c.id)).toEqual([
-      "m1",
-      "m2",
-      "m3",
-      "n1",
-    ]);
+    expect(
+      rankFeedByInterest(mostlyMatching, interest, 4).map((c) => c.id)
+    ).toEqual(["m1", "m2", "m3", "n1"]);
 
     const mostlyGeneral = [
       candidate("n1"),
@@ -166,14 +171,21 @@ describe("rankFeedByInterest", () => {
       candidate("n4"),
       candidate("m1", "Tech"),
     ];
-    const ranked = rankFeedByInterest(mostlyGeneral, interest, 5).map((c) => c.id);
+    const ranked = rankFeedByInterest(mostlyGeneral, interest, 5).map(
+      (c) => c.id
+    );
     expect(ranked).toHaveLength(5);
     expect(ranked).toContain("m1");
     expect([...ranked].sort()).toEqual(["m1", "n1", "n2", "n3", "n4"]);
   });
 
   it("matches categories case-insensitively and ignores blank entries", () => {
-    const candidates = [candidate("a"), candidate("b"), candidate("c"), candidate("d", "TECH")];
+    const candidates = [
+      candidate("a"),
+      candidate("b"),
+      candidate("c"),
+      candidate("d", "TECH"),
+    ];
 
     const ranked = rankFeedByInterest(candidates, new Set([" tech ", ""]), 4);
 
@@ -198,6 +210,8 @@ describe("rankFeedByInterest", () => {
   });
 
   it("returns nothing for a non-positive page size", () => {
-    expect(rankFeedByInterest([candidate("a", "Tech")], interest, 0)).toEqual([]);
+    expect(rankFeedByInterest([candidate("a", "Tech")], interest, 0)).toEqual(
+      []
+    );
   });
 });

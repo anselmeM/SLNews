@@ -28,7 +28,11 @@ export function checkRateLimit(
     return { allowed: false, remaining: 0, retryAfter };
   }
 
-  return { allowed: true, remaining: maxRequests - bucket.count, retryAfter: 0 };
+  return {
+    allowed: true,
+    remaining: maxRequests - bucket.count,
+    retryAfter: 0,
+  };
 }
 
 export async function checkDbRateLimit(
@@ -51,7 +55,9 @@ export async function checkDbRateLimit(
     }
 
     if (existing.count >= maxRequests) {
-      const retryAfter = Math.ceil((existing.expiresAt.getTime() - now.getTime()) / 1000);
+      const retryAfter = Math.ceil(
+        (existing.expiresAt.getTime() - now.getTime()) / 1000
+      );
       return { allowed: false, remaining: 0, retryAfter };
     }
 
@@ -60,7 +66,11 @@ export async function checkDbRateLimit(
       data: { count: { increment: 1 } },
     });
 
-    return { allowed: true, remaining: maxRequests - existing.count - 1, retryAfter: 0 };
+    return {
+      allowed: true,
+      remaining: maxRequests - existing.count - 1,
+      retryAfter: 0,
+    };
   } catch {
     return checkRateLimit(key, { maxRequests, windowMs });
   }

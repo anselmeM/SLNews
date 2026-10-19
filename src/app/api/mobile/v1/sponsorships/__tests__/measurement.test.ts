@@ -94,9 +94,11 @@ describe("sponsorship measurement", () => {
   it("refuses lifecycle edits without the key", async () => {
     process.env.SPONSORSHIP_ADMIN_KEY = "secret";
     expect(
-      (await patch(adminRequest("PATCH"), {
-        params: Promise.resolve({ id: "sp_1" }),
-      })).status
+      (
+        await patch(adminRequest("PATCH"), {
+          params: Promise.resolve({ id: "sp_1" }),
+        })
+      ).status
     ).toBe(401);
     delete process.env.SPONSORSHIP_ADMIN_KEY;
   });

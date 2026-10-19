@@ -1,9 +1,12 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
+import MarketingHeader from "@/components/marketing/MarketingHeader";
+import ThemeSync from "@/components/ThemeSync";
+import { ToastProvider } from "@/components/Toast";
 import Script from "next/script";
 import "./globals.css";
 import { auth } from "@/auth";
-import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -108,7 +111,12 @@ export default async function RootLayout({
           >
             Skip to content
           </a>
-          <AppLayoutWrapper session={session}>{children}</AppLayoutWrapper>
+          <ToastProvider>
+            <ThemeSync />
+            <MarketingHeader />
+            <main id="main-content">{children}</main>
+            <MarketingFooter />
+          </ToastProvider>
         </body>
       </html>
     </ClerkProvider>

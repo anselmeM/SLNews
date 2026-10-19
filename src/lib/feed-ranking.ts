@@ -52,7 +52,8 @@ export function rankFeedByInterest<T extends { id: string; category: string }>(
 
   while (ranked.length < pageSize) {
     const slot = ranked.length;
-    const isPromotionSlot = slot % INTEREST_SLOT_EVERY === INTEREST_SLOT_EVERY - 1;
+    const isPromotionSlot =
+      slot % INTEREST_SLOT_EVERY === INTEREST_SLOT_EVERY - 1;
     // General news keeps its own slots unless there is not enough of it left to
     // fill them — then the most recent candidate wins, so a scarce general
     // story is never lifted above newer matching stories.
@@ -63,7 +64,9 @@ export function rankFeedByInterest<T extends { id: string; category: string }>(
       (rest.length === 0 && matching.length > 0) ||
       (matching.length > 0 && !restCanCoverOwnSlots && !isPromotionSlot);
 
-    const next = preferMatching ? matching.shift() : rest.shift() ?? matching.shift();
+    const next = preferMatching
+      ? matching.shift()
+      : (rest.shift() ?? matching.shift());
     if (!next) break;
     ranked.push(next);
   }

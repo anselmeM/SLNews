@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { NewsArticle } from '@/lib/news-service';
-import { browserStorage } from '@/lib/persist-storage';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import type { NewsArticle } from "@/lib/news-service";
+import { browserStorage } from "@/lib/persist-storage";
 
 type Theme = "light" | "dark" | "system";
 export type FontSize = "normal" | "large" | "xlarge";
@@ -76,7 +76,8 @@ export const useAppStore = create<AppState>()(
       savedArticleIds: new Set<string>(),
       saveArticle: (article) =>
         set((state) => {
-          if (state.savedArticles.some((a) => a.id === article.id)) return state;
+          if (state.savedArticles.some((a) => a.id === article.id))
+            return state;
           const newIds = new Set(state.savedArticleIds);
           newIds.add(article.id);
           return {
@@ -121,7 +122,9 @@ export const useAppStore = create<AppState>()(
           // A repeat of the most recently opened story (React's double-invoked
           // effect in development, a re-render) must not inflate the count.
           const isRepeatOfLastView = state.recentlyViewed[0]?.id === article.id;
-          const filtered = state.recentlyViewed.filter((a) => a.id !== article.id);
+          const filtered = state.recentlyViewed.filter(
+            (a) => a.id !== article.id
+          );
           return {
             recentlyViewed: [article, ...filtered].slice(0, 20),
             storiesReadCount: isRepeatOfLastView
@@ -145,7 +148,7 @@ export const useAppStore = create<AppState>()(
       setLastRefresh: (ts) => set({ lastRefreshAt: ts }),
     }),
     {
-      name: 'slnews-app-storage',
+      name: "slnews-app-storage",
       version: 3,
       // Hydrate after mount (in AppLayoutWrapper) instead of at module load so
       // the client's first render matches the SSR defaults — otherwise every
@@ -172,9 +175,9 @@ export const useAppStore = create<AppState>()(
         };
         delete state.preferredRegion;
         const LEGACY_TOPIC_MAP: Record<string, string> = { Technology: "Tech" };
-        const topics = ((state.preferredTopics as string[] | undefined) ?? []).map(
-          (t) => LEGACY_TOPIC_MAP[t] ?? t
-        );
+        const topics = (
+          (state.preferredTopics as string[] | undefined) ?? []
+        ).map((t) => LEGACY_TOPIC_MAP[t] ?? t);
         return { ...state, preferredTopics: topics } as unknown as AppState;
       },
       storage: createJSONStorage(browserStorage),
@@ -183,7 +186,9 @@ export const useAppStore = create<AppState>()(
           applyTheme(state.theme);
           applyDataSaver(state.dataSaver);
           if (state.savedArticles && state.savedArticles.length > 0) {
-            state.savedArticleIds = new Set(state.savedArticles.map((a) => a.id));
+            state.savedArticleIds = new Set(
+              state.savedArticles.map((a) => a.id)
+            );
           }
         }
       },
