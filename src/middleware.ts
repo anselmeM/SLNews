@@ -24,10 +24,6 @@ const clerkHandler = hasClerkKeys
         });
       }
 
-      if (req.nextUrl.pathname === "/home") {
-        return NextResponse.redirect(new URL("/", req.url));
-      }
-
       return NextResponse.next();
     })
   : null;
