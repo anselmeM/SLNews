@@ -409,6 +409,9 @@ model Sponsorship {
   startsAt       DateTime  @default(now())
   endsAt         DateTime?
   active         Boolean   @default(true)
+  /// Counters incremented by the app's public event endpoint.
+  impressions    Int       @default(0)
+  taps           Int       @default(0)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
