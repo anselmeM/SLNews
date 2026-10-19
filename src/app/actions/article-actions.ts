@@ -19,7 +19,7 @@ export async function upsertArticle(data: {
   breaking?: boolean;
 }) {
   const session = await auth();
-  
+
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -29,7 +29,18 @@ export async function upsertArticle(data: {
     throw new Error("Forbidden");
   }
 
-  const { id, title, content, summary, imageUrl, province, district, categoryName, submitForReview, breaking } = data;
+  const {
+    id,
+    title,
+    content,
+    summary,
+    imageUrl,
+    province,
+    district,
+    categoryName,
+    submitForReview,
+    breaking,
+  } = data;
 
   const cleanTitle = (title || "").trim();
   const cleanContent = (content || "").trim();
@@ -50,27 +61,35 @@ export async function upsertArticle(data: {
   const canSetBreaking = userRole === "EDITOR" || userRole === "ADMIN";
 
   // Handle categories
-  const categoriesUpdate = categoryName ? {
-    set: [], // clear existing to replace with the new one
-    connectOrCreate: {
-      where: { name: categoryName },
-      create: { name: categoryName },
-    }
-  } : undefined;
+  const categoriesUpdate = categoryName
+    ? {
+        set: [], // clear existing to replace with the new one
+        connectOrCreate: {
+          where: { name: categoryName },
+          create: { name: categoryName },
+        },
+      }
+    : undefined;
 
-  const categoriesCreate = categoryName ? {
-    connectOrCreate: {
-      where: { name: categoryName },
-      create: { name: categoryName },
-    }
-  } : undefined;
+  const categoriesCreate = categoryName
+    ? {
+        connectOrCreate: {
+          where: { name: categoryName },
+          create: { name: categoryName },
+        },
+      }
+    : undefined;
 
   let article;
-  
+
   if (id) {
     const existing = await db.article.findUnique({ where: { id } });
     if (!existing) throw new Error("Article not found");
-    if (existing.authorId !== session.user.id && userRole !== "EDITOR" && userRole !== "ADMIN") {
+    if (
+      existing.authorId !== session.user.id &&
+      userRole !== "EDITOR" &&
+      userRole !== "ADMIN"
+    ) {
       throw new Error("Forbidden");
     }
 
@@ -84,9 +103,14 @@ export async function upsertArticle(data: {
         province: normalizeProvince(province),
         district: district || null,
         status,
-        ...(canSetBreaking ? { breaking: !!breaking, breakingSetAt: breaking ? new Date() : null } : {}),
+        ...(canSetBreaking
+          ? {
+              breaking: !!breaking,
+              breakingSetAt: breaking ? new Date() : null,
+            }
+          : {}),
         ...(categoriesUpdate ? { categories: categoriesUpdate } : {}),
-      }
+      },
     });
   } else {
     article = await db.article.create({
@@ -99,9 +123,14 @@ export async function upsertArticle(data: {
         district: district || null,
         status,
         authorId: session.user.id,
-        ...(canSetBreaking ? { breaking: !!breaking, breakingSetAt: breaking ? new Date() : null } : {}),
+        ...(canSetBreaking
+          ? {
+              breaking: !!breaking,
+              breakingSetAt: breaking ? new Date() : null,
+            }
+          : {}),
         ...(categoriesCreate ? { categories: categoriesCreate } : {}),
-      }
+      },
     });
   }
 

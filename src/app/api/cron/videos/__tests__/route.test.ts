@@ -1,7 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { GET, maxDuration } from "../route";
 import { logger } from "@/lib/logger";
-import { fetchScraperVideos, triggerScraperVideoSync } from "@/lib/scraper-client";
+import {
+  fetchScraperVideos,
+  triggerScraperVideoSync,
+} from "@/lib/scraper-client";
 import { VIDEO_SYNC_MAX_DURATION_S } from "@/lib/video-sync";
 
 vi.mock("@/lib/logger", () => ({
@@ -131,7 +134,11 @@ describe("GET /api/cron/videos", () => {
     const response = await GET(get("?trigger=0", "test-secret"));
     const body = await response.json();
 
-    expect(body).toMatchObject({ success: false, count: 0, readError: "Scraper unreachable" });
+    expect(body).toMatchObject({
+      success: false,
+      count: 0,
+      readError: "Scraper unreachable",
+    });
   });
 
   it("caps the requested page size", async () => {

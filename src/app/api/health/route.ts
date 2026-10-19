@@ -20,7 +20,8 @@ export async function GET() {
       where: { breaking: true, breakingSetAt: { lt: twoHoursAgo } },
       data: { breaking: false, breakingSetAt: null },
     });
-    if (staleBreaking.count > 0) checks.breakingCleanup = `${staleBreaking.count} stale`;
+    if (staleBreaking.count > 0)
+      checks.breakingCleanup = `${staleBreaking.count} stale`;
   } catch (err) {
     checks.database = "error";
     healthy = false;

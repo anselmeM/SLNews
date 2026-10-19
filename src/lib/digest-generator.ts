@@ -55,7 +55,9 @@ export function scoreAndFilterDigestArticles(
       // Topic check
       if (normTopics.length > 0 && art.category) {
         const artCat = art.category.toLowerCase();
-        const matched = normTopics.find((t) => artCat.includes(t) || t.includes(artCat));
+        const matched = normTopics.find(
+          (t) => artCat.includes(t) || t.includes(artCat)
+        );
         if (matched) {
           score += 4;
           reasons.push(art.category);
@@ -93,8 +95,15 @@ export function scoreAndFilterDigestArticles(
     .sort((a, b) => b.score - a.score);
 }
 
-export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDigest {
-  const { userName, preferredTopics = [], articles, targetDate = new Date() } = options;
+export function buildPersonalizedDigest(
+  options: DigestOptions
+): PersonalizedDigest {
+  const {
+    userName,
+    preferredTopics = [],
+    articles,
+    targetDate = new Date(),
+  } = options;
 
   const hours = targetDate.getHours();
   let timeGreeting = "Good Morning";
@@ -104,7 +113,9 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
     timeGreeting = "Good Evening";
   }
 
-  const greeting = userName ? `${timeGreeting}, ${userName.split(" ")[0]}` : `${timeGreeting}`;
+  const greeting = userName
+    ? `${timeGreeting}, ${userName.split(" ")[0]}`
+    : `${timeGreeting}`;
 
   const dateFormatted = targetDate.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -167,7 +178,8 @@ export function buildPersonalizedDigest(options: DigestOptions): PersonalizedDig
   const quickBriefs: DigestQuickBrief[] = [];
   for (const item of scored) {
     if (usedIds.has(item.article.id)) continue;
-    const briefText = item.article.summary || item.article.content.slice(0, 150) + "...";
+    const briefText =
+      item.article.summary || item.article.content.slice(0, 150) + "...";
     quickBriefs.push({
       id: item.article.id,
       title: item.article.title,
@@ -201,7 +213,9 @@ export function generateDigestAudioScript(digest: PersonalizedDigest): string {
   ];
 
   if (digest.leadStory) {
-    parts.push(`Today's lead story: ${digest.leadStory.title}. ${digest.leadStory.summary}`);
+    parts.push(
+      `Today's lead story: ${digest.leadStory.title}. ${digest.leadStory.summary}`
+    );
   }
 
   if (digest.topicStories.length > 0) {
@@ -218,6 +232,8 @@ export function generateDigestAudioScript(digest: PersonalizedDigest): string {
     });
   }
 
-  parts.push("That is your SLNews digest. Stay informed throughout the day on SLNews.");
+  parts.push(
+    "That is your SLNews digest. Stay informed throughout the day on SLNews."
+  );
   return parts.join(" ");
 }

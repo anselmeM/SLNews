@@ -77,7 +77,11 @@ describe("logger", () => {
       const line = vi.mocked(console.log).mock.calls[0]?.[0];
       expect(typeof line).toBe("string");
       const entry = JSON.parse(line as string);
-      expect(entry).toMatchObject({ level: "info", message: "prod message", a: 1 });
+      expect(entry).toMatchObject({
+        level: "info",
+        message: "prod message",
+        a: 1,
+      });
       expect(Date.parse(entry.timestamp)).not.toBeNaN();
     });
 
@@ -87,7 +91,9 @@ describe("logger", () => {
       logger.error("prod error");
 
       expect(console.error).toHaveBeenCalledTimes(1);
-      const entry = JSON.parse(vi.mocked(console.error).mock.calls[0]?.[0] as string);
+      const entry = JSON.parse(
+        vi.mocked(console.error).mock.calls[0]?.[0] as string
+      );
       expect(entry).toMatchObject({ level: "error", message: "prod error" });
     });
   });

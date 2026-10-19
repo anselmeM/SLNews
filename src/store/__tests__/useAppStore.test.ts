@@ -102,7 +102,10 @@ describe("useAppStore — recently viewed", () => {
     useAppStore.getState().addRecentlyViewed(article("b"));
     useAppStore.getState().addRecentlyViewed(article("a"));
 
-    expect(useAppStore.getState().recentlyViewed.map((a) => a.id)).toEqual(["a", "b"]);
+    expect(useAppStore.getState().recentlyViewed.map((a) => a.id)).toEqual([
+      "a",
+      "b",
+    ]);
   });
 
   it("caps the list at 20, dropping the oldest", () => {
@@ -138,7 +141,9 @@ describe("useAppStore — reading accumulation", () => {
     addRecentlyViewed(article("a"));
 
     expect(useAppStore.getState().storiesReadCount).toBe(1);
-    expect(useAppStore.getState().recentlyViewed.map((a) => a.id)).toEqual(["a"]);
+    expect(useAppStore.getState().recentlyViewed.map((a) => a.id)).toEqual([
+      "a",
+    ]);
   });
 
   it("keeps counting past the 20-item recently-viewed cap", () => {
@@ -242,7 +247,9 @@ describe("useAppStore — persistence", () => {
   }
 
   it("partialize drops savedArticleIds, which is not JSON-serializable", () => {
-    const partialize = options().partialize as (s: unknown) => Record<string, unknown>;
+    const partialize = options().partialize as (
+      s: unknown
+    ) => Record<string, unknown>;
     const persisted = partialize({
       ...DEFAULTS,
       savedArticles: [article("a")],
@@ -266,7 +273,10 @@ describe("useAppStore — persistence", () => {
     ) => Record<string, unknown>;
 
     const migrated = migrate(
-      { preferredRegion: "Western Area", preferredTopics: ["Technology", "Sports"] },
+      {
+        preferredRegion: "Western Area",
+        preferredTopics: ["Technology", "Sports"],
+      },
       1
     );
 

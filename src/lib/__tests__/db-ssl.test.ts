@@ -2,7 +2,8 @@ import { Client } from "pg";
 import { describe, expect, it, vi } from "vitest";
 import { resolvePgConnection } from "@/lib/db-ssl";
 
-const NEON = "postgresql://user:pass@ep-example-1.us-east-1.aws.neon.tech/neondb";
+const NEON =
+  "postgresql://user:pass@ep-example-1.us-east-1.aws.neon.tech/neondb";
 
 describe("resolvePgConnection", () => {
   it("keeps TLS on and verified for the modes named in the deprecation", () => {
@@ -52,7 +53,9 @@ describe("resolvePgConnection", () => {
     const resolved = resolvePgConnection(`${NEON}?sslmode=require`);
 
     expect(resolved.connectionString).not.toContain("sslmode");
-    expect(resolved.connectionString).toContain("ep-example-1.us-east-1.aws.neon.tech");
+    expect(resolved.connectionString).toContain(
+      "ep-example-1.us-east-1.aws.neon.tech"
+    );
     expect(resolved.connectionString).toContain("neondb");
   });
 
@@ -71,11 +74,15 @@ describe("resolvePgConnection", () => {
   });
 
   it("reports a URL with no sslmode as unset, so the caller decides", () => {
-    const resolved = resolvePgConnection("postgresql://user:pass@127.0.0.1:5432/slnews");
+    const resolved = resolvePgConnection(
+      "postgresql://user:pass@127.0.0.1:5432/slnews"
+    );
 
     expect(resolved.unset).toBe(true);
     expect(resolved.ssl).toBeUndefined();
-    expect(resolved.connectionString).toBe("postgresql://user:pass@127.0.0.1:5432/slnews");
+    expect(resolved.connectionString).toBe(
+      "postgresql://user:pass@127.0.0.1:5432/slnews"
+    );
   });
 
   it("leaves an explicit libpq opt-in alone instead of overriding it", () => {
@@ -157,7 +164,10 @@ describe("the assumption the fix rests on", () => {
     const resolved = resolvePgConnection(`${NEON}?sslmode=no-verify`);
 
     expect(
-      effectiveSsl({ connectionString: resolved.connectionString, ssl: resolved.ssl })
+      effectiveSsl({
+        connectionString: resolved.connectionString,
+        ssl: resolved.ssl,
+      })
     ).toEqual({ rejectUnauthorized: false });
   });
 
@@ -168,7 +178,9 @@ describe("the assumption the fix rests on", () => {
     // reason resolvePgConnection removes the parameter rather than just passing
     // a stricter `ssl`. If pg ever flips this precedence, this test fails and
     // the reason for strippping the parameter needs re-checking.
-    const viaUrlOnly = effectiveSsl({ connectionString: `${NEON}?sslmode=require` });
+    const viaUrlOnly = effectiveSsl({
+      connectionString: `${NEON}?sslmode=require`,
+    });
     const withExplicit = effectiveSsl({
       connectionString: `${NEON}?sslmode=require`,
       ssl: { rejectUnauthorized: false },
@@ -181,16 +193,22 @@ describe("the assumption the fix rests on", () => {
   it("applies the resolved config once the parameter is gone", () => {
     const resolved = resolvePgConnection(`${NEON}?sslmode=require`);
 
-    expect(effectiveSsl({ connectionString: resolved.connectionString, ssl: resolved.ssl })).toEqual(
-      { rejectUnauthorized: true }
-    );
+    expect(
+      effectiveSsl({
+        connectionString: resolved.connectionString,
+        ssl: resolved.ssl,
+      })
+    ).toEqual({ rejectUnauthorized: true });
   });
 
   it("disables TLS when the URL says disable", () => {
     const resolved = resolvePgConnection(`${NEON}?sslmode=disable`);
 
     expect(
-      effectiveSsl({ connectionString: resolved.connectionString, ssl: resolved.ssl })
+      effectiveSsl({
+        connectionString: resolved.connectionString,
+        ssl: resolved.ssl,
+      })
     ).toBe(false);
   });
 });

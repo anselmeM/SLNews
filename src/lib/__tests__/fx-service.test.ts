@@ -49,12 +49,21 @@ describe("fx-service", () => {
 
     it("handles zero, negative, or invalid amounts gracefully", () => {
       expect(convertCurrency(0, "USD", "SLE")).toEqual({ result: 0, rate: 1 });
-      expect(convertCurrency(-50, "USD", "SLE")).toEqual({ result: 0, rate: 1 });
-      expect(convertCurrency(NaN, "USD", "SLE")).toEqual({ result: 0, rate: 1 });
+      expect(convertCurrency(-50, "USD", "SLE")).toEqual({
+        result: 0,
+        rate: 1,
+      });
+      expect(convertCurrency(NaN, "USD", "SLE")).toEqual({
+        result: 0,
+        rate: 1,
+      });
     });
 
     it("handles unknown currency gracefully", () => {
-      expect(convertCurrency(100, "UNKNOWN", "SLE")).toEqual({ result: 0, rate: 1 });
+      expect(convertCurrency(100, "UNKNOWN", "SLE")).toEqual({
+        result: 0,
+        rate: 1,
+      });
     });
   });
 });

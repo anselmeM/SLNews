@@ -16,10 +16,14 @@ function ok() {
 
 function storedDays(): { day: string; reported: boolean }[] {
   const raw = localStorage.getItem(VISIT_LOG_KEY);
-  return raw ? (JSON.parse(raw) as { days: { day: string; reported: boolean }[] }).days : [];
+  return raw
+    ? (JSON.parse(raw) as { days: { day: string; reported: boolean }[] }).days
+    : [];
 }
 
-function storedDay(day: string): { day: string; reported: boolean } | undefined {
+function storedDay(
+  day: string
+): { day: string; reported: boolean } | undefined {
   return storedDays().find((entry) => entry.day === day);
 }
 
@@ -60,7 +64,10 @@ describe("retention client", () => {
       kind: "session",
       returning: false,
     });
-    expect(storedDay("2026-10-05")).toEqual({ day: "2026-10-05", reported: true });
+    expect(storedDay("2026-10-05")).toEqual({
+      day: "2026-10-05",
+      reported: true,
+    });
   });
 
   it("reports a return visit without sending the earlier day", async () => {
@@ -116,7 +123,10 @@ describe("retention client", () => {
 
     // The day stays pending rather than being silently dropped.
     expect(first.reported).toBe(false);
-    expect(storedDay("2026-10-05")).toEqual({ day: "2026-10-05", reported: false });
+    expect(storedDay("2026-10-05")).toEqual({
+      day: "2026-10-05",
+      reported: false,
+    });
 
     const send = ok();
     const retry = await recordVisitAndReport(
@@ -127,7 +137,10 @@ describe("retention client", () => {
     expect(retry.reported).toBe(true);
     expect(retry.isFirstVisitToday).toBe(false);
     expect(send).toHaveBeenCalledTimes(1);
-    expect(storedDay("2026-10-05")).toEqual({ day: "2026-10-05", reported: true });
+    expect(storedDay("2026-10-05")).toEqual({
+      day: "2026-10-05",
+      reported: true,
+    });
   });
 
   it("retries when the server answers with an error", async () => {
@@ -149,7 +162,10 @@ describe("retention client", () => {
   });
 
   it("treats a legacy string entry for today as already reported", async () => {
-    localStorage.setItem(VISIT_LOG_KEY, JSON.stringify({ days: ["2026-10-05"] }));
+    localStorage.setItem(
+      VISIT_LOG_KEY,
+      JSON.stringify({ days: ["2026-10-05"] })
+    );
     const send = ok();
 
     const outcome = await recordVisitAndReport(
@@ -178,7 +194,10 @@ describe("retention client", () => {
     expect(send).toHaveBeenCalledTimes(1);
     const [, init] = send.mock.calls[0] as [string, RequestInit];
     expect(String(init.body)).toContain('"returning":true');
-    expect(storedDay("2026-10-04")).toEqual({ day: "2026-10-04", reported: true });
+    expect(storedDay("2026-10-04")).toEqual({
+      day: "2026-10-04",
+      reported: true,
+    });
   });
 
   it("shares one request between concurrent mounts", async () => {
@@ -237,12 +256,20 @@ describe("reportSession", () => {
   });
 
   it("reports acceptance, not just delivery", async () => {
-    await expect(reportSession(true, ok() as unknown as typeof fetch)).resolves.toBe(true);
     await expect(
-      reportSession(true, vi.fn().mockResolvedValue({ ok: false }) as unknown as typeof fetch)
+      reportSession(true, ok() as unknown as typeof fetch)
+    ).resolves.toBe(true);
+    await expect(
+      reportSession(
+        true,
+        vi.fn().mockResolvedValue({ ok: false }) as unknown as typeof fetch
+      )
     ).resolves.toBe(false);
     await expect(
-      reportSession(true, vi.fn().mockRejectedValue(new Error("nope")) as unknown as typeof fetch)
+      reportSession(
+        true,
+        vi.fn().mockRejectedValue(new Error("nope")) as unknown as typeof fetch
+      )
     ).resolves.toBe(false);
   });
 });

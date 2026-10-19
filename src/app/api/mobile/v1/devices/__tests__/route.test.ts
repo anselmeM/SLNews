@@ -24,7 +24,10 @@ const TOKEN = "fcm-token-abcdefghijklmnopqrstuvwxyz-0123456789";
 function request(method: string, body?: unknown): Request {
   return new Request("http://localhost/api/mobile/v1/devices", {
     method,
-    headers: { authorization: "Bearer session.jwt", "content-type": "application/json" },
+    headers: {
+      authorization: "Bearer session.jwt",
+      "content-type": "application/json",
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
 }
@@ -37,32 +40,45 @@ function signedIn(): void {
     image: null,
     role: "USER",
   });
-  vi.mocked(checkDbRateLimit).mockResolvedValue({ allowed: true, retryAfter: 0 } as never);
+  vi.mocked(checkDbRateLimit).mockResolvedValue({
+    allowed: true,
+    retryAfter: 0,
+  } as never);
 }
 
 describe("/api/mobile/v1/devices", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(db.mobileDevice.upsert).mockResolvedValue({} as never);
-    vi.mocked(db.mobileDevice.deleteMany).mockResolvedValue({ count: 1 } as never);
+    vi.mocked(db.mobileDevice.deleteMany).mockResolvedValue({
+      count: 1,
+    } as never);
   });
 
   it("rejects an unauthenticated registration", async () => {
     vi.mocked(resolveMobileUser).mockResolvedValue(null);
-    const response = await POST(request("POST", { token: TOKEN, platform: "android" }));
+    const response = await POST(
+      request("POST", { token: TOKEN, platform: "android" })
+    );
     expect(response.status).toBe(401);
     expect(db.mobileDevice.upsert).not.toHaveBeenCalled();
   });
 
   it("upserts the caller's token idempotently", async () => {
     signedIn();
-    const response = await POST(request("POST", { token: TOKEN, platform: "ios" }));
+    const response = await POST(
+      request("POST", { token: TOKEN, platform: "ios" })
+    );
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true });
     expect(db.mobileDevice.upsert).toHaveBeenCalledWith({
       where: { token: TOKEN },
-      update: { userId: "user-1", platform: "ios", lastSeenAt: expect.any(Date) },
+      update: {
+        userId: "user-1",
+        platform: "ios",
+        lastSeenAt: expect.any(Date),
+      },
       create: { userId: "user-1", token: TOKEN, platform: "ios" },
     });
   });
@@ -71,7 +87,9 @@ describe("/api/mobile/v1/devices", () => {
     signedIn();
     await POST(request("POST", { token: TOKEN }));
     expect(db.mobileDevice.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ create: expect.objectContaining({ platform: "android" }) })
+      expect.objectContaining({
+        create: expect.objectContaining({ platform: "android" }),
+      })
     );
   });
 
@@ -84,7 +102,9 @@ describe("/api/mobile/v1/devices", () => {
     const weird = await POST(request("POST", { token: `${TOKEN} !!!` }));
     expect(weird.status).toBe(400);
 
-    const platform = await POST(request("POST", { token: TOKEN, platform: "windows-phone" }));
+    const platform = await POST(
+      request("POST", { token: TOKEN, platform: "windows-phone" })
+    );
     expect(platform.status).toBe(400);
 
     const noBody = await POST(request("POST"));
@@ -94,9 +114,14 @@ describe("/api/mobile/v1/devices", () => {
 
   it("rate-limits a caller who registers in a loop", async () => {
     signedIn();
-    vi.mocked(checkDbRateLimit).mockResolvedValue({ allowed: false, retryAfter: 12 } as never);
+    vi.mocked(checkDbRateLimit).mockResolvedValue({
+      allowed: false,
+      retryAfter: 12,
+    } as never);
 
-    const response = await POST(request("POST", { token: TOKEN, platform: "android" }));
+    const response = await POST(
+      request("POST", { token: TOKEN, platform: "android" })
+    );
 
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("12");

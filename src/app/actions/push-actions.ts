@@ -53,7 +53,8 @@ export async function sendPushNotifications(
 ): Promise<PushResult> {
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
-  const contactEmail = process.env.VAPID_CONTACT_EMAIL || "admin@slnews.vercel.app";
+  const contactEmail =
+    process.env.VAPID_CONTACT_EMAIL || "admin@slnews.vercel.app";
 
   const payload = JSON.stringify({
     title,
@@ -77,7 +78,11 @@ export async function sendPushNotifications(
   let error: string | undefined;
 
   if (vapidPublic && vapidPrivate) {
-    webpush.setVapidDetails(`mailto:${contactEmail}`, vapidPublic, vapidPrivate);
+    webpush.setVapidDetails(
+      `mailto:${contactEmail}`,
+      vapidPublic,
+      vapidPrivate
+    );
 
     let where: Prisma.PushSubscriptionWhereInput | undefined;
     if (opts.userIds && opts.userIds.length > 0) {

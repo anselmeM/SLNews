@@ -35,7 +35,9 @@ describe("contact-utils", () => {
     });
 
     it("includes pre-filled message when provided", () => {
-      expect(getWhatsAppUrl("076123456", "Hello regarding your notice on SLNews")).toBe(
+      expect(
+        getWhatsAppUrl("076123456", "Hello regarding your notice on SLNews")
+      ).toBe(
         "https://wa.me/23276123456?text=Hello%20regarding%20your%20notice%20on%20SLNews"
       );
     });
@@ -58,17 +60,21 @@ describe("contact-utils", () => {
 
   describe("extractContactPhone", () => {
     it("extracts phone number from notice body with Contact prefix", () => {
-      const body = "Hiring experienced driver in Freetown.\n\nContact / WhatsApp: 076 123 456";
+      const body =
+        "Hiring experienced driver in Freetown.\n\nContact / WhatsApp: 076 123 456";
       expect(extractContactPhone(body)).toBe("+23276123456");
     });
 
     it("extracts direct Sierra Leone phone numbers from text", () => {
-      const body = "House for rent at Hill Station. Call +232 78 987654 for inspection.";
+      const body =
+        "House for rent at Hill Station. Call +232 78 987654 for inspection.";
       expect(extractContactPhone(body)).toBe("+23278987654");
     });
 
     it("returns null if no phone number exists", () => {
-      expect(extractContactPhone("General public advisory about weather.")).toBeNull();
+      expect(
+        extractContactPhone("General public advisory about weather.")
+      ).toBeNull();
     });
   });
 });

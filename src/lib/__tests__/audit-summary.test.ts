@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { parseAuditReport, summariseAudit, toEnvFile, type AuditReport } from "@/lib/audit-summary";
+import {
+  parseAuditReport,
+  summariseAudit,
+  toEnvFile,
+  type AuditReport,
+} from "@/lib/audit-summary";
 
 function report(overrides: Partial<AuditReport> = {}): AuditReport {
   return {
-    metadata: { vulnerabilities: { info: 0, low: 0, moderate: 1, high: 2, critical: 0 } },
+    metadata: {
+      vulnerabilities: { info: 0, low: 0, moderate: 1, high: 2, critical: 0 },
+    },
     vulnerabilities: {
       "source-map-js": {
         severity: "high",
@@ -11,8 +18,18 @@ function report(overrides: Partial<AuditReport> = {}): AuditReport {
         fixAvailable: true,
         isDirect: false,
       },
-      sharp: { severity: "high", range: "<0.35.5", fixAvailable: true, isDirect: true },
-      "fast-uri": { severity: "moderate", range: "<3.1.8", fixAvailable: true, isDirect: false },
+      sharp: {
+        severity: "high",
+        range: "<0.35.5",
+        fixAvailable: true,
+        isDirect: true,
+      },
+      "fast-uri": {
+        severity: "moderate",
+        range: "<3.1.8",
+        fixAvailable: true,
+        isDirect: false,
+      },
     },
     ...overrides,
   };
@@ -22,7 +39,13 @@ describe("summariseAudit", () => {
   it("counts what npm reported and treats high + critical as actionable", () => {
     const summary = summariseAudit(report(), { date: "2026-10-07" });
 
-    expect(summary.counts).toEqual({ info: 0, low: 0, moderate: 1, high: 2, critical: 0 });
+    expect(summary.counts).toEqual({
+      info: 0,
+      low: 0,
+      moderate: 1,
+      high: 2,
+      critical: 0,
+    });
     expect(summary.actionable).toBe(2);
   });
 
@@ -33,7 +56,11 @@ describe("summariseAudit", () => {
         vulnerabilities: {
           moderate: { severity: "moderate", range: "<1", fixAvailable: true },
           "some-high": { severity: "high", range: "<2", fixAvailable: true },
-          "some-critical": { severity: "critical", range: "<3", fixAvailable: true },
+          "some-critical": {
+            severity: "critical",
+            range: "<3",
+            fixAvailable: true,
+          },
         },
       })
     );
@@ -50,20 +77,31 @@ describe("summariseAudit", () => {
       report({
         metadata: { vulnerabilities: { high: 1 } },
         vulnerabilities: {
-          librsvg: { severity: "high", range: "<2.63.3", fixAvailable: false, isDirect: false },
+          librsvg: {
+            severity: "high",
+            range: "<2.63.3",
+            fixAvailable: false,
+            isDirect: false,
+          },
         },
       }),
       { date: "2026-10-07" }
     );
 
-    expect(summary.markdown).toContain("| `librsvg` | high | `<2.63.3` | no | **no** |");
+    expect(summary.markdown).toContain(
+      "| `librsvg` | high | `<2.63.3` | no | **no** |"
+    );
   });
 
   it("says which advisories are direct dependencies", () => {
     const summary = summariseAudit(report(), { date: "2026-10-07" });
 
-    expect(summary.markdown).toContain("| `sharp` | high | `<0.35.5` | yes | yes |");
-    expect(summary.markdown).toContain("| `source-map-js` | high | `<1.2.2` | no | yes |");
+    expect(summary.markdown).toContain(
+      "| `sharp` | high | `<0.35.5` | yes | yes |"
+    );
+    expect(summary.markdown).toContain(
+      "| `source-map-js` | high | `<1.2.2` | no | yes |"
+    );
   });
 
   it("names the overrides escape hatch when something has no patch", () => {
@@ -73,7 +111,10 @@ describe("summariseAudit", () => {
   });
 
   it("attaches the raw output behind a details block", () => {
-    const summary = summariseAudit(report(), { date: "2026-10-07", rawText: "found 3 vulnerabilities" });
+    const summary = summariseAudit(report(), {
+      date: "2026-10-07",
+      rawText: "found 3 vulnerabilities",
+    });
 
     expect(summary.markdown).toContain("<details>");
     expect(summary.markdown).toContain("found 3 vulnerabilities");
@@ -81,7 +122,17 @@ describe("summariseAudit", () => {
 
   it("produces a clean report with no table when there is nothing to report", () => {
     const summary = summariseAudit(
-      { metadata: { vulnerabilities: { info: 0, low: 0, moderate: 2, high: 0, critical: 0 } } },
+      {
+        metadata: {
+          vulnerabilities: {
+            info: 0,
+            low: 0,
+            moderate: 2,
+            high: 0,
+            critical: 0,
+          },
+        },
+      },
       { date: "2026-10-07" }
     );
 
@@ -96,7 +147,13 @@ describe("summariseAudit", () => {
     // not crash and pretend there is nothing there.
     const summary = summariseAudit({});
 
-    expect(summary.counts).toEqual({ info: 0, low: 0, moderate: 0, high: 0, critical: 0 });
+    expect(summary.counts).toEqual({
+      info: 0,
+      low: 0,
+      moderate: 0,
+      high: 0,
+      critical: 0,
+    });
     expect(toEnvFile(summary)).toContain("AUDIT_ACTIONABLE=0");
   });
 });
@@ -105,15 +162,21 @@ describe("parseAuditReport", () => {
   const payload = { metadata: { vulnerabilities: { high: 1 } } };
 
   it("reads the UTF-8 that CI's shell writes", () => {
-    expect(parseAuditReport(Buffer.from(JSON.stringify(payload), "utf8"))).toEqual(payload);
+    expect(
+      parseAuditReport(Buffer.from(JSON.stringify(payload), "utf8"))
+    ).toEqual(payload);
   });
 
   it("reads UTF-8 with a BOM", () => {
-    expect(parseAuditReport(Buffer.from(`\uFEFF${JSON.stringify(payload)}`, "utf8"))).toEqual(payload);
+    expect(
+      parseAuditReport(Buffer.from(`\uFEFF${JSON.stringify(payload)}`, "utf8"))
+    ).toEqual(payload);
   });
 
   it("reads UTF-16 without a BOM", () => {
-    expect(parseAuditReport(Buffer.from(JSON.stringify(payload), "utf16le"))).toEqual(payload);
+    expect(
+      parseAuditReport(Buffer.from(JSON.stringify(payload), "utf16le"))
+    ).toEqual(payload);
   });
 
   it("reads the UTF-16 with a BOM that PowerShell 5.1 writes", () => {

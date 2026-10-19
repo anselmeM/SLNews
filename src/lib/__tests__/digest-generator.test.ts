@@ -36,11 +36,16 @@ describe("digest-generator", () => {
 
   describe("scoreAndFilterDigestArticles", () => {
     it("assigns higher scores to matching topics", () => {
-      const scored = scoreAndFilterDigestArticles(sampleArticles, ["Politics", "Health"]);
+      const scored = scoreAndFilterDigestArticles(sampleArticles, [
+        "Politics",
+        "Health",
+      ]);
 
       // Article 2 (Politics, 3h old) outranks the fresher but unmatched article 1.
       expect(scored[0]!.article.id).toBe("2");
-      expect(scored[0]!.score).toBeGreaterThan(scored[scored.length - 1]!.score);
+      expect(scored[0]!.score).toBeGreaterThan(
+        scored[scored.length - 1]!.score
+      );
       expect(scored[0]!.article.matchReasons).toContain("Politics");
     });
 

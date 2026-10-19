@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const title = searchParams.get("title") || "SLNews - Sierra Leone News & Live Updates";
-  const category = (searchParams.get("category") || "Sierra Leone").toUpperCase();
+  const title =
+    searchParams.get("title") || "SLNews - Sierra Leone News & Live Updates";
+  const category = (
+    searchParams.get("category") || "Sierra Leone"
+  ).toUpperCase();
   const source = searchParams.get("source") || "SLNews Desk";
 
   const lines = splitTitle(title, 34);

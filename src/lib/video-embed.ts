@@ -1,10 +1,5 @@
 export type VideoProvider =
-  | "facebook"
-  | "instagram"
-  | "youtube"
-  | "tiktok"
-  | "direct"
-  | "unknown";
+  "facebook" | "instagram" | "youtube" | "tiktok" | "direct" | "unknown";
 
 export interface ParsedVideo {
   provider: VideoProvider;

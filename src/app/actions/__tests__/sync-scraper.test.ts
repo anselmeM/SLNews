@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { syncFromScraper } from "../sync-scraper";
 import { invalidate } from "@/lib/cache";
 import { db } from "@/lib/db";
-import { fetchScraperNews, ScraperUnreachableError } from "@/lib/scraper-client";
+import {
+  fetchScraperNews,
+  ScraperUnreachableError,
+} from "@/lib/scraper-client";
 
 vi.mock("@/lib/scraper-client", () => {
   class MockScraperUnreachableError extends Error {
@@ -51,17 +54,20 @@ describe("syncFromScraper Action", () => {
       id: "bot-user-123",
       email: "news-bot@slnews.local",
     } as never);
-    (db.category.upsert as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (args: { where: { name?: string } }) =>
-        Promise.resolve({
-          id: `cat-${args.where.name ?? "cat"}`,
-          name: args.where.name ?? "cat",
-        })
+    (
+      db.category.upsert as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation((args: { where: { name?: string } }) =>
+      Promise.resolve({
+        id: `cat-${args.where.name ?? "cat"}`,
+        name: args.where.name ?? "cat",
+      })
     );
   });
 
   it("returns error when scraper is unreachable", async () => {
-    vi.mocked(fetchScraperNews).mockRejectedValue(new ScraperUnreachableError());
+    vi.mocked(fetchScraperNews).mockRejectedValue(
+      new ScraperUnreachableError()
+    );
 
     const res = await syncFromScraper();
     expect(res.success).toBe(false);
@@ -101,7 +107,9 @@ describe("syncFromScraper Action", () => {
 
     // No existing articles
     vi.mocked(db.article.findMany).mockResolvedValue([] as never);
-    vi.mocked(db.article.create).mockResolvedValue({ id: "new-art-1" } as never);
+    vi.mocked(db.article.create).mockResolvedValue({
+      id: "new-art-1",
+    } as never);
 
     const res = await syncFromScraper();
     expect(res.success).toBe(true);
@@ -173,7 +181,9 @@ describe("syncFromScraper Action", () => {
         categories: [{ id: "cat-National", name: "National" }],
       },
     ] as never);
-    vi.mocked(db.article.update).mockResolvedValue({ id: "existing-art-1" } as never);
+    vi.mocked(db.article.update).mockResolvedValue({
+      id: "existing-art-1",
+    } as never);
 
     const res = await syncFromScraper();
     expect(res.success).toBe(true);
@@ -211,7 +221,9 @@ describe("syncFromScraper Action", () => {
         categories: [{ id: "cat-National", name: "National" }],
       },
     ] as never);
-    vi.mocked(db.article.update).mockResolvedValue({ id: "existing-art-1" } as never);
+    vi.mocked(db.article.update).mockResolvedValue({
+      id: "existing-art-1",
+    } as never);
 
     const res = await syncFromScraper();
 
@@ -220,7 +232,9 @@ describe("syncFromScraper Action", () => {
     expect(db.article.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: "existing-art-1" },
-        data: expect.objectContaining({ sourceUrl: "https://example.com/existing" }),
+        data: expect.objectContaining({
+          sourceUrl: "https://example.com/existing",
+        }),
       })
     );
   });
@@ -245,7 +259,9 @@ describe("syncFromScraper Action", () => {
         categories: [{ id: "cat-National", name: "National" }],
       },
     ] as never);
-    vi.mocked(db.article.create).mockResolvedValue({ id: "new-art-2" } as never);
+    vi.mocked(db.article.create).mockResolvedValue({
+      id: "new-art-2",
+    } as never);
 
     const res = await syncFromScraper();
 
@@ -272,7 +288,9 @@ describe("syncFromScraper Action", () => {
       { ...repeated, category: ["Politics"] },
     ]);
     vi.mocked(db.article.findMany).mockResolvedValue([] as never);
-    vi.mocked(db.article.create).mockResolvedValue({ id: "new-art-1" } as never);
+    vi.mocked(db.article.create).mockResolvedValue({
+      id: "new-art-1",
+    } as never);
 
     const res = await syncFromScraper();
 
@@ -280,4 +298,3 @@ describe("syncFromScraper Action", () => {
     expect(db.article.create).toHaveBeenCalledTimes(1);
   });
 });
-

@@ -9,22 +9,31 @@ describe("WhatsApp News Digest Formatter", () => {
   const sampleArticle = {
     id: "art-123",
     title: "Bank of Sierra Leone Introduces New Monetary Framework",
-    summary: "The central bank announced comprehensive measures to stabilize the Leone currency.",
-    content: "The central bank announced comprehensive measures to stabilize the Leone currency.\n\nCommercial banks and foreign exchange bureaus must comply with daily reporting standards. The governor highlighted key foreign reserve targets.",
+    summary:
+      "The central bank announced comprehensive measures to stabilize the Leone currency.",
+    content:
+      "The central bank announced comprehensive measures to stabilize the Leone currency.\n\nCommercial banks and foreign exchange bureaus must comply with daily reporting standards. The governor highlighted key foreign reserve targets.",
     location: "Freetown",
     category: "Economy",
     source: "Awoko",
   };
 
   it("formats article into rich WhatsApp markdown text", () => {
-    const text = formatArticleWhatsAppDigest(sampleArticle, "https://slnews.sl");
+    const text = formatArticleWhatsAppDigest(
+      sampleArticle,
+      "https://slnews.sl"
+    );
 
     expect(text).toContain("🇸🇱 *SLNews Exclusive*");
-    expect(text).toContain("📰 *Bank of Sierra Leone Introduces New Monetary Framework*");
+    expect(text).toContain(
+      "📰 *Bank of Sierra Leone Introduces New Monetary Framework*"
+    );
     expect(text).toContain("⚡ *Key Takeaways:*");
     expect(text).toContain("📍 *Region:* Freetown");
     expect(text).toContain("🏷️ *Category:* Economy");
-    expect(text).toContain("🔗 *Read full story:* https://slnews.sl/article/art-123");
+    expect(text).toContain(
+      "🔗 *Read full story:* https://slnews.sl/article/art-123"
+    );
   });
 
   it("formats morning briefing with lead story and regional highlights", () => {
@@ -37,17 +46,30 @@ describe("WhatsApp News Digest Formatter", () => {
         summary: "Electricity supply connected to 15,000 new households.",
       },
       regionalStories: [
-        { id: "reg-1", title: "Cocoa Harvest Exceeds Targets in Kenema", location: "Kenema" },
-        { id: "reg-2", title: "New Road Opens in Port Loko", location: "Port Loko" },
+        {
+          id: "reg-1",
+          title: "Cocoa Harvest Exceeds Targets in Kenema",
+          location: "Kenema",
+        },
+        {
+          id: "reg-2",
+          title: "New Road Opens in Port Loko",
+          location: "Port Loko",
+        },
       ],
     };
 
-    const text = formatBriefingWhatsAppDigest(sampleBriefing, "https://slnews.sl");
+    const text = formatBriefingWhatsAppDigest(
+      sampleBriefing,
+      "https://slnews.sl"
+    );
 
     expect(text).toContain("🇸🇱 *SLNews Daily Briefing*");
     expect(text).toContain("Good Morning Freetown!");
     expect(text).toContain("⭐ *Top Headline:*");
-    expect(text).toContain("*National Grid Expansion Reaches Southern Province*");
+    expect(text).toContain(
+      "*National Grid Expansion Reaches Southern Province*"
+    );
     expect(text).toContain("[Kenema] Cocoa Harvest Exceeds Targets in Kenema");
     expect(text).toContain("https://slnews.sl/home");
   });

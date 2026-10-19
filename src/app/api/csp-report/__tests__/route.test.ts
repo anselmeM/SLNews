@@ -9,7 +9,10 @@ vi.mock("@/lib/logger", () => ({
 function report(body: unknown, ip = "198.51.100.4"): Request {
   return new Request("http://localhost/api/csp-report", {
     method: "POST",
-    headers: { "content-type": "application/csp-report", "x-forwarded-for": ip },
+    headers: {
+      "content-type": "application/csp-report",
+      "x-forwarded-for": ip,
+    },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -41,7 +44,10 @@ describe("POST /api/csp-report", () => {
   it("falls back to the legacy violated-directive field", async () => {
     await POST(
       report({
-        "csp-report": { "violated-directive": "img-src", "blocked-uri": "inline" },
+        "csp-report": {
+          "violated-directive": "img-src",
+          "blocked-uri": "inline",
+        },
       })
     );
 
@@ -56,7 +62,10 @@ describe("POST /api/csp-report", () => {
       report([
         {
           type: "csp-violation",
-          body: { "effective-directive": "frame-src", "blocked-uri": "https://x.test" },
+          body: {
+            "effective-directive": "frame-src",
+            "blocked-uri": "https://x.test",
+          },
         },
       ])
     );
@@ -70,11 +79,17 @@ describe("POST /api/csp-report", () => {
   it("truncates oversized field values before logging", async () => {
     await POST(
       report({
-        "csp-report": { "effective-directive": "script-src", "blocked-uri": "a".repeat(5000) },
+        "csp-report": {
+          "effective-directive": "script-src",
+          "blocked-uri": "a".repeat(5000),
+        },
       })
     );
 
-    const [, meta] = vi.mocked(logger.warn).mock.calls[0] as [string, { blocked: string }];
+    const [, meta] = vi.mocked(logger.warn).mock.calls[0] as [
+      string,
+      { blocked: string },
+    ];
     expect(meta.blocked).toHaveLength(200);
   });
 
@@ -88,7 +103,9 @@ describe("POST /api/csp-report", () => {
   it("rate limits a caller that floods the endpoint", async () => {
     let lastStatus = 204;
     for (let i = 0; i < 61; i++) {
-      const response = await POST(report({ "csp-report": { "blocked-uri": "inline" } }, "203.0.113.99"));
+      const response = await POST(
+        report({ "csp-report": { "blocked-uri": "inline" } }, "203.0.113.99")
+      );
       lastStatus = response.status;
     }
 

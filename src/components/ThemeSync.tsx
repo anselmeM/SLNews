@@ -30,7 +30,13 @@ export default function ThemeSync() {
 
   // Also listen for system changes when in system mode
   useEffect(() => {
-    if (!hasHydrated || theme !== "system" || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    if (
+      !hasHydrated ||
+      theme !== "system" ||
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    )
+      return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     function onChange(e: MediaQueryListEvent) {
       document.documentElement.classList.toggle("dark", e.matches);

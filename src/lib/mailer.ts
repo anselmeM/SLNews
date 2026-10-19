@@ -14,11 +14,14 @@ export async function sendPasswordResetEmail(
   if (!apiKey) {
     // Expected in environments without mail configured — a warning, not an error
     // to page anyone about.
-    logger.warn("RESEND_API_KEY is not set — password reset email not sent", { to });
+    logger.warn("RESEND_API_KEY is not set — password reset email not sent", {
+      to,
+    });
     return;
   }
 
-  const from = process.env.RESEND_FROM_EMAIL || "SLNews <onboarding@resend.dev>";
+  const from =
+    process.env.RESEND_FROM_EMAIL || "SLNews <onboarding@resend.dev>";
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

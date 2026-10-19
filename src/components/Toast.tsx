@@ -1,7 +1,13 @@
 "use client";
 
 import { m, AnimatePresence } from "framer-motion";
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type ToastType = "success" | "error" | "info";
 
@@ -27,7 +33,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const toast = useCallback((message: string, type: ToastType = "success") => {
     const id = Math.random().toString(36).slice(2);
     setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
+    setTimeout(
+      () => setToasts((prev) => prev.filter((t) => t.id !== id)),
+      3500
+    );
   }, []);
 
   const removeToast = useCallback((id: string) => {
@@ -50,8 +59,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 t.type === "success"
                   ? "bg-primary-container text-on-primary-container border-primary/20"
                   : t.type === "error"
-                  ? "bg-error-container text-on-error-container border-error/20"
-                  : "bg-surface-container-high text-on-surface border-outline/20"
+                    ? "bg-error-container text-on-error-container border-error/20"
+                    : "bg-surface-container-high text-on-surface border-outline/20"
               }`}
             >
               {t.message}

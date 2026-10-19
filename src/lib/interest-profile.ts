@@ -32,7 +32,9 @@ export async function interestCategoriesFromArticleIds(
 ): Promise<Set<string>> {
   // Callers pass newest-first where the order is meaningful; the cap is a
   // guard against an unbounded client-supplied list, not a recency rule.
-  const ids = [...new Set(articleIds)].filter(Boolean).slice(0, MAX_INTEREST_SOURCES);
+  const ids = [...new Set(articleIds)]
+    .filter(Boolean)
+    .slice(0, MAX_INTEREST_SOURCES);
   if (ids.length === 0) return new Set();
 
   const rows = await db.article.findMany({
@@ -48,7 +50,9 @@ export async function interestCategoriesFromArticleIds(
 }
 
 /** Interest profile for a signed-in reader, from their saved articles. */
-export async function savedInterestCategories(userId: string): Promise<Set<string>> {
+export async function savedInterestCategories(
+  userId: string
+): Promise<Set<string>> {
   if (!userId) return new Set();
 
   const saved = await db.savedArticle.findMany({
@@ -69,7 +73,9 @@ export async function savedInterestCategories(userId: string): Promise<Set<strin
  * title and scored the digest), so following "Tech" left the actual feed
  * untouched. Both signals now reach the same `rankFeedByInterest` call.
  */
-export async function feedInterestCategories(userId: string): Promise<Set<string>> {
+export async function feedInterestCategories(
+  userId: string
+): Promise<Set<string>> {
   if (!userId) return new Set();
 
   const [user, saved] = await Promise.all([

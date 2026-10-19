@@ -114,7 +114,11 @@ describe("useAudioPlayerStore", () => {
   });
 
   it("plays a queue of articles from start index", () => {
-    const list = [makeStory("1", "S1"), makeStory("2", "S2"), makeStory("3", "S3")];
+    const list = [
+      makeStory("1", "S1"),
+      makeStory("2", "S2"),
+      makeStory("3", "S3"),
+    ];
     useAudioPlayerStore.getState().playQueue(list, 1);
 
     expect(useAudioPlayerStore.getState().queue).toEqual(list);
@@ -123,7 +127,11 @@ describe("useAudioPlayerStore", () => {
   });
 
   it("advances next and previous properly", () => {
-    const list = [makeStory("1", "S1"), makeStory("2", "S2"), makeStory("3", "S3")];
+    const list = [
+      makeStory("1", "S1"),
+      makeStory("2", "S2"),
+      makeStory("3", "S3"),
+    ];
     useAudioPlayerStore.getState().playQueue(list, 0);
 
     useAudioPlayerStore.getState().next();
@@ -137,7 +145,11 @@ describe("useAudioPlayerStore", () => {
   });
 
   it("removes items from queue and adjusts index", () => {
-    const list = [makeStory("1", "S1"), makeStory("2", "S2"), makeStory("3", "S3")];
+    const list = [
+      makeStory("1", "S1"),
+      makeStory("2", "S2"),
+      makeStory("3", "S3"),
+    ];
     useAudioPlayerStore.getState().playQueue(list, 1);
 
     // Remove item at index 0 (before current)
@@ -188,7 +200,11 @@ describe("useAudioPlayerStore — without speech support", () => {
 
   it("togglePlay is a no-op with no speech support", () => {
     const list = [makeStory("1", "S1")];
-    useAudioPlayerStore.setState({ queue: list, currentIndex: 0, isPlaying: false });
+    useAudioPlayerStore.setState({
+      queue: list,
+      currentIndex: 0,
+      isPlaying: false,
+    });
 
     useAudioPlayerStore.getState().togglePlay();
 
@@ -270,7 +286,10 @@ describe("useAudioPlayerStore — queue management", () => {
 
   it("removeFromQueue of the last remaining item clears the queue", () => {
     const { synthesis } = installSpeech();
-    useAudioPlayerStore.setState({ queue: [makeStory("1", "S1")], currentIndex: 0 });
+    useAudioPlayerStore.setState({
+      queue: [makeStory("1", "S1")],
+      currentIndex: 0,
+    });
 
     useAudioPlayerStore.getState().removeFromQueue(0);
 
@@ -281,7 +300,11 @@ describe("useAudioPlayerStore — queue management", () => {
 
   it("removeFromQueue of the current item moves playback to the next one", () => {
     const { spoken } = installSpeech();
-    const list = [makeStory("1", "S1"), makeStory("2", "S2"), makeStory("3", "S3")];
+    const list = [
+      makeStory("1", "S1"),
+      makeStory("2", "S2"),
+      makeStory("3", "S3"),
+    ];
     useAudioPlayerStore.getState().playQueue(list, 1);
     const spokenBefore = spoken.length;
 
@@ -295,13 +318,20 @@ describe("useAudioPlayerStore — queue management", () => {
 
   it("removeFromQueue of an item after the current one leaves the index alone", () => {
     installSpeech();
-    const list = [makeStory("1", "S1"), makeStory("2", "S2"), makeStory("3", "S3")];
+    const list = [
+      makeStory("1", "S1"),
+      makeStory("2", "S2"),
+      makeStory("3", "S3"),
+    ];
     useAudioPlayerStore.getState().playQueue(list, 0);
 
     useAudioPlayerStore.getState().removeFromQueue(2);
 
     expect(useAudioPlayerStore.getState().currentIndex).toBe(0);
-    expect(useAudioPlayerStore.getState().queue.map((a) => a.id)).toEqual(["1", "2"]);
+    expect(useAudioPlayerStore.getState().queue.map((a) => a.id)).toEqual([
+      "1",
+      "2",
+    ]);
   });
 
   it("getCurrentArticle returns the current article and null when out of range", () => {
@@ -327,7 +357,10 @@ describe("useAudioPlayerStore — queue management", () => {
 describe("useAudioPlayerStore — navigation edges", () => {
   it("next() past the end stops playback", () => {
     const { synthesis } = installSpeech();
-    useAudioPlayerStore.setState({ queue: [makeStory("1", "S1")], currentIndex: 0 });
+    useAudioPlayerStore.setState({
+      queue: [makeStory("1", "S1")],
+      currentIndex: 0,
+    });
 
     useAudioPlayerStore.getState().next();
 
@@ -410,7 +443,11 @@ describe("useAudioPlayerStore — togglePlay", () => {
 
   it("does nothing when the queue has no current article", () => {
     installSpeech();
-    useAudioPlayerStore.setState({ queue: [], currentIndex: 0, isPlaying: false });
+    useAudioPlayerStore.setState({
+      queue: [],
+      currentIndex: 0,
+      isPlaying: false,
+    });
 
     useAudioPlayerStore.getState().togglePlay();
 

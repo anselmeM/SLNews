@@ -3,7 +3,9 @@ import { GET } from "@/app/api/share-card/route";
 
 describe("Social Share Card API", () => {
   it("generates an SVG with correct content-type and headers", async () => {
-    const req = new Request("http://localhost:3000/api/share-card?title=Bank+of+Sierra+Leone+Monetary+Policy&category=Economy&source=Awoko");
+    const req = new Request(
+      "http://localhost:3000/api/share-card?title=Bank+of+Sierra+Leone+Monetary+Policy&category=Economy&source=Awoko"
+    );
     const res = await GET(req);
 
     expect(res.status).toBe(200);

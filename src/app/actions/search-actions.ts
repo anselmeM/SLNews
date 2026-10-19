@@ -12,7 +12,9 @@ export type InstantSearchResult = {
   imageUrl?: string | null;
 };
 
-export async function instantSearch(query: string): Promise<InstantSearchResult[]> {
+export async function instantSearch(
+  query: string
+): Promise<InstantSearchResult[]> {
   const trimmed = query.trim();
   if (!trimmed || trimmed.length < 2) return [];
 

@@ -4,7 +4,11 @@ import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { isOwnerOrAdminEmail } from "@/lib/auth-callbacks";
 import { db } from "@/lib/db";
-import { getRateLimitStatus, loginRateKey, LOGIN_MAX_ATTEMPTS } from "@/lib/rate-limiter";
+import {
+  getRateLimitStatus,
+  loginRateKey,
+  LOGIN_MAX_ATTEMPTS,
+} from "@/lib/rate-limiter";
 
 export async function getLoginRateLimitStatus(email: string): Promise<{
   blocked: boolean;
@@ -35,7 +39,10 @@ export async function registerUser(data: {
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) {
-    return { success: false, error: "An account with this email already exists." };
+    return {
+      success: false,
+      error: "An account with this email already exists.",
+    };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

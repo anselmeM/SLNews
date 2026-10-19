@@ -9,7 +9,9 @@ import {
   type StorageLike,
 } from "../campaign-attribution";
 
-function memoryStorage(seed: Record<string, string> = {}): StorageLike & { data: Record<string, string> } {
+function memoryStorage(
+  seed: Record<string, string> = {}
+): StorageLike & { data: Record<string, string> } {
   const data: Record<string, string> = { ...seed };
   return {
     data,
@@ -23,7 +25,9 @@ function memoryStorage(seed: Record<string, string> = {}): StorageLike & { data:
 describe("campaign-attribution", () => {
   it("parses UTM parameters and fbclid into campaign fields", () => {
     const parsed = parseCampaignParams(
-      new URLSearchParams("utm_source=facebook&utm_medium=cpc&utm_campaign=dec_freetown&fbclid=abc123")
+      new URLSearchParams(
+        "utm_source=facebook&utm_medium=cpc&utm_campaign=dec_freetown&fbclid=abc123"
+      )
     );
     expect(parsed).toEqual({
       source: "facebook",
@@ -34,11 +38,15 @@ describe("campaign-attribution", () => {
   });
 
   it("returns null when no campaign parameters are present", () => {
-    expect(parseCampaignParams(new URLSearchParams("page=2&q=news"))).toBeNull();
+    expect(
+      parseCampaignParams(new URLSearchParams("page=2&q=news"))
+    ).toBeNull();
   });
 
   it("ignores blank parameter values", () => {
-    expect(parseCampaignParams(new URLSearchParams("utm_source=&utm_medium=cpc"))).toEqual({
+    expect(
+      parseCampaignParams(new URLSearchParams("utm_source=&utm_medium=cpc"))
+    ).toEqual({
       medium: "cpc",
     });
   });
@@ -47,7 +55,9 @@ describe("campaign-attribution", () => {
     const storage = memoryStorage();
     const attr = { source: "facebook", capturedAt: "2026-12-01T00:00:00.000Z" };
     storeAttribution(attr, storage);
-    expect(JSON.parse(storage.data[ATTRIBUTION_STORAGE_KEY] ?? "{}")).toEqual(attr);
+    expect(JSON.parse(storage.data[ATTRIBUTION_STORAGE_KEY] ?? "{}")).toEqual(
+      attr
+    );
     expect(getStoredAttribution(storage)).toEqual(attr);
   });
 
@@ -73,14 +83,19 @@ describe("campaign-attribution", () => {
   it("does not overwrite an existing first touch", () => {
     const storage = memoryStorage();
     captureFirstTouchAttribution({ search: "utm_source=facebook", storage });
-    const second = captureFirstTouchAttribution({ search: "utm_source=google", storage });
+    const second = captureFirstTouchAttribution({
+      search: "utm_source=google",
+      storage,
+    });
     expect(second?.source).toBe("facebook");
     expect(getStoredAttribution(storage)?.source).toBe("facebook");
   });
 
   it("returns null and stores nothing when the landing has no campaign params", () => {
     const storage = memoryStorage();
-    expect(captureFirstTouchAttribution({ search: "page=2", storage })).toBeNull();
+    expect(
+      captureFirstTouchAttribution({ search: "page=2", storage })
+    ).toBeNull();
     expect(getStoredAttribution(storage)).toBeNull();
   });
 

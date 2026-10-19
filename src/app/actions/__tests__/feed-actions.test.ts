@@ -130,8 +130,13 @@ describe("getUnseenNews ranking", () => {
 
   it("normalises legacy topic names before ranking", async () => {
     signedIn();
-    userFindUnique.mockResolvedValue({ preferredTopics: ["Technology"] } as never);
-    const rows = [...Array.from({ length: 4 }, (_, i) => row(`a${i}`)), row("tech", "Tech")];
+    userFindUnique.mockResolvedValue({
+      preferredTopics: ["Technology"],
+    } as never);
+    const rows = [
+      ...Array.from({ length: 4 }, (_, i) => row(`a${i}`)),
+      row("tech", "Tech"),
+    ];
     mockPool(rows);
 
     const result = await getUnseenNews([], 5);
@@ -143,7 +148,10 @@ describe("getUnseenNews ranking", () => {
     signedIn();
     userFindUnique.mockResolvedValue({ preferredTopics: [] } as never);
     savedFindMany.mockResolvedValue([{ articleId: "saved-1" }] as never);
-    const rows = [...Array.from({ length: 7 }, (_, i) => row(`a${i}`)), row("tech", "Tech")];
+    const rows = [
+      ...Array.from({ length: 7 }, (_, i) => row(`a${i}`)),
+      row("tech", "Tech"),
+    ];
     mockPool(rows, ["Tech"]);
 
     const result = await getUnseenNews([], 10);
@@ -175,7 +183,11 @@ describe("getUnseenNews ranking", () => {
 
     expect(articleFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { published: true, status: "PUBLISHED", id: { notIn: ["a0", "a1"] } },
+        where: {
+          published: true,
+          status: "PUBLISHED",
+          id: { notIn: ["a0", "a1"] },
+        },
       })
     );
   });

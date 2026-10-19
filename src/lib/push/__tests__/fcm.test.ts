@@ -56,7 +56,10 @@ describe("parseServiceAccount", () => {
   });
 
   it("accepts a base64-encoded copy of the same JSON", () => {
-    const encoded = Buffer.from(JSON.stringify(serviceAccount), "utf8").toString("base64");
+    const encoded = Buffer.from(
+      JSON.stringify(serviceAccount),
+      "utf8"
+    ).toString("base64");
     expect(parseServiceAccount(encoded)?.projectId).toBe("slnews-test");
   });
 
@@ -65,11 +68,17 @@ describe("parseServiceAccount", () => {
     expect(parseServiceAccount("   ")).toBeNull();
     expect(parseServiceAccount("not json")).toBeNull();
     expect(
-      parseServiceAccount(JSON.stringify({ project_id: "x", client_email: "nope" }))
+      parseServiceAccount(
+        JSON.stringify({ project_id: "x", client_email: "nope" })
+      )
     ).toBeNull();
     expect(
       parseServiceAccount(
-        JSON.stringify({ project_id: "x", client_email: "a@b.c", private_key: "nope" })
+        JSON.stringify({
+          project_id: "x",
+          client_email: "a@b.c",
+          private_key: "nope",
+        })
       )
     ).toBeNull();
   });
@@ -135,14 +144,21 @@ describe("sendNativePush", () => {
 
     const result = await sendNativePush(message, { db });
 
-    expect(result).toEqual({ sent: 0, failed: 0, invalid: 0, skipped: "not-configured" });
+    expect(result).toEqual({
+      sent: 0,
+      failed: 0,
+      invalid: 0,
+      skipped: "not-configured",
+    });
     expect(db.mobileDevice.findMany).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it("exchanges a token once and sends the message to every device", async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(jsonResponse({ access_token: "ya29.token", expires_in: 3600 }))
+      .mockResolvedValueOnce(
+        jsonResponse({ access_token: "ya29.token", expires_in: 3600 })
+      )
       .mockResolvedValue(jsonResponse({ name: "projects/x/messages/1" }));
     const db = dbWith(["token-a", "token-b"]);
 
@@ -152,20 +168,35 @@ describe("sendNativePush", () => {
     expect(fetch).toHaveBeenCalledTimes(3); // one token exchange + two sends
     const sendCall = vi.mocked(fetch).mock.calls[1];
     expect(sendCall).toBeDefined();
-    expect(String(sendCall?.[0])).toContain("/projects/slnews-test/messages:send");
+    expect(String(sendCall?.[0])).toContain(
+      "/projects/slnews-test/messages:send"
+    );
     const body = JSON.parse(String((sendCall?.[1] as RequestInit).body));
-    expect(body.message.notification).toEqual({ title: "Breaking", body: "Something happened" });
-    expect(body.message.data).toEqual({ url: "/article/1", category: "breaking" });
+    expect(body.message.notification).toEqual({
+      title: "Breaking",
+      body: "Something happened",
+    });
+    expect(body.message.data).toEqual({
+      url: "/article/1",
+      category: "breaking",
+    });
     expect(db.mobileDevice.deleteMany).not.toHaveBeenCalled();
   });
 
   it("prunes tokens FCM says are unregistered and keeps sending the rest", async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(jsonResponse({ access_token: "ya29.token", expires_in: 3600 }))
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: { details: [{ errorCode: "UNREGISTERED" }] } }), {
-          status: 404,
-        })
+        jsonResponse({ access_token: "ya29.token", expires_in: 3600 })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: { details: [{ errorCode: "UNREGISTERED" }] },
+          }),
+          {
+            status: 404,
+          }
+        )
       )
       .mockResolvedValueOnce(jsonResponse({ name: "ok" }));
     const deleted: string[] = [];
@@ -181,7 +212,9 @@ describe("sendNativePush", () => {
   });
 
   it("reports failures without throwing when the token exchange fails", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response("nope", { status: 500 }));
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response("nope", { status: 500 })
+    );
     const db = dbWith(["token-a", "token-b"]);
 
     const result = await sendNativePush(message, { db });

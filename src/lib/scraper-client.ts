@@ -81,7 +81,11 @@ export class ScraperUnreachableError extends Error {
  * timeout means the instance was probably asleep, which is what an operator
  * needs to see to know the feed is running on fallback content.
  */
-function unreachable(url: string, timeoutMs: number, cause: unknown): ScraperUnreachableError {
+function unreachable(
+  url: string,
+  timeoutMs: number,
+  cause: unknown
+): ScraperUnreachableError {
   if ((cause as { name?: string } | null)?.name === "TimeoutError") {
     logger.warn("scraper request timed out", { url, timeoutMs });
   }
@@ -102,7 +106,11 @@ function apiKey(): string {
 
 function normalizePayload(json: unknown): ScraperArticle[] {
   if (Array.isArray(json)) return json as ScraperArticle[];
-  if (json && typeof json === "object" && Array.isArray((json as { data?: unknown }).data)) {
+  if (
+    json &&
+    typeof json === "object" &&
+    Array.isArray((json as { data?: unknown }).data)
+  ) {
     return (json as { data: ScraperArticle[] }).data;
   }
   throw new Error("Unexpected scraper payload");
@@ -110,7 +118,11 @@ function normalizePayload(json: unknown): ScraperArticle[] {
 
 function normalizeVideoPayload(json: unknown): ScraperVideo[] {
   if (Array.isArray(json)) return json as ScraperVideo[];
-  if (json && typeof json === "object" && Array.isArray((json as { data?: unknown }).data)) {
+  if (
+    json &&
+    typeof json === "object" &&
+    Array.isArray((json as { data?: unknown }).data)
+  ) {
     return (json as { data: ScraperVideo[] }).data;
   }
   throw new Error("Unexpected scraper payload");

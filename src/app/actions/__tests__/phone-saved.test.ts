@@ -74,7 +74,9 @@ describe("getPhoneSavedArticles", () => {
     expect(db.article.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
-          sourceUrl: { in: ["https://example.com/news/2", "https://example.com/news/1"] },
+          sourceUrl: {
+            in: ["https://example.com/news/2", "https://example.com/news/1"],
+          },
           published: true,
           status: "PUBLISHED",
         },
@@ -103,7 +105,9 @@ describe("getPhoneSavedArticles", () => {
 
   it("returns nothing without querying articles when no bookmark carries a URL", async () => {
     vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" } } as never);
-    vi.mocked(db.mobileBookmark.findMany).mockResolvedValue([{ sourceUrl: null }] as never);
+    vi.mocked(db.mobileBookmark.findMany).mockResolvedValue([
+      { sourceUrl: null },
+    ] as never);
 
     await expect(getPhoneSavedArticles()).resolves.toEqual([]);
     expect(db.article.findMany).not.toHaveBeenCalled();
@@ -115,7 +119,9 @@ describe("getPhoneSavedArticles", () => {
       { sourceUrl: "https://example.com/news/1" },
       { sourceUrl: "https://example.com/news/1" },
     ] as never);
-    vi.mocked(db.article.findMany).mockResolvedValue([prismaArticle({})] as never);
+    vi.mocked(db.article.findMany).mockResolvedValue([
+      prismaArticle({}),
+    ] as never);
 
     const articles = await getPhoneSavedArticles();
 

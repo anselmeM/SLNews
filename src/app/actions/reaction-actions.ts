@@ -8,7 +8,9 @@ export async function toggleReaction(articleId: string, emoji: string) {
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   const existing = await db.articleReaction.findUnique({
-    where: { articleId_userId_emoji: { articleId, userId: session.user.id, emoji } },
+    where: {
+      articleId_userId_emoji: { articleId, userId: session.user.id, emoji },
+    },
   });
 
   if (existing) {

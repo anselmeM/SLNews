@@ -3,16 +3,19 @@ import { db } from "@/lib/db";
 import { buildPersonalizedDigest } from "@/lib/digest-generator";
 import { fetchMixedHomeFeed } from "@/lib/news-service";
 
-export function formatMorningBriefingPayload(digest: {
-  leadStory?: { title: string } | null;
-  topicStories?: unknown[];
-  regionalStories?: unknown[];
-  quickBriefs?: unknown[];
-  totalReadTimeMinutes?: number;
-}, user?: {
-  name?: string | null;
-  preferredTopics?: string[];
-}) {
+export function formatMorningBriefingPayload(
+  digest: {
+    leadStory?: { title: string } | null;
+    topicStories?: unknown[];
+    regionalStories?: unknown[];
+    quickBriefs?: unknown[];
+    totalReadTimeMinutes?: number;
+  },
+  user?: {
+    name?: string | null;
+    preferredTopics?: string[];
+  }
+) {
   let title = "🌅 Your Morning Briefing";
   if (user?.preferredTopics && user.preferredTopics.length > 0) {
     title = `🌅 ${user.preferredTopics[0]} & Morning Brief`;
@@ -39,7 +42,10 @@ export function formatMorningBriefingPayload(digest: {
   };
 }
 
-export async function sendMorningBriefing(): Promise<{ sent: number; error?: string }> {
+export async function sendMorningBriefing(): Promise<{
+  sent: number;
+  error?: string;
+}> {
   const users = await db.user.findMany({
     where: { dailyBriefing: true },
     select: { id: true, name: true, preferredTopics: true },

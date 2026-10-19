@@ -9,4 +9,3 @@ export interface AuthUser {
   image?: string | null;
   role: UserRole;
 }
-

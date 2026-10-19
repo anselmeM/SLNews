@@ -34,7 +34,9 @@ describe("POST /api/analytics", () => {
   });
 
   it("still logs a pageview and stores nothing", async () => {
-    const response = await POST(post({ path: "/", referrer: "https://x.test" }));
+    const response = await POST(
+      post({ path: "/", referrer: "https://x.test" })
+    );
 
     expect(response.status).toBe(204);
     expect(logger.info).toHaveBeenCalledWith("pageview", {
@@ -121,7 +123,9 @@ describe("GET /api/analytics", () => {
       },
     ] as never);
 
-    const response = await GET(new Request("http://localhost/api/analytics?days=7"));
+    const response = await GET(
+      new Request("http://localhost/api/analytics?days=7")
+    );
     const body = await response.json();
 
     expect(response.status).toBe(200);

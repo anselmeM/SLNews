@@ -91,17 +91,25 @@ async function readRegistration(
   } catch {
     return badRequest("A JSON body is required");
   }
-  if (typeof body !== "object" || body === null) return badRequest("A JSON body is required");
+  if (typeof body !== "object" || body === null)
+    return badRequest("A JSON body is required");
 
   const raw = body as { token?: unknown; platform?: unknown };
   const token = typeof raw.token === "string" ? raw.token.trim() : "";
   if (token.length < MIN_TOKEN_LENGTH || token.length > MAX_TOKEN_LENGTH) {
-    return badRequest(`token must be ${MIN_TOKEN_LENGTH}-${MAX_TOKEN_LENGTH} characters`);
+    return badRequest(
+      `token must be ${MIN_TOKEN_LENGTH}-${MAX_TOKEN_LENGTH} characters`
+    );
   }
-  if (!TOKEN_PATTERN.test(token)) return badRequest("token has an unexpected character");
+  if (!TOKEN_PATTERN.test(token))
+    return badRequest("token has an unexpected character");
 
-  const platform = typeof raw.platform === "string" ? raw.platform.trim().toLowerCase() : "android";
-  if (!PLATFORMS.has(platform)) return badRequest('platform must be "android" or "ios"');
+  const platform =
+    typeof raw.platform === "string"
+      ? raw.platform.trim().toLowerCase()
+      : "android";
+  if (!PLATFORMS.has(platform))
+    return badRequest('platform must be "android" or "ios"');
 
   return { token, platform };
 }

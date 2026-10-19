@@ -70,14 +70,16 @@ export function parseAuditReport(input: Buffer | string): AuditReport {
     return JSON.parse(input.replace(/^\uFEFF/, "")) as AuditReport;
   }
 
-  const hasUtf16Bom = input.length >= 2 && input[0] === 0xff && input[1] === 0xfe;
+  const hasUtf16Bom =
+    input.length >= 2 && input[0] === 0xff && input[1] === 0xfe;
   // A NUL byte cannot appear in valid JSON text, so its presence marks UTF-16 even
   // without a BOM. PowerShell 5.1 writes a BOM; other Windows paths may not.
   const looksUtf16 = !hasUtf16Bom && input.subarray(0, 64).includes(0);
-  const text = (hasUtf16Bom || looksUtf16 ? input.toString("utf16le") : input.toString("utf8")).replace(
-    /^\uFEFF/,
-    ""
-  );
+  const text = (
+    hasUtf16Bom || looksUtf16
+      ? input.toString("utf16le")
+      : input.toString("utf8")
+  ).replace(/^\uFEFF/, "");
 
   return JSON.parse(text) as AuditReport;
 }
@@ -95,8 +97,12 @@ export function summariseAudit(
     critical: reported.critical ?? 0,
   };
 
-  const advisories: AuditAdvisory[] = Object.entries(report.vulnerabilities ?? {})
-    .filter(([, advisory]) => REPORTED_SEVERITIES.includes(advisory.severity ?? ""))
+  const advisories: AuditAdvisory[] = Object.entries(
+    report.vulnerabilities ?? {}
+  )
+    .filter(([, advisory]) =>
+      REPORTED_SEVERITIES.includes(advisory.severity ?? "")
+    )
     .map(([name, advisory]) => ({
       name,
       severity: advisory.severity ?? "unknown",

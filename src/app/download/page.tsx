@@ -41,9 +41,21 @@ const VALUE_PROPS = [
 ];
 
 const STEPS = [
-  { n: "1", title: "Tap Install", body: 'Press "Install the app" above, or pick "Add to Home screen" from your browser menu.' },
-  { n: "2", title: "Confirm", body: "Accept the prompt — SLNews is saved to your home screen in seconds." },
-  { n: "3", title: "Open anytime", body: "Launch SLNews like any app and read even when your data runs low." },
+  {
+    n: "1",
+    title: "Tap Install",
+    body: 'Press "Install the app" above, or pick "Add to Home screen" from your browser menu.',
+  },
+  {
+    n: "2",
+    title: "Confirm",
+    body: "Accept the prompt — SLNews is saved to your home screen in seconds.",
+  },
+  {
+    n: "3",
+    title: "Open anytime",
+    body: "Launch SLNews like any app and read even when your data runs low.",
+  },
 ];
 
 const FAQS = [
@@ -90,18 +102,21 @@ export default function DownloadPage() {
           SLNews, built for Sierra Leone&apos;s networks
         </h1>
         <p className="text-primary-container max-w-xl mx-auto mb-7">
-          Breaking news, live USD/Leone rates, fuel prices, and community notices — fast to open and
-          light on data. Install it in seconds.
+          Breaking news, live USD/Leone rates, fuel prices, and community
+          notices — fast to open and light on data. Install it in seconds.
         </p>
         <DownloadCTA />
         <p className="text-xs text-on-primary/70 mt-5">
-          Available for Android on Google Play. iOS and desktop open straight in your browser.
+          Available for Android on Google Play. iOS and desktop open straight in
+          your browser.
         </p>
       </section>
 
       {/* Value props */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">Why install SLNews?</h2>
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          Why install SLNews?
+        </h2>
         <div className="grid sm:grid-cols-2 gap-4">
           {VALUE_PROPS.map((v) => (
             <div
@@ -112,8 +127,12 @@ export default function DownloadPage() {
                 {v.icon}
               </span>
               <div>
-                <h3 className="font-bold text-on-surface text-sm mb-1">{v.title}</h3>
-                <p className="text-xs text-on-surface-variant leading-relaxed">{v.body}</p>
+                <h3 className="font-bold text-on-surface text-sm mb-1">
+                  {v.title}
+                </h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {v.body}
+                </p>
               </div>
             </div>
           ))}
@@ -122,15 +141,22 @@ export default function DownloadPage() {
 
       {/* Install steps */}
       <section className="mb-12 bg-surface-container-lowest rounded-2xl p-6 md:p-8 border border-outline-variant/30">
-        <h2 className="text-xl font-bold text-on-surface text-center mb-6">Install in three taps</h2>
+        <h2 className="text-xl font-bold text-on-surface text-center mb-6">
+          Install in three taps
+        </h2>
         <div className="grid md:grid-cols-3 gap-4">
           {STEPS.map((s) => (
-            <div key={s.n} className="flex md:flex-col items-center md:text-center gap-3">
+            <div
+              key={s.n}
+              className="flex md:flex-col items-center md:text-center gap-3"
+            >
               <span className="bg-primary text-on-primary font-black rounded-full w-9 h-9 flex items-center justify-center shrink-0">
                 {s.n}
               </span>
               <div>
-                <p className="font-bold text-sm text-on-surface mb-0.5">{s.title}</p>
+                <p className="font-bold text-sm text-on-surface mb-0.5">
+                  {s.title}
+                </p>
                 <p className="text-xs text-on-surface-variant">{s.body}</p>
               </div>
             </div>
@@ -140,7 +166,9 @@ export default function DownloadPage() {
 
       {/* FAQ */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">Questions</h2>
+        <h2 className="text-2xl font-bold text-on-surface text-center mb-6">
+          Questions
+        </h2>
         <div className="space-y-3">
           {FAQS.map((f) => (
             <details

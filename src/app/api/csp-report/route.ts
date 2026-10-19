@@ -22,7 +22,7 @@ function firstReport(body: unknown): CspReport | null {
   // `report-uri` posts a single report object; `report-to` batches them.
   if (Array.isArray(body)) {
     const first = body[0] as { body?: CspReport } | undefined;
-    return (first?.body ?? (first as CspReport | undefined)) ?? null;
+    return first?.body ?? (first as CspReport | undefined) ?? null;
   }
   if (body && typeof body === "object") {
     const wrapped = (body as { "csp-report"?: CspReport })["csp-report"];
@@ -62,7 +62,9 @@ export async function POST(request: Request) {
   const report = firstReport(body);
   if (report) {
     logger.warn("csp violation", {
-      directive: trimmed(report["effective-directive"]) ?? trimmed(report["violated-directive"]),
+      directive:
+        trimmed(report["effective-directive"]) ??
+        trimmed(report["violated-directive"]),
       blocked: trimmed(report["blocked-uri"]),
       document: trimmed(report["document-uri"]),
     });

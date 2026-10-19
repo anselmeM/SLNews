@@ -151,11 +151,20 @@ async function accessToken(config: FcmConfig): Promise<string> {
   if (!response.ok) {
     throw new Error(`Firebase token exchange failed: HTTP ${response.status}`);
   }
-  const payload = (await response.json()) as { access_token?: unknown; expires_in?: unknown };
-  if (typeof payload.access_token !== "string" || payload.access_token.length === 0) {
+  const payload = (await response.json()) as {
+    access_token?: unknown;
+    expires_in?: unknown;
+  };
+  if (
+    typeof payload.access_token !== "string" ||
+    payload.access_token.length === 0
+  ) {
     throw new Error("Firebase token exchange returned no access_token");
   }
-  const ttl = typeof payload.expires_in === "number" ? payload.expires_in * 1000 : 3_600_000;
+  const ttl =
+    typeof payload.expires_in === "number"
+      ? payload.expires_in * 1000
+      : 3_600_000;
   cachedToken = { value: payload.access_token, expiresAt: now + ttl };
   return cachedToken.value;
 }
@@ -237,11 +246,13 @@ export async function sendNativePush(
   options: { userId?: string; userIds?: string[]; db?: NativePushDb } = {}
 ): Promise<NativeSendResult> {
   const config = parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT);
-  if (!config) return { sent: 0, failed: 0, invalid: 0, skipped: "not-configured" };
+  if (!config)
+    return { sent: 0, failed: 0, invalid: 0, skipped: "not-configured" };
   // Narrowed copy: the closure below loses the guard's narrowing otherwise.
   const fcm: FcmConfig = config;
 
-  const store = options.db ?? ((await import("@/lib/db")).db as unknown as NativePushDb);
+  const store =
+    options.db ?? ((await import("@/lib/db")).db as unknown as NativePushDb);
 
   const where =
     options.userIds && options.userIds.length > 0
@@ -257,7 +268,9 @@ export async function sendNativePush(
   try {
     access = await accessToken(fcm);
   } catch (error) {
-    console.warn(`push: ${error instanceof Error ? error.message : "token exchange failed"}`);
+    console.warn(
+      `push: ${error instanceof Error ? error.message : "token exchange failed"}`
+    );
     return { sent: 0, failed: devices.length, invalid: 0 };
   }
 
@@ -282,11 +295,17 @@ export async function sendNativePush(
       }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(SEND_CONCURRENCY, devices.length) }, () => worker()));
+  await Promise.all(
+    Array.from({ length: Math.min(SEND_CONCURRENCY, devices.length) }, () =>
+      worker()
+    )
+  );
 
   if (invalidTokens.length > 0) {
     try {
-      await store.mobileDevice.deleteMany({ where: { token: { in: invalidTokens } } });
+      await store.mobileDevice.deleteMany({
+        where: { token: { in: invalidTokens } },
+      });
     } catch (error) {
       console.warn(
         `push: could not prune ${invalidTokens.length} unregistered token(s): ${

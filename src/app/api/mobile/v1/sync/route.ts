@@ -8,8 +8,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reportError } from "@/lib/error-reporting";
-import { applySync, pullChanges, type MobileSyncDb } from "@/lib/mobile-sync/engine";
-import { resolveMobileUser, type MobileUser } from "@/lib/mobile-sync/resolve-mobile-user";
+import {
+  applySync,
+  pullChanges,
+  type MobileSyncDb,
+} from "@/lib/mobile-sync/engine";
+import {
+  resolveMobileUser,
+  type MobileUser,
+} from "@/lib/mobile-sync/resolve-mobile-user";
 import { SYNC_LIMITS } from "@/lib/mobile-sync/types";
 import {
   parsePullQuery,
@@ -67,11 +74,9 @@ function unauthorized(): NextResponse {
 
 function tooManyRequests(retryAfterSeconds: number): NextResponse {
   const retryAfter = Math.max(1, Math.round(retryAfterSeconds));
-  return json(
-    { error: "Too many requests" },
-    429,
-    { "Retry-After": String(retryAfter) }
-  );
+  return json({ error: "Too many requests" }, 429, {
+    "Retry-After": String(retryAfter),
+  });
 }
 
 /** Sync responses are per-user state: never cacheable, by anyone. */
@@ -86,9 +91,15 @@ function json(
   });
 }
 
-function invalidRequest<T>(result: Extract<ValidationResult<T>, { ok: false }>): NextResponse {
+function invalidRequest<T>(
+  result: Extract<ValidationResult<T>, { ok: false }>
+): NextResponse {
   return json(
-    { error: "Invalid sync payload", status: result.status, details: result.issues },
+    {
+      error: "Invalid sync payload",
+      status: result.status,
+      details: result.issues,
+    },
     result.status
   );
 }
@@ -102,7 +113,11 @@ export async function GET(request: Request) {
     const query = parsePullQuery(new URL(request.url).searchParams);
     if (!query.ok) return invalidRequest(query);
 
-    const result = await pullChanges(db as unknown as MobileSyncDb, user.id, query.value);
+    const result = await pullChanges(
+      db as unknown as MobileSyncDb,
+      user.id,
+      query.value
+    );
     return json({ serverTime: new Date().toISOString(), ...result }, 200);
   } catch (error) {
     reportError(error, { where: WHERE });
@@ -122,7 +137,11 @@ export async function POST(request: Request) {
     const { response, user } = await resolveCaller(request);
     if (response || !user) return response ?? unauthorized();
 
-    const result = await applySync(db as unknown as MobileSyncDb, user.id, payload.value);
+    const result = await applySync(
+      db as unknown as MobileSyncDb,
+      user.id,
+      payload.value
+    );
     return json({ serverTime: new Date().toISOString(), ...result }, 200);
   } catch (error) {
     reportError(error, { where: WHERE });

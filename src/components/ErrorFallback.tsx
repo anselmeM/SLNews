@@ -24,7 +24,9 @@ export default function ErrorFallback({
           error
         </span>
       </div>
-      <h2 className="text-2xl font-bold text-on-surface mb-2">Something went wrong</h2>
+      <h2 className="text-2xl font-bold text-on-surface mb-2">
+        Something went wrong
+      </h2>
       <p className="text-on-surface-variant text-sm max-w-md mb-6">
         We couldn&apos;t load this page. Please try again or return home.
       </p>

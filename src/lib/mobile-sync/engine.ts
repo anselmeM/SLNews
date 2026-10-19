@@ -112,7 +112,12 @@ function mergeRows<T extends Mergeable>(
   keyOf: (row: T) => string,
   collection: SyncCollection
 ): MergeOutcome<T> {
-  const outcome: MergeOutcome<T> = { changed: [], equal: [], rejected: [], state: new Map() };
+  const outcome: MergeOutcome<T> = {
+    changed: [],
+    equal: [],
+    rejected: [],
+    state: new Map(),
+  };
   // A batch that mentions the same key twice is not described by the contract;
   // the last row wins, mirroring a client that queued two edits for one item.
   const settled = new Set<string>();
@@ -126,7 +131,9 @@ function mergeRows<T extends Mergeable>(
     if (settled.has(key)) {
       outcome.changed = outcome.changed.filter((entry) => keyOf(entry) !== key);
       outcome.equal = outcome.equal.filter((entry) => keyOf(entry) !== key);
-      outcome.rejected = outcome.rejected.filter((entry) => entry.itemId !== key);
+      outcome.rejected = outcome.rejected.filter(
+        (entry) => entry.itemId !== key
+      );
     }
     settled.add(key);
 
@@ -231,7 +238,8 @@ async function chunkedWrite<T>(
     const chunk = rows.slice(start, start + CHUNK_SIZE);
     const lists: Prisma.Sql[] = chunk.map((row) => {
       const tuple = valuesOf(row).map(
-        (value, index) => Prisma.sql`${toSqlValue(value)}${castFor(columns[index] ?? "")}`
+        (value, index) =>
+          Prisma.sql`${toSqlValue(value)}${castFor(columns[index] ?? "")}`
       );
       return Prisma.sql`(${Prisma.join(tuple)})`;
     });
@@ -258,7 +266,9 @@ async function chunkedWrite<T>(
  * `undefined` would make Prisma throw on an untyped parameter; a caller that
  * hand-built a row meant SQL NULL.
  */
-function toSqlValue(value: unknown): string | number | bigint | Date | boolean | null {
+function toSqlValue(
+  value: unknown
+): string | number | bigint | Date | boolean | null {
   if (value === undefined || value === null) return null;
   if (
     typeof value === "string" ||
@@ -334,7 +344,9 @@ export async function pullChanges(
     reactions: reactions.slice(0, limit).map(toReactionDTO),
     follows: follows.slice(0, limit).map(toFollowDTO),
     hasMore:
-      bookmarks.length > limit || reactions.length > limit || follows.length > limit,
+      bookmarks.length > limit ||
+      reactions.length > limit ||
+      follows.length > limit,
   };
 }
 
@@ -354,7 +366,10 @@ function newId(): string {
   return randomUUID();
 }
 
-export function bookmarkValues(row: BookmarkSnapshot, userId: string): unknown[] {
+export function bookmarkValues(
+  row: BookmarkSnapshot,
+  userId: string
+): unknown[] {
   return [
     newId(),
     userId,
@@ -370,8 +385,18 @@ export function bookmarkValues(row: BookmarkSnapshot, userId: string): unknown[]
   ];
 }
 
-export function reactionValues(row: ReactionSnapshot, userId: string): unknown[] {
-  return [newId(), userId, row.itemId, row.kind, row.updatedAt, deletedAtFor(row)];
+export function reactionValues(
+  row: ReactionSnapshot,
+  userId: string
+): unknown[] {
+  return [
+    newId(),
+    userId,
+    row.itemId,
+    row.kind,
+    row.updatedAt,
+    deletedAtFor(row),
+  ];
 }
 
 export function followValues(row: FollowSnapshot, userId: string): unknown[] {
@@ -404,7 +429,14 @@ const BOOKMARK_COLUMNS = [
   "deletedAt",
 ];
 
-const REACTION_COLUMNS = ["id", "userId", "itemId", "kind", "updatedAt", "deletedAt"];
+const REACTION_COLUMNS = [
+  "id",
+  "userId",
+  "itemId",
+  "kind",
+  "updatedAt",
+  "deletedAt",
+];
 
 const FOLLOW_COLUMNS = [
   "id",
@@ -439,27 +471,40 @@ export async function applySync(
   userId: string,
   payload: SyncPushPayload
 ): Promise<SyncPushResult> {
-  const reactionItemIds = [...new Set(payload.reactions.map((row) => row.itemId))];
+  const reactionItemIds = [
+    ...new Set(payload.reactions.map((row) => row.itemId)),
+  ];
   const changeCount =
-    payload.bookmarks.length + payload.reactions.length + payload.follows.length;
+    payload.bookmarks.length +
+    payload.reactions.length +
+    payload.follows.length;
 
   return db.$transaction(
     async (tx) => {
-      const [storedBookmarks, storedReactions, storedFollows] = await Promise.all([
-        payload.bookmarks.length > 0
-          ? tx.mobileBookmark.findMany({
-              where: { userId, itemId: { in: payload.bookmarks.map((row) => row.itemId) } },
-            })
-          : Promise.resolve([] as BookmarkDbRow[]),
-        reactionItemIds.length > 0
-          ? tx.mobileReaction.findMany({ where: { userId, itemId: { in: reactionItemIds } } })
-          : Promise.resolve([] as ReactionDbRow[]),
-        payload.follows.length > 0
-          ? tx.mobileFollow.findMany({
-              where: { userId, targetId: { in: payload.follows.map((row) => row.targetId) } },
-            })
-          : Promise.resolve([] as FollowDbRow[]),
-      ]);
+      const [storedBookmarks, storedReactions, storedFollows] =
+        await Promise.all([
+          payload.bookmarks.length > 0
+            ? tx.mobileBookmark.findMany({
+                where: {
+                  userId,
+                  itemId: { in: payload.bookmarks.map((row) => row.itemId) },
+                },
+              })
+            : Promise.resolve([] as BookmarkDbRow[]),
+          reactionItemIds.length > 0
+            ? tx.mobileReaction.findMany({
+                where: { userId, itemId: { in: reactionItemIds } },
+              })
+            : Promise.resolve([] as ReactionDbRow[]),
+          payload.follows.length > 0
+            ? tx.mobileFollow.findMany({
+                where: {
+                  userId,
+                  targetId: { in: payload.follows.map((row) => row.targetId) },
+                },
+              })
+            : Promise.resolve([] as FollowDbRow[]),
+        ]);
 
       // `kind` is the third part of the reaction key, but v1 has exactly one kind,
       // so a row is uniquely identified by its item id here.
@@ -546,9 +591,15 @@ export async function applySync(
       );
 
       const state: SyncState = {
-        bookmarks: [...bookmarkMerge.state.values()].map((row) => toBookmarkDTO(toStateBookmark(row))),
-        reactions: [...reactionMerge.state.values()].map((row) => toReactionDTO(toStateReaction(row))),
-        follows: [...followMerge.state.values()].map((row) => toFollowDTO(toStateFollow(row))),
+        bookmarks: [...bookmarkMerge.state.values()].map((row) =>
+          toBookmarkDTO(toStateBookmark(row))
+        ),
+        reactions: [...reactionMerge.state.values()].map((row) =>
+          toReactionDTO(toStateReaction(row))
+        ),
+        follows: [...followMerge.state.values()].map((row) =>
+          toFollowDTO(toStateFollow(row))
+        ),
       };
 
       return {
@@ -557,7 +608,11 @@ export async function applySync(
           reactions: reactionMerge.changed.length,
           follows: followMerge.changed.length,
         },
-        rejected: [...bookmarkMerge.rejected, ...reactionMerge.rejected, ...followMerge.rejected],
+        rejected: [
+          ...bookmarkMerge.rejected,
+          ...reactionMerge.rejected,
+          ...followMerge.rejected,
+        ],
         state,
       } satisfies SyncPushResult;
     },

@@ -149,14 +149,20 @@ export function recordVisitDay(
 }
 
 /** Marks a day as confirmed once the server has accepted its ping. */
-export function markReported(days: readonly VisitDay[], day: string): VisitDay[] {
+export function markReported(
+  days: readonly VisitDay[],
+  day: string
+): VisitDay[] {
   return days.map((visit) =>
     visit.day === day ? { ...visit, reported: true } : visit
   );
 }
 
 /** The share of a day's sessions that are returns; `null` when there were none. */
-export function returningShare(firstVisits: number, returningVisits: number): number | null {
+export function returningShare(
+  firstVisits: number,
+  returningVisits: number
+): number | null {
   const total = firstVisits + returningVisits;
   if (total <= 0) return null;
   return returningVisits / total;

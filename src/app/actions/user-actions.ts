@@ -2,7 +2,10 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { feedInterestCategories, normalizeTopics } from "@/lib/interest-profile";
+import {
+  feedInterestCategories,
+  normalizeTopics,
+} from "@/lib/interest-profile";
 import { mapPrismaArticle, type NewsArticle } from "@/lib/news-service";
 
 export async function toggleSavedArticle(articleId: string): Promise<boolean> {
@@ -108,7 +111,9 @@ export async function loadPreferences(): Promise<{
   };
 }
 
-export async function setDailyBriefing(enabled: boolean): Promise<{ success: boolean }> {
+export async function setDailyBriefing(
+  enabled: boolean
+): Promise<{ success: boolean }> {
   const session = await auth();
   if (!session?.user?.id) return { success: false };
 
@@ -166,7 +171,10 @@ export async function getPhoneSavedArticles(): Promise<NewsArticle[]> {
 
   const articles = await db.article.findMany({
     where: { sourceUrl: { in: urls }, published: true, status: "PUBLISHED" },
-    include: { author: { select: { name: true, image: true } }, categories: true },
+    include: {
+      author: { select: { name: true, image: true } },
+      categories: true,
+    },
   });
 
   const bySourceUrl = new Map(

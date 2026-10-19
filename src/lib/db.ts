@@ -1,8 +1,8 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { resolvePgConnection } from '@/lib/db-ssl';
-import { logger } from '@/lib/logger';
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { resolvePgConnection } from "@/lib/db-ssl";
+import { logger } from "@/lib/logger";
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
@@ -22,7 +22,8 @@ const resolved = resolvePgConnection(connectionString);
 // hosted database should never be reached unverified. `rejectUnauthorized:
 // false` keeps a hosted database working but gives up verification, so it is
 // logged rather than silent — the fix is to spell out `sslmode=verify-full`.
-const fallbackSsl = resolved.unset && isProduction ? { rejectUnauthorized: false } : undefined;
+const fallbackSsl =
+  resolved.unset && isProduction ? { rejectUnauthorized: false } : undefined;
 const ssl = resolved.ssl === undefined ? fallbackSsl : resolved.ssl;
 
 // Any TLS configuration that does not verify the certificate is worth saying out
@@ -33,7 +34,7 @@ if (typeof ssl === "object" && ssl.rejectUnauthorized === false) {
   logger.warn(
     resolved.unset
       ? "DATABASE_URL has no sslmode: connecting without certificate verification. Set sslmode=verify-full."
-      : `DATABASE_URL sets sslmode=${resolved.mode}: connecting without certificate verification.`,
+      : `DATABASE_URL sets sslmode=${resolved.mode}: connecting without certificate verification.`
   );
 }
 
