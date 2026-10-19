@@ -169,3 +169,7 @@ CREATE TABLE IF NOT EXISTS "Sponsorship" (
 );
 CREATE INDEX IF NOT EXISTS "Sponsorship_placement_active_startsAt_endsAt_idx"
   ON "Sponsorship" ("placement", "active", "startsAt", "endsAt");
+
+-- Sponsorship counters (additive; measured by the public event endpoint).
+ALTER TABLE "Sponsorship" ADD COLUMN IF NOT EXISTS "impressions" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Sponsorship" ADD COLUMN IF NOT EXISTS "taps" INTEGER NOT NULL DEFAULT 0;
