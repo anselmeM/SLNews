@@ -25,7 +25,8 @@ const CLERK_FRAMES = "https://*.protect.clerk.com";
 // app source calls eval or `new Function`, Next's production runtime ships
 // precompiled output, and Clerk's own guidance treats `'unsafe-eval'` as
 // development-only in Next.js.
-const ALLOW_EVAL = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+const ALLOW_EVAL =
+  process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
 
 // There is deliberately no AdSense domain allowlist here. Google's supported
 // AdSense policy is nonce + 'strict-dynamic' and still lists 'unsafe-eval', and
@@ -46,7 +47,35 @@ const nextConfig: NextConfig = {
       { source: "/local", destination: "/local-news", permanent: true },
       { source: "/local/:path*", destination: "/local-news", permanent: true },
       { source: "/national", destination: "/local-news", permanent: true },
-      { source: "/national/:path*", destination: "/local-news", permanent: true },
+      {
+        source: "/national/:path*",
+        destination: "/local-news",
+        permanent: true,
+      },
+      { source: "/home", destination: "/", permanent: true },
+      { source: "/local-news", destination: "/", permanent: true },
+      { source: "/world", destination: "/", permanent: true },
+      { source: "/saved", destination: "/", permanent: true },
+      { source: "/reels", destination: "/", permanent: true },
+      { source: "/search", destination: "/", permanent: true },
+      { source: "/market", destination: "/", permanent: true },
+      { source: "/announcements", destination: "/", permanent: true },
+      { source: "/listen", destination: "/", permanent: true },
+      { source: "/digest", destination: "/", permanent: true },
+      { source: "/notifications", destination: "/", permanent: true },
+      { source: "/profile", destination: "/", permanent: true },
+      { source: "/dashboard", destination: "/", permanent: true },
+      { source: "/offline", destination: "/", permanent: true },
+      { source: "/login", destination: "/", permanent: true },
+      { source: "/register", destination: "/", permanent: true },
+      { source: "/sign-in", destination: "/", permanent: true },
+      { source: "/sign-up", destination: "/", permanent: true },
+      { source: "/forgot-password", destination: "/", permanent: true },
+      { source: "/reset-password", destination: "/", permanent: true },
+      { source: "/article/:path*", destination: "/", permanent: true },
+      { source: "/author/:path*", destination: "/", permanent: true },
+      { source: "/announcements/:path*", destination: "/", permanent: true },
+      { source: "/dashboard/:path*", destination: "/", permanent: true },
     ];
   },
   images: {

@@ -38,12 +38,8 @@ describe("PrivacyPolicyPage Component", () => {
       screen.getByText(/no analytics SDK and no\s+advertising SDK/i)
     ).toBeInTheDocument();
     // Both services appear twice: once in the web section, once in the provider list.
-    expect(
-      screen.getAllByText(/Meta \(Facebook\) Pixel/i).length
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText(/Google AdSense/i).length
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/Meta \(Facebook\) Pixel/i)).toBeNull();
+    expect(screen.queryByText(/Google AdSense/i)).toBeNull();
   });
 
   it("discloses Sentry crash diagnostics without account identifiers", () => {

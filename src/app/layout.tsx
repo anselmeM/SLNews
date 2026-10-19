@@ -1,14 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Suspense } from "react";
 import "./globals.css";
 import { auth } from "@/auth";
-import CampaignAttributionTracker from "@/components/CampaignAttributionTracker";
 import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
-import MetaPixel from "@/components/MetaPixel";
-import PageViewTracker from "@/components/PageViewTracker";
-import RetentionPing from "@/components/RetentionPing";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -102,21 +97,6 @@ export default async function RootLayout({
             content="black-translucent"
           />
           <meta name="apple-mobile-web-app-title" content="SLNews" />
-          {process.env.NODE_ENV === "production" && (
-            <Script
-              id="sw-register"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', function() {
-                      navigator.serviceWorker.register('/sw.js');
-                    });
-                  }
-                `,
-              }}
-            />
-          )}
         </head>
         <body
           className="bg-surface text-on-surface font-body-md min-h-screen"
@@ -128,12 +108,6 @@ export default async function RootLayout({
           >
             Skip to content
           </a>
-          <Suspense fallback={null}>
-            <PageViewTracker />
-            <RetentionPing />
-            <MetaPixel />
-            <CampaignAttributionTracker />
-          </Suspense>
           <AppLayoutWrapper session={session}>{children}</AppLayoutWrapper>
         </body>
       </html>
