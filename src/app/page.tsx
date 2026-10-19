@@ -41,17 +41,6 @@ const features = [
   ["Offline", "Saved stories stay readable with no connection."],
 ] as const;
 
-const applicationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "SLNews",
-  applicationCategory: "NewsApplication",
-  operatingSystem: "Android, iOS",
-  description:
-    "Sierra Leone news, live weather, daily briefings, sports and offline reading.",
-  url: siteUrl("/"),
-};
-
 function StoreCtas() {
   const button =
     "inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold transition-colors";
@@ -92,11 +81,6 @@ function StoreCtas() {
 export default function MarketingHome() {
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(applicationJsonLd) }}
-      />
-
       <section className="py-12 sm:py-20">
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
