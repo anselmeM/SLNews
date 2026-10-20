@@ -57,8 +57,10 @@ export async function GET() {
   }
 
   const scraper = await probeScraper();
-  checks.scraper = scraper.status;
-  if (scraper.latency) checks.scraperLatency = scraper.latency;
+  const scraperStatus = scraper.status ?? "unknown";
+  const scraperLatency = scraper.latency;
+  checks.scraper = scraperStatus;
+  if (scraperLatency) checks.scraperLatency = scraperLatency;
 
   const statusCode = healthy ? 200 : 503;
   return NextResponse.json(
