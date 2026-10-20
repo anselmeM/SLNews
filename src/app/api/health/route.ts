@@ -4,6 +4,9 @@ import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
+// A cold Render scraper can take ~45s to boot; the probe must be allowed to wait.
+export const maxDuration = 60;
+
 const SCRAPER_BASE = (
   process.env.SCRAPER_BASE_URL || "https://slnewsapiscapper.onrender.com"
 ).replace(/\/$/, "");
@@ -14,7 +17,7 @@ async function probeScraper(): Promise<Record<string, string>> {
   try {
     const response = await fetch(`${SCRAPER_BASE}/api/health`, {
       cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(50_000),
     });
     const latency = `${Date.now() - started}ms`;
     if (response.ok) return { status: "ok", latency };
