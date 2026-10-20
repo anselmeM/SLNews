@@ -2,6 +2,32 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
+export const dynamic = "force-dynamic";
+
+const SCRAPER_BASE = (
+  process.env.SCRAPER_BASE_URL || "https://slnewsapiscapper.onrender.com"
+).replace(/\/$/, "");
+
+/** Wake and report the scraper. A cold Render instance answers 503 while booting. */
+async function probeScraper(): Promise<Record<string, string>> {
+  const started = Date.now();
+  try {
+    const response = await fetch(`${SCRAPER_BASE}/api/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    const latency = `${Date.now() - started}ms`;
+    if (response.ok) return { status: "ok", latency };
+    return { status: `http-${response.status}`, latency };
+  } catch (err) {
+    return {
+      status: "unreachable",
+      latency: `${Date.now() - started}ms`,
+      error: err instanceof Error ? err.name : "unknown",
+    };
+  }
+}
+
 export async function GET() {
   const checks: Record<string, string> = {};
   let healthy = true;
@@ -29,6 +55,10 @@ export async function GET() {
       error: err instanceof Error ? err.message : String(err),
     });
   }
+
+  const scraper = await probeScraper();
+  checks.scraper = scraper.status;
+  if (scraper.latency) checks.scraperLatency = scraper.latency;
 
   const statusCode = healthy ? 200 : 503;
   return NextResponse.json(
