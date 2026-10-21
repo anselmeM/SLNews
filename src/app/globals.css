@@ -88,6 +88,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --color-primary: #7bda94;
   --color-on-primary: #003910;
   --color-primary-container: #005319;
