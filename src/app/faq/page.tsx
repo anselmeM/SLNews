@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import MarketingFooter from "@/components/marketing/MarketingFooter";
-import MarketingHeader from "@/components/marketing/MarketingHeader";
 import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
@@ -48,7 +46,6 @@ const faqs = [
 export default function FaqPage() {
   return (
     <>
-      <MarketingHeader />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
           Questions and answers
@@ -67,7 +64,6 @@ export default function FaqPage() {
           ))}
         </div>
       </main>
-      <MarketingFooter />
     </>
   );
 }
