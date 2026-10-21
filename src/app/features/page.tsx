@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import MarketingFooter from "@/components/marketing/MarketingFooter";
-import MarketingHeader from "@/components/marketing/MarketingHeader";
 import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
@@ -52,7 +50,6 @@ const sections = [
 export default function FeaturesPage() {
   return (
     <>
-      <MarketingHeader />
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-black tracking-tight text-on-surface sm:text-4xl">
           What&apos;s inside the app
@@ -73,7 +70,6 @@ export default function FeaturesPage() {
           ))}
         </div>
       </main>
-      <MarketingFooter />
     </>
   );
 }
