@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { isFcmConfigured } from "@/lib/push/fcm";
+import { parseServiceAccount } from "@/lib/push/fcm";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +60,12 @@ export async function GET() {
     });
   }
 
-  checks.push = isFcmConfigured() ? "configured" : "missing";
+  const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  checks.push = !serviceAccountRaw?.trim()
+    ? "missing"
+    : parseServiceAccount(serviceAccountRaw)
+      ? "configured"
+      : "invalid";
 
   const scraper = await probeScraper();
   const scraperStatus = scraper.status ?? "unknown";
