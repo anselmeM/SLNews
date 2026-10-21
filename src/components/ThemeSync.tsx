@@ -16,6 +16,13 @@ export default function ThemeSync() {
     () => false
   );
 
+  // The store is created with skipHydration so SSR and the first client paint
+  // agree; rehydrate on mount now that the reader shell (which used to do it)
+  // is gone.
+  useEffect(() => {
+    useAppStore.persist?.rehydrate();
+  }, []);
+
   useEffect(() => {
     if (!hasHydrated) return;
 

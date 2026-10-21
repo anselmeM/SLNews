@@ -64,3 +64,27 @@ test.describe("Marketing site", () => {
     }
   });
 });
+
+test.describe("Dark mode", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("respects the visitor's dark preference on the landing page", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveClass(/dark/);
+    const background = await page.evaluate(
+      () => getComputedStyle(document.body).backgroundColor
+    );
+    // Dark surface token, not white.
+    expect(background).not.toBe("rgb(255, 255, 255)");
+  });
+
+  test("the header toggle switches themes", async ({ page }) => {
+    await page.goto("/");
+    await page
+      .getByRole("button", { name: /Switch to (light|dark) theme/ })
+      .click();
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
+  });
+});
