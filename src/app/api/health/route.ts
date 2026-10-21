@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { isFcmConfigured } from "@/lib/push/fcm";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,8 @@ export async function GET() {
       error: err instanceof Error ? err.message : String(err),
     });
   }
+
+  checks.push = isFcmConfigured() ? "configured" : "missing";
 
   const scraper = await probeScraper();
   const scraperStatus = scraper.status ?? "unknown";
