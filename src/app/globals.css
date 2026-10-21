@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
+@theme {
   --color-primary: #006e1c;
   --color-on-primary: #ffffff;
   --color-primary-container: #d2f8d2;
