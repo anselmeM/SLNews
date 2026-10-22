@@ -27,10 +27,10 @@ export default async function SponsorshipsAdminPage({
 }) {
   if (!(await isAdminRequest())) redirect("/admin/sponsorships/login");
   const flags = await searchParams;
-  const rows = await db.sponsorship.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const [rows, deviceCount] = await Promise.all([
+    db.sponsorship.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
+    db.mobileDevice.count(),
+  ]);
   const totals = rows.reduce(
     (acc, row) => {
       acc.impressions += row.impressions;
