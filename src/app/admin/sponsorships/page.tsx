@@ -87,7 +87,8 @@ export default async function SponsorshipsAdminPage({
 
       <p className="text-xs text-on-surface-variant">
         Total: {totals.impressions} impressions · {totals.taps} taps · CTR{" "}
-        {ctr(totals.impressions, totals.taps)}
+        {ctr(totals.impressions, totals.taps)} · {deviceCount} device
+        {deviceCount === 1 ? "" : "s"} registered for push
       </p>
 
       {rows.length === 0 ? (
