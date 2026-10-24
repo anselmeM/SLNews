@@ -78,6 +78,7 @@ function toGame(event: DbEvent, leagueLabel: string) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchJson(path: string): Promise<any> {
   try {
     const res = await fetch(`${BASE}/${KEY}/${path}`, {
@@ -109,6 +110,7 @@ async function buildPayload() {
         const body = await fetchJson(
           `lookuptable.php?l=${league.id}&s=${league.season}`
         );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rows = ((body?.table ?? []) as any[])
           .map((row) => ({
             team: {
